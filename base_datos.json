@@ -1,0 +1,420 @@
+{
+  "usuarios": [
+    {
+      "id": "admin_001",
+      "nombre": "Administrador",
+      "usuario": "admin",
+      "clave": "12345",
+      "rol": "administrador",
+      "activo": true
+    },
+    {
+      "id": "pastor_001",
+      "nombre": "Pastor Principal",
+      "usuario": "pastor",
+      "clave": "R5mL2a9CArrQ=)B",
+      "rol": "lider",
+      "activo": true,
+      "permisos": {
+        "calendario": {
+          "ver": true,
+          "crear": false,
+          "editar": false,
+          "eliminar": false
+        },
+        "celulas": {
+          "ver": true,
+          "crear": false,
+          "editar": false,
+          "eliminar": false
+        },
+        "oracion": {
+          "ver": true,
+          "crear": true,
+          "editar": false,
+          "eliminar": false
+        },
+        "asistencia": {
+          "ver": true,
+          "crear": true,
+          "exportar": false
+        },
+        "comunicacion": {
+          "ver": true,
+          "crear": false
+        }
+      }
+    },
+    {
+      "id": "tesorero_001",
+      "nombre": "Tesorero",
+      "usuario": "tesorero",
+      "clave": "12345",
+      "rol": "tesorero",
+      "activo": true
+    },
+    {
+      "id": "secretario_001",
+      "nombre": "Secretario",
+      "usuario": "secretario",
+      "clave": "12345",
+      "rol": "secretario",
+      "activo": true
+    },
+    {
+      "id": "usr_1771820426599",
+      "nombre": "EDUAL ENCARNACION",
+      "usuario": "EDUAL",
+      "clave": "Eec15921986@",
+      "rol": "administrador",
+      "activo": true,
+      "permisos": {
+        "dashboard": {
+          "ver": true
+        },
+        "calendario": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        },
+        "membresia": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true,
+          "exportar": true
+        },
+        "visitas": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        },
+        "celulas": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        },
+        "ninos": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        },
+        "oracion": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        },
+        "asistencia": {
+          "ver": true,
+          "crear": true,
+          "exportar": true
+        },
+        "finanzas": {
+          "ver": true,
+          "crear": true,
+          "eliminar": true,
+          "exportar": true
+        },
+        "prestamos": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true,
+          "exportar": true
+        },
+        "reportes": {
+          "ver": true,
+          "exportar": true
+        },
+        "publicidad": {
+          "ver": true,
+          "crear": true,
+          "eliminar": true
+        },
+        "comunicacion": {
+          "ver": true,
+          "crear": true
+        },
+        "auditoria": {
+          "ver": true,
+          "exportar": true
+        },
+        "admin": {
+          "ver": true,
+          "crear": true,
+          "editar": true,
+          "eliminar": true
+        }
+      }
+    }
+  ],
+  "miembros": [
+    {
+      "id": "miem_1771822192055",
+      "nombre": "EDUAL ENCARNACION",
+      "telefono": "8299206395",
+      "email": "",
+      "direccion": "C LAS DAMAS NO 18 EL ALMIRANTE ",
+      "fechaNac": "1986-12-24",
+      "fechaIng": "2023-07-23",
+      "estadoCivil": "casado",
+      "ministerio": "otros",
+      "estado": "activo",
+      "celula": "",
+      "notas": "MULTIMEDIA ",
+      "cedula": "",
+      "pasaporte": "",
+      "cedulaVence": "",
+      "nacionalidad": "",
+      "foto": "data:image/jpeg;base64,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",
+      "temas": [],
+      "historial": []
+    },
+    {
+      "id": "miem_1771822221906",
+      "nombre": "ALFREDO SANTANA",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "casado",
+      "ministerio": "otros",
+      "estado": "activo",
+      "celula": "",
+      "notas": "MULTIMEDIA"
+    },
+    {
+      "id": "miem_1771822228887",
+      "nombre": "CAROLINA",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "ninguno",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822235636",
+      "nombre": "SONIA BELTRE",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "ninguno",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822248749",
+      "nombre": "LETI VILLAMAN",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "ninguno",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822266988",
+      "nombre": "VALLERY VILLAMAN",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "ninguno",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822280350",
+      "nombre": "JOSEFINA ENCARNACION",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "ninguno",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822306762",
+      "nombre": "TILSO BREA",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "pastores",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822322908",
+      "nombre": "JOAN BREA",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "musicos",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822329967",
+      "nombre": "ABEL",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "musicos",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822341116",
+      "nombre": "RODY",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "soltero",
+      "ministerio": "musicos",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    },
+    {
+      "id": "miem_1771822362953",
+      "nombre": "MARISOL MELLA",
+      "telefono": "",
+      "email": "",
+      "direccion": "",
+      "fechaNac": "",
+      "fechaIng": "",
+      "estadoCivil": "casado",
+      "ministerio": "pastora",
+      "estado": "activo",
+      "celula": "",
+      "notas": ""
+    }
+  ],
+  "visitas": [
+    {
+      "id": "vis_1771821056298",
+      "nombre": "kvhvchgcgtchj",
+      "telefono": "",
+      "email": "",
+      "fecha": "2026-02-23",
+      "llego": "invitado",
+      "estado": "visita-nueva",
+      "notas": ""
+    }
+  ],
+  "asistencia": [
+    {
+      "fecha": "2026-02-23",
+      "datos": {
+        "miem_1771822192055": "presente",
+        "miem_1771822221906": "presente",
+        "miem_1771822228887": "presente",
+        "miem_1771822235636": "presente",
+        "miem_1771822248749": "presente",
+        "miem_1771822266988": "presente",
+        "miem_1771822280350": "presente",
+        "miem_1771822306762": "presente",
+        "miem_1771822322908": "presente",
+        "miem_1771822329967": "presente",
+        "miem_1771822341116": "presente",
+        "miem_1771822362953": "presente"
+      }
+    }
+  ],
+  "auditoria": [
+    {
+      "id": "log_1771847639196_ay7vt",
+      "fecha": "2026-02-23T11:53:59.196Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "LOGIN",
+      "detalle": "Inicio de sesión exitoso"
+    },
+    {
+      "id": "log_1771848472137_e1507",
+      "fecha": "2026-02-23T12:07:52.137Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "LOGIN",
+      "detalle": "Inicio de sesión exitoso"
+    },
+    {
+      "id": "log_1771848497075_jtndw",
+      "fecha": "2026-02-23T12:08:17.075Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "UPDATE",
+      "detalle": "Actualizar miembro: EDUAL ENCARNACION"
+    },
+    {
+      "id": "log_1771848522511_ryqs0",
+      "fecha": "2026-02-23T12:08:42.511Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "LOGIN",
+      "detalle": "Inicio de sesión exitoso"
+    },
+    {
+      "id": "log_1771848561160_4xgh0",
+      "fecha": "2026-02-23T12:09:21.160Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "EXPORT",
+      "detalle": "Exportar base de datos completa"
+    },
+    {
+      "id": "log_1771848849821_avuh9",
+      "fecha": "2026-02-23T12:14:09.821Z",
+      "usuario": "EDUAL ENCARNACION",
+      "usuarioId": "usr_1771820426599",
+      "rol": "administrador",
+      "accion": "LOGIN",
+      "detalle": "Inicio de sesión exitoso"
+    }
+  ]
+}

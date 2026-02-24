@@ -202,15 +202,17 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
   .fin-cat-num{font-size:16px}
   /* Botones más grandes */
   .btn{min-height:38px}
-  /* Asistencia móvil */
+  /* Asistencia móvil — lista full width en pantallas pequeñas */
   #listaAsist{grid-template-columns:1fr!important}
   #listaPresentes{grid-template-columns:1fr!important}
+  #listaExcusas{grid-template-columns:1fr!important}
   #buscarAsist{font-size:16px;padding:14px 16px}
   /* Modales desde abajo en móvil */
   .mv{border-radius:16px 16px 0 0;max-height:92vh}
   .modal-overlay{align-items:flex-end;padding:0}
   /* Tabla scroll horizontal */
   .tc{-webkit-overflow-scrolling:touch}
+  /* Contadores de asistencia en 2x2 en móvil muy pequeño */
 }
   .ph-t{font-size:15px}
 }
@@ -635,79 +637,114 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 
       <!-- ASISTENCIA -->
       <div id="vp-asistencia" class="vp">
-        <div class="ph" style="flex-wrap:wrap;gap:10px">
-          <div><div class="ph-t">📋 Asistencia</div><div class="ph-s">Crea una actividad para pasar lista</div></div>
-          <button class="btn btn-p btn-sm" onclick="abrirCrearActividad()">➕ Nueva Actividad</button>
-        </div>
 
-        <!-- Actividades pendientes -->
-        <div class="panel" id="panelActividades">
-          <div class="ph2">📅 Actividades pendientes</div>
-          <div class="pb" id="listaActividades">
-            <div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades. Crea una para comenzar.</div></div>
+        <!-- VISTA: LISTA DE ACTIVIDADES (default) -->
+        <div id="vistaActividades">
+          <div class="ph" style="flex-wrap:wrap;gap:10px">
+            <div>
+              <div class="ph-t">📋 Asistencia</div>
+              <div class="ph-s">Crea una actividad para comenzar a pasar lista</div>
+            </div>
+            <button class="btn btn-p" onclick="abrirCrearActividad()" style="min-height:44px;padding:12px 20px;font-size:13px">
+              ➕ Nueva Actividad
+            </button>
           </div>
-        </div>
 
-        <!-- Pasar lista (visible solo cuando hay actividad activa) -->
-        <div class="panel" id="panelPasarLista" style="display:none">
-          <div class="ph2" style="flex-wrap:wrap;gap:8px">
-            <span id="aActividadNombre">Actividad</span>
-            <div style="display:flex;gap:7px;flex-wrap:wrap">
-              <button class="btn btn-e btn-xs" onclick="marcarT('presente')">✅ Marcar todos presentes</button>
-              <button class="btn btn-s btn-xs" onclick="cerrarPasarLista()">✖ Cancelar</button>
+          <!-- Actividades pendientes -->
+          <div class="panel" id="panelActividades">
+            <div class="ph2">
+              <span>📅 Actividades pendientes</span>
+              <span style="font-size:10px;color:#888;font-family:Lato,sans-serif;font-weight:400">Toca "Pasar lista" para iniciar</span>
+            </div>
+            <div class="pb" id="listaActividades">
+              <div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades pendientes.<br>Crea una nueva para comenzar.</div></div>
             </div>
           </div>
-          <div class="pb">
-            <!-- Contadores en tiempo real -->
-            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
-              <div style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:12px;padding:14px;text-align:center">
-                <div style="font-size:24px;font-weight:700;color:#27ae60;font-family:Cinzel,serif" id="aP">0</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">✅ Presentes</div>
-              </div>
-              <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:14px;text-align:center">
-                <div style="font-size:24px;font-weight:700;color:#e74c3c;font-family:Cinzel,serif" id="aA">0</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">❌ Ausentes</div>
-              </div>
-              <div style="background:rgba(243,156,18,.07);border:1px solid rgba(243,156,18,.2);border-radius:12px;padding:14px;text-align:center">
-                <div style="font-size:24px;font-weight:700;color:#f39c12;font-family:Cinzel,serif" id="aJ">0</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">📝 Excusas</div>
-              </div>
-              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
-                <div style="font-size:24px;font-weight:700;color:#fff;font-family:Cinzel,serif" id="aT">0</div>
-                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">👥 Total</div>
-              </div>
-            </div>
 
-            <!-- Búsqueda -->
-            <input type="text" id="buscarAsist" placeholder="🔍 Buscar miembro..." oninput="filtrarListaAsist()" style="width:100%;padding:12px 16px;background:var(--gr);border:1px solid var(--gm);border-radius:10px;color:#fff;font-size:14px;font-family:Lato,sans-serif;box-sizing:border-box;margin-bottom:16px">
-
-            <!-- Lista por marcar -->
-            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Por marcar</div>
-            <div id="listaAsist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
-
-            <!-- Presentes -->
-            <div id="secPresentes" style="margin-top:20px;display:none">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
-                <div style="font-size:10px;color:#27ae60;text-transform:uppercase;letter-spacing:1px;font-weight:700">✅ Asistió</div>
-                <span id="cntPresentes" style="background:rgba(39,174,96,.15);color:#27ae60;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">0</span>
-              </div>
-              <div id="listaPresentes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px"></div>
-            </div>
-
-            <div style="margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
-              <button class="btn btn-p" style="padding:14px 36px;font-size:14px" onclick="guardarAsist()">💾 Guardar y finalizar</button>
-              <button class="btn btn-xl" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso','error');return}exportAsistCSV()">📊 Exportar CSV</button>
+          <!-- Historial -->
+          <div class="panel" id="panelHistorialAsist" style="margin-top:16px">
+            <div class="ph2">📜 Listas guardadas</div>
+            <div class="pb" id="listaHistorialAsist">
+              <div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>
             </div>
           </div>
         </div>
 
-        <!-- Historial -->
-        <div class="panel" id="panelHistorialAsist" style="margin-top:16px">
-          <div class="ph2">📜 Listas guardadas</div>
-          <div class="pb" id="listaHistorialAsist">
-            <div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>
+        <!-- VISTA: PASAR LISTA (modo activo, oculta la lista de actividades) -->
+        <div id="vistaPasarLista" style="display:none">
+          <!-- Header con nombre de actividad -->
+          <div style="background:linear-gradient(135deg,rgba(212,175,55,.1),rgba(212,175,55,.04));border:1px solid rgba(212,175,55,.25);border-radius:14px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div>
+              <div style="font-family:Cinzel,serif;color:var(--do);font-size:16px" id="aActividadNombre">Actividad</div>
+              <div style="font-size:11px;color:#888;margin-top:4px">Selecciona quién asistió. Los no marcados quedarán como ausentes al guardar.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-e btn-sm" onclick="marcarT('presente')" style="min-height:40px">✅ Todos presentes</button>
+              <button class="btn btn-s btn-sm" onclick="confirmarCerrarLista()" style="min-height:40px">✖ Cancelar</button>
+            </div>
+          </div>
+
+          <!-- Contadores en tiempo real -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px">
+            <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+              <div style="font-size:26px;font-weight:700;color:#fff;font-family:Cinzel,serif" id="aT">0</div>
+              <div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:4px;letter-spacing:.5px">👥 Total</div>
+            </div>
+            <div style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:12px;padding:14px;text-align:center">
+              <div style="font-size:26px;font-weight:700;color:#27ae60;font-family:Cinzel,serif" id="aP">0</div>
+              <div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:4px;letter-spacing:.5px">✅ Presentes</div>
+            </div>
+            <div style="background:rgba(243,156,18,.07);border:1px solid rgba(243,156,18,.2);border-radius:12px;padding:14px;text-align:center">
+              <div style="font-size:26px;font-weight:700;color:#f39c12;font-family:Cinzel,serif" id="aJ">0</div>
+              <div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:4px;letter-spacing:.5px">📝 Excusas</div>
+            </div>
+            <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:14px;text-align:center">
+              <div style="font-size:26px;font-weight:700;color:#e74c3c;font-family:Cinzel,serif" id="aA">0</div>
+              <div style="font-size:9px;color:#888;text-transform:uppercase;margin-top:4px;letter-spacing:.5px">❌ Pendientes</div>
+            </div>
+          </div>
+
+          <!-- Búsqueda -->
+          <input type="text" id="buscarAsist" placeholder="🔍 Buscar miembro..." oninput="filtrarListaAsist()" 
+            style="width:100%;padding:14px 16px;background:var(--gr);border:1px solid var(--gm);border-radius:12px;color:#fff;font-size:15px;font-family:Lato,sans-serif;box-sizing:border-box;margin-bottom:20px;-webkit-appearance:none">
+
+          <!-- Sección: POR MARCAR -->
+          <div id="secPendientes">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700">📋 Por marcar</div>
+              <span id="cntPendientes" style="background:rgba(255,255,255,.07);color:#aaa;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">0</span>
+            </div>
+            <div id="listaAsist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,280px),1fr));gap:10px"></div>
+          </div>
+
+          <!-- Sección: ASISTIÓ / PRESENTE -->
+          <div id="secPresentes" style="margin-top:24px;display:none">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="font-size:10px;color:#27ae60;text-transform:uppercase;letter-spacing:1px;font-weight:700">✅ Asistió</div>
+              <span id="cntPresentes" style="background:rgba(39,174,96,.15);color:#27ae60;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">0</span>
+            </div>
+            <div id="listaPresentes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:8px"></div>
+          </div>
+
+          <!-- Sección: EXCUSAS -->
+          <div id="secExcusas" style="margin-top:24px;display:none">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+              <div style="font-size:10px;color:#f39c12;text-transform:uppercase;letter-spacing:1px;font-weight:700">📝 Con excusa</div>
+              <span id="cntExcusas" style="background:rgba(243,156,18,.15);color:#f39c12;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">0</span>
+            </div>
+            <div id="listaExcusas" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,240px),1fr));gap:8px"></div>
+          </div>
+
+          <!-- Botón guardar -->
+          <div style="margin-top:32px;padding:20px;background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.1);border-radius:14px;text-align:center">
+            <div style="font-size:12px;color:#888;margin-bottom:14px">Los miembros que no estén en "Asistió" quedarán como Ausentes automáticamente</div>
+            <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-p" style="padding:16px 40px;font-size:15px;min-height:52px" onclick="guardarAsist()">💾 Guardar y finalizar lista</button>
+              <button class="btn btn-xl btn-sm" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso','error');return}exportAsistCSV()" style="min-height:52px">📊 Exportar CSV</button>
+            </div>
           </div>
         </div>
+
       </div>
 
       <!-- MODAL: Crear Actividad -->
@@ -1830,7 +1867,13 @@ function editM(i){
   document.querySelector('.contenido').scrollTo(0,0);
   tabMForm('general', document.querySelector('.mftab'));
 }
-async function delM(i){if(!confirm(`⚠️ ¿Estás seguro de eliminar a "${miembros[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+miembros[i].nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado')}
+async function delM(i){
+  const nombre=miembros[i].nombre;
+  const conf=prompt(`⚠️ Para confirmar, escribe el nombre exacto del miembro:\n\n"${nombre}"\n\nEsto eliminará permanentemente todos sus datos.`);
+  if(conf===null) return;
+  if(conf.trim().toLowerCase()!==nombre.toLowerCase()){toast('Nombre incorrecto. No se eliminó.','error');return;}
+  await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado');
+}
 function filtrarM(){const q=document.getElementById('buscarM').value.toLowerCase();document.querySelectorAll('#tbM tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
 function actCelSel(){const s=document.getElementById('mCel');s.innerHTML='<option value="">Sin célula</option>';celulas.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nombre;s.appendChild(o)})}
 const EBADGE={activo:'ba',inactivo:'bi',visitante:'bv','visitante-habitual':'bvh','visita-nueva':'bvn'};
@@ -1854,9 +1897,9 @@ function renderM(){
       <td><span class="badge ${EBADGE[m.estado]||'bi'}">${ELABEL[m.estado]||m.estado}</span></td>
       <td>${alertaHtml}</td>
       <td style="white-space:nowrap">
-        <button class="btn btn-i btn-xs" onclick="editM(${i})">✏️</button>
+        <button class="btn btn-i btn-xs" title="Editar miembro" onclick="editM(${i})">✏️ Editar</button>
         ${m.telefono?`<button class="btn btn-wa btn-xs" onclick="waM('${m.telefono}','${m.nombre}')">📱</button>`:''}
-        <button class="btn btn-d btn-xs" onclick="delM(${i})">🗑️</button>
+        <button class="btn btn-d btn-xs" title="Eliminar (requiere confirmación)" onclick="delM(${i})">🗑️</button>
       </td></tr>`;}).join('');
   const activos=miembros.filter(m=>m.estado==='activo').length;
   document.getElementById('subMiem').textContent=miembros.length+' registrados · '+activos+' activos';document.getElementById('cuentaM').textContent=miembros.length;
@@ -2148,7 +2191,6 @@ async function crearActividad(){
   _db.actividades[act.id]=act;
   await _dbSave();
   closeM('mCrearActividad');
-  renderActividades();
   toast('Actividad creada. Pasando lista...');
   setTimeout(()=>iniciarPasarLista(act),300);
 }
@@ -2158,22 +2200,31 @@ function renderActividades(){
   const acts=Object.values(_db.actividades||{}).filter(a=>a.estado==='pendiente').sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
   if(!acts.length){
-    c.innerHTML='<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades pendientes. Crea una nueva.</div></div>';
+    c.innerHTML='<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades pendientes.<br>Crea una nueva para comenzar.</div></div>';
   } else {
     c.innerHTML=acts.map(a=>`
-      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
-        <div style="width:46px;height:46px;border-radius:12px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
+      <div style="display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+        <div style="width:52px;height:52px;border-radius:14px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
         <div style="flex:1;min-width:130px">
-          <div style="font-weight:700;color:#fff;font-size:14px">${a.nombre}</div>
-          <div style="font-size:11px;color:#888;margin-top:3px">${fmtF(a.fecha)}${a.hora?' · '+a.hora:''}</div>
+          <div style="font-weight:700;color:#fff;font-size:15px">${a.nombre}</div>
+          <div style="font-size:11px;color:#888;margin-top:4px">${fmtF(a.fecha)}${a.hora?' · ⏰ '+a.hora:''}</div>
         </div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="btn btn-p btn-sm" onclick="iniciarPasarLista(${JSON.stringify(a).replace(/"/g,'&quot;')})">📋 Pasar lista</button>
-          <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta actividad?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
+          <button class="btn btn-p" onclick="iniciarPasarLista(${JSON.stringify(a).replace(/"/g,'&quot;')})" style="min-height:44px;padding:10px 18px">📋 Pasar lista</button>
+          <button class="btn btn-d btn-sm" onclick="confirmarElimActiv('${a.id}','${a.nombre.replace(/'/g,'')}')">🗑️</button>
         </div>
       </div>`).join('');
   }
   renderHistorialAsist();
+}
+
+function confirmarElimActiv(id, nombre){
+  // Confirmación de seguridad con modal visual
+  if(!confirm(`⚠️ ¿Eliminar la actividad "${nombre}"?\n\nEsta acción no se puede deshacer.`)) return;
+  delete _db.actividades[id];
+  _dbSave();
+  renderActividades();
+  toast('Actividad eliminada');
 }
 
 function iniciarPasarLista(act){
@@ -2181,25 +2232,38 @@ function iniciarPasarLista(act){
   asistEstados={};
   const prev=(asistData[act.id]||asistData[act.fecha])||{};
   miembros.forEach(m=>{asistEstados[m.id]=prev[m.id]||'pendiente'});
-  document.getElementById('aActividadNombre').textContent=`📋 ${act.nombre} — ${fmtF(act.fecha)}`;
-  document.getElementById('panelPasarLista').style.display='block';
-  document.getElementById('panelPasarLista').scrollIntoView({behavior:'smooth',block:'start'});
+  // Mostrar vista pasar lista, ocultar vista actividades
+  document.getElementById('vistaActividades').style.display='none';
+  document.getElementById('vistaPasarLista').style.display='block';
+  const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
+  document.getElementById('aActividadNombre').textContent=`${tipos[act.tipo]||'📋'} ${act.nombre} — ${fmtF(act.fecha)}`;
   document.getElementById('buscarAsist').value='';
+  // Scroll al top del contenido
+  document.querySelector('.contenido').scrollTo(0,0);
   renderListaAsist();
 }
 
 function cerrarPasarLista(){
   actividadActual=null;asistEstados={};
-  document.getElementById('panelPasarLista').style.display='none';
+  document.getElementById('vistaPasarLista').style.display='none';
+  document.getElementById('vistaActividades').style.display='block';
+  renderActividades();
+}
+
+function confirmarCerrarLista(){
+  if(!confirm('¿Cancelar la lista? Los cambios no guardados se perderán.')) return;
+  cerrarPasarLista();
 }
 
 function renderListaAsist(){
   const busq=(document.getElementById('buscarAsist').value||'').toLowerCase();
   const cPend=document.getElementById('listaAsist');
   const cPres=document.getElementById('listaPresentes');
+  const cExcu=document.getElementById('listaExcusas');
   const secPres=document.getElementById('secPresentes');
-  cPend.innerHTML='';cPres.innerHTML='';
-  let nPres=0;
+  const secExcu=document.getElementById('secExcusas');
+  cPend.innerHTML='';cPres.innerHTML='';cExcu.innerHTML='';
+  let nPres=0,nExcu=0,nPend=0;
   miembros.forEach(m=>{
     if(busq&&!m.nombre.toLowerCase().includes(busq)) return;
     const e=asistEstados[m.id]||'pendiente';
@@ -2208,29 +2272,45 @@ function renderListaAsist(){
     if(e==='presente'){
       nPres++;
       const d=document.createElement('div');
-      d.style.cssText='display:flex;align-items:center;gap:10px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s';
-      d.title='Clic para quitar';
+      d.style.cssText='display:flex;align-items:center;gap:10px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;user-select:none;-webkit-tap-highlight-color:transparent';
+      d.title='Toca para quitar';
       d.onclick=()=>{asistEstados[m.id]='pendiente';renderListaAsist();contAsist()};
-      d.innerHTML=`<div class="ava" style="width:32px;height:32px;font-size:11px">${foto}</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">${m.nombre}</div></div><span style="font-size:20px">✅</span>`;
+      d.innerHTML=`<div class="ava" style="width:36px;height:36px;font-size:12px;flex-shrink:0">${foto}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nombre}</div><div style="font-size:10px;color:#27ae60;margin-top:2px">Toca para quitar</div></div><span style="font-size:22px;flex-shrink:0">✅</span>`;
       cPres.appendChild(d);
-    } else {
+    } else if(e==='justificado'){
+      nExcu++;
       const d=document.createElement('div');
-      d.className='ac '+e;
+      d.style.cssText='display:flex;align-items:center;gap:10px;background:rgba(243,156,18,.07);border:1px solid rgba(243,156,18,.3);border-radius:10px;padding:12px;cursor:pointer;transition:all .2s;user-select:none;-webkit-tap-highlight-color:transparent';
+      d.title='Toca para quitar excusa';
+      d.onclick=()=>{asistEstados[m.id]='pendiente';renderListaAsist();contAsist()};
+      d.innerHTML=`<div class="ava" style="width:36px;height:36px;font-size:12px;flex-shrink:0">${foto}</div><div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nombre}</div><div style="font-size:10px;color:#f39c12;margin-top:2px">Toca para quitar</div></div><span style="font-size:22px;flex-shrink:0">📝</span>`;
+      cExcu.appendChild(d);
+    } else {
+      nPend++;
+      const d=document.createElement('div');
+      d.className='ac';
       d.dataset.id=m.id;
-      d.innerHTML=`<div class="ava">${foto}</div>
+      d.style.cssText='background:var(--gr);border:2px solid rgba(255,255,255,.07);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;transition:all .2s;user-select:none;-webkit-tap-highlight-color:transparent';
+      d.innerHTML=`<div class="ava" style="flex-shrink:0">${foto}</div>
         <div style="flex:1;min-width:0">
-          <div class="an2" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nombre}</div>
-          <div class="am2">${MINS[m.ministerio]||'Miembro'}</div>
+          <div style="font-weight:700;font-size:14px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nombre}</div>
+          <div style="font-size:10px;color:#777;margin-top:2px">${MINS[m.ministerio]||'Miembro'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
-          <button onclick="event.stopPropagation();asistEstados['${m.id}']='presente';renderListaAsist();contAsist()" style="padding:7px 12px;background:rgba(39,174,96,.15);border:1px solid #27ae60;border-radius:8px;color:#27ae60;font-size:11px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif">✅ Asistió</button>
-          <button onclick="event.stopPropagation();asistEstados['${m.id}']='justificado';renderListaAsist();contAsist()" style="padding:7px 12px;background:rgba(243,156,18,.12);border:1px solid #f39c12;border-radius:8px;color:#f39c12;font-size:11px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif">📝 Excusa</button>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0">
+          <button onclick="event.stopPropagation();asistEstados['${m.id}']='presente';renderListaAsist();contAsist()" 
+            style="padding:10px 14px;background:rgba(39,174,96,.15);border:1.5px solid #27ae60;border-radius:9px;color:#27ae60;font-size:12px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;min-width:90px;min-height:38px;-webkit-tap-highlight-color:transparent">✅ Asistió</button>
+          <button onclick="event.stopPropagation();asistEstados['${m.id}']='justificado';renderListaAsist();contAsist()" 
+            style="padding:10px 14px;background:rgba(243,156,18,.12);border:1.5px solid #f39c12;border-radius:9px;color:#f39c12;font-size:12px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;min-width:90px;min-height:38px;-webkit-tap-highlight-color:transparent">📝 Excusa</button>
         </div>`;
       cPend.appendChild(d);
     }
   });
   secPres.style.display=nPres>0?'block':'none';
+  secExcu.style.display=nExcu>0?'block':'none';
   document.getElementById('cntPresentes').textContent=nPres;
+  document.getElementById('cntExcusas').textContent=nExcu;
+  const cntPend=document.getElementById('cntPendientes');
+  if(cntPend) cntPend.textContent=nPend;
   contAsist();
 }
 
@@ -2239,7 +2319,7 @@ function filtrarListaAsist(){renderListaAsist()}
 function contAsist(){
   const vals=Object.values(asistEstados);
   const pEl=document.getElementById('aP');if(pEl)pEl.textContent=vals.filter(v=>v==='presente').length;
-  const aEl=document.getElementById('aA');if(aEl)aEl.textContent=vals.filter(v=>v==='ausente'||v==='pendiente').length;
+  const aEl=document.getElementById('aA');if(aEl)aEl.textContent=vals.filter(v=>v==='pendiente').length;
   const jEl=document.getElementById('aJ');if(jEl)jEl.textContent=vals.filter(v=>v==='justificado').length;
   const tEl=document.getElementById('aT');if(tEl)tEl.textContent=miembros.length;
 }
@@ -2251,7 +2331,11 @@ function marcarT(e){
 
 async function guardarAsist(){
   if(!actividadActual){toast('No hay actividad activa','error');return}
-  if(!confirm('¿Finalizar la lista? Los miembros no marcados quedarán como Ausentes.')) return;
+  const pres=Object.values(asistEstados).filter(v=>v==='presente').length;
+  const exc=Object.values(asistEstados).filter(v=>v==='justificado').length;
+  const pend=Object.values(asistEstados).filter(v=>v==='pendiente').length;
+  if(!confirm(`¿Finalizar la lista?\n\n✅ Presentes: ${pres}\n📝 Con excusa: ${exc}\n❌ Sin marcar (quedarán como Ausentes): ${pend}\n\nEsta acción no se puede deshacer.`)) return;
+  // Los pendientes pasan a ausentes automáticamente
   miembros.forEach(m=>{if(!asistEstados[m.id]||asistEstados[m.id]==='pendiente') asistEstados[m.id]='ausente'});
   const datos={...asistEstados};
   asistData[actividadActual.id]=datos;
@@ -2263,8 +2347,7 @@ async function guardarAsist(){
     await _dbSave();
   }
   cerrarPasarLista();
-  renderActividades();
-  toast('✅ Asistencia guardada correctamente');
+  toast('✅ Lista guardada — actividad movida a historial');
 }
 
 function renderHistorialAsist(){
@@ -2278,23 +2361,34 @@ function renderHistorialAsist(){
     const pres=vals.filter(v=>v==='presente').length;
     const aus=vals.filter(v=>v==='ausente').length;
     const exc=vals.filter(v=>v==='justificado').length;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
-      <div style="width:40px;height:40px;border-radius:10px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
+    const total=pres+aus+exc;
+    const pct=total>0?Math.round(pres/total*100):0;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+      <div style="width:46px;height:46px;border-radius:12px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
       <div style="flex:1;min-width:120px">
         <div style="font-weight:700;color:#fff;font-size:13px">${a.nombre}</div>
         <div style="font-size:10px;color:#888;margin-top:2px">${fmtF(a.fecha)}${a.hora?' · '+a.hora:''}</div>
+        <div style="margin-top:6px;height:4px;background:rgba(255,255,255,.07);border-radius:2px;overflow:hidden;max-width:180px"><div style="height:100%;width:${pct}%;background:#27ae60;border-radius:2px;transition:width .3s"></div></div>
       </div>
-      <div style="display:flex;gap:12px;font-size:12px">
-        <span style="color:#27ae60;font-weight:700">✅ ${pres}</span>
-        <span style="color:#e74c3c;font-weight:700">❌ ${aus}</span>
-        <span style="color:#f39c12;font-weight:700">📝 ${exc}</span>
+      <div style="display:flex;gap:14px;font-size:13px;flex-wrap:wrap">
+        <div style="text-align:center"><div style="color:#27ae60;font-weight:700;font-size:16px">${pres}</div><div style="color:#666;font-size:9px;text-transform:uppercase">Asistió</div></div>
+        <div style="text-align:center"><div style="color:#f39c12;font-weight:700;font-size:16px">${exc}</div><div style="color:#666;font-size:9px;text-transform:uppercase">Excusa</div></div>
+        <div style="text-align:center"><div style="color:#e74c3c;font-weight:700;font-size:16px">${aus}</div><div style="color:#666;font-size:9px;text-transform:uppercase">Ausente</div></div>
       </div>
-      <div style="display:flex;gap:6px">
+      <div style="display:flex;gap:6px;flex-shrink:0">
         <button class="btn btn-xl btn-xs" onclick="exportAsistCSVById('${a.id}')">📊 CSV</button>
-        <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta lista?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
+        <button class="btn btn-d btn-xs" onclick="confirmarElimHistorial('${a.id}','${a.nombre.replace(/'/g,'')}')">🗑️</button>
       </div>
     </div>`;
   }).join('');
+}
+
+function confirmarElimHistorial(id, nombre){
+  if(!confirm(`⚠️ ¿Eliminar el registro de "${nombre}"?\n\nSe perderán todos los datos de asistencia de esta lista. Esta acción no se puede deshacer.`)) return;
+  delete _db.actividades[id];
+  _dbSave();
+  renderActividades();
+  toast('Registro eliminado');
 }
 
 function exportAsistCSV(){if(!actividadActual)return;exportAsistCSVById(actividadActual.id)}
@@ -2756,6 +2850,12 @@ async function limpiarTodo(){if(!confirm('⚠️ PELIGRO: ¿Eliminar TODOS los d
 
 // ===== UTILS =====
 function fmtF(f){if(!f)return'-';const p=f.substring(0,10).split('-');return p[2]+'/'+p[1]+'/'+p[0]}
+// Formatea montos de manera amigable para iglesia (sin centavos si es entero)
+function fmtM(m){
+  const n=parseFloat(m)||0;
+  if(Number.isInteger(n)) return '$'+n.toLocaleString('es-DO');
+  return '$'+n.toLocaleString('es-DO',{minimumFractionDigits:2,maximumFractionDigits:2});
+}
 function dl(c,n,t){const b=new Blob([c],{type:t});const l=document.createElement('a');l.href=URL.createObjectURL(b);l.download=n;l.click()}
 
 // ================================================================

@@ -356,7 +356,10 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 
 <div id="loginBox">
 <div class="lcard">
-  <div class="lcross">✝</div>
+  <div class="lcross" id="loginLogo" style="overflow:hidden;padding:0">
+    <img id="loginLogoImg" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+    <span id="loginLogoCross">✝</span>
+  </div>
   <h1>Centro Cristiano</h1>
   <h2>Sublime Gracia de Dios</h2>
   <div class="lg"><label>Seleccionar Usuario</label><select id="selUsr" onchange="selUsr2()"><option value="">-- Seleccione --</option></select></div>
@@ -370,7 +373,10 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 <div id="mainApp">
   <div class="hdr">
     <div class="hdr-b">
-      <div class="hdr-ico">✝</div>
+      <div class="hdr-ico" id="hdrLogo" style="overflow:hidden;padding:0">
+        <img id="hdrLogoImg" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+        <span id="hdrLogoCross">✝</span>
+      </div>
       <div><div class="hdr-title">Centro Cristiano Sublime Gracia</div><div class="hdr-sub">Sistema Integral de Gestión Ministerial</div></div>
     </div>
     <div class="hdr-r">
@@ -1245,6 +1251,46 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
             <div class="bgrp"><button class="btn btn-p" onclick="guardarCfg()">💾 Guardar configuración</button></div>
           </div></div>
 
+          <!-- LOGO DE LA IGLESIA -->
+          <div class="panel" style="margin-bottom:14px">
+            <div class="ph2">🖼️ Logo de la Iglesia</div>
+            <div class="pb">
+              <div style="font-size:12px;color:#888;margin-bottom:18px">El logo aparecerá en la pantalla de inicio de sesión y en la barra superior del sistema.</div>
+              <div style="display:flex;align-items:center;gap:24px;flex-wrap:wrap">
+                <!-- Vista previa login -->
+                <div style="text-align:center">
+                  <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700">Pantalla de Login</div>
+                  <div style="width:74px;height:74px;background:linear-gradient(135deg,var(--do),var(--doo));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden;margin:0 auto" id="prevLogoLogin">
+                    <img id="prevLogoLoginImg" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+                    <span id="prevLogoLoginCross">✝</span>
+                  </div>
+                </div>
+                <!-- Vista previa header -->
+                <div style="text-align:center">
+                  <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;font-weight:700">Barra Superior</div>
+                  <div style="width:44px;height:44px;background:linear-gradient(135deg,var(--do),var(--doo));border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;overflow:hidden;margin:0 auto" id="prevLogoHdr">
+                    <img id="prevLogoHdrImg" src="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:50%">
+                    <span id="prevLogoHdrCross">✝</span>
+                  </div>
+                </div>
+                <!-- Controles -->
+                <div style="flex:1;min-width:200px">
+                  <div class="ff" style="margin-bottom:12px">
+                    <label>Subir imagen de logo</label>
+                    <input type="file" id="cfgLogoFile" accept="image/png,image/jpeg,image/gif,image/webp,image/svg+xml" 
+                      style="background:var(--gr);border:1px solid var(--gm);border-radius:9px;padding:9px;width:100%;color:#ccc;font-size:12px"
+                      onchange="previsualizarLogo(event)">
+                    <div style="font-size:10px;color:#666;margin-top:4px">PNG, JPG, GIF o SVG · Recomendado: fondo transparente</div>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap">
+                    <button class="btn btn-p" onclick="guardarLogo()">💾 Guardar Logo</button>
+                    <button class="btn btn-d btn-sm" onclick="eliminarLogo()">🗑️ Quitar Logo</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- POLÍTICA DE CONTRASEÑA PERSONALIZABLE -->
           <div class="panel">
             <div class="ph2">🔒 Política de Contraseñas</div>
@@ -1637,6 +1683,7 @@ async function cargarDatos(){
   (await dbA('asistencia')).forEach(a=>asistData[a.fecha]=a.datos);
   if(!_db.actividades) _db.actividades={};
   const c=await dbG('configuracion','general');if(c)config=c;
+  await cargarLogoGuardado();
 }
 
 // ===== AUTH =====
@@ -2711,6 +2758,93 @@ function pltMsg(t){const msgs={bienvenida:{tit:'¡Bienvenido a nuestra familia!'
 /* reemplazado por sistema de permisos granulares */
 function tabAdm(t,el){['usuarios','backup','config'].forEach(s=>{document.getElementById('adm'+s.charAt(0).toUpperCase()+s.slice(1)).style.display=s===t?'block':'none'});document.querySelectorAll('.tabs .tab').forEach(x=>x.classList.remove('activo'));el.classList.add('activo');if(t==='config'){cargarPoliticaPw();previewPolicy();}}
 async function guardarCfg(){const c={clave:'general',nombreIglesia:document.getElementById('cfgNom').value,tel:document.getElementById('cfgTel').value,email:document.getElementById('cfgEmail').value,dir:document.getElementById('cfgDir').value,pastor:document.getElementById('cfgPas').value,horario:document.getElementById('cfgHor').value};await dbP('configuracion',c);config=c;logAudit('CONFIG','Configuración del sistema actualizada');toast('Configuración guardada')}
+
+// ===== LOGO DE LA IGLESIA =====
+function previsualizarLogo(e){
+  const f=e.target.files[0];
+  if(!f) return;
+  const r=new FileReader();
+  r.onload=ev=>{
+    const src=ev.target.result;
+    // Preview login
+    const pli=document.getElementById('prevLogoLoginImg');
+    const plc=document.getElementById('prevLogoLoginCross');
+    if(pli){pli.src=src;pli.style.display='block';if(plc)plc.style.display='none';}
+    // Preview header
+    const phi=document.getElementById('prevLogoHdrImg');
+    const phc=document.getElementById('prevLogoHdrCross');
+    if(phi){phi.src=src;phi.style.display='block';if(phc)phc.style.display='none';}
+  };
+  r.readAsDataURL(f);
+}
+
+async function guardarLogo(){
+  const pli=document.getElementById('prevLogoLoginImg');
+  if(!pli||!pli.src||pli.style.display==='none'){toast('Selecciona una imagen primero','error');return;}
+  const src=pli.src;
+  // Guardar en BD
+  await dbP('configuracion',{clave:'logo',src});
+  // Aplicar a los logos del sistema
+  aplicarLogo(src);
+  logAudit('CONFIG','Logo de la iglesia actualizado');
+  toast('✅ Logo guardado y aplicado');
+}
+
+async function eliminarLogo(){
+  if(!confirm('¿Quitar el logo personalizado?\nSe mostrará la cruz dorada por defecto.')) return;
+  await dbP('configuracion',{clave:'logo',src:''});
+  aplicarLogo('');
+  // Limpiar previews
+  ['prevLogoLoginImg','prevLogoHdrImg'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){el.src='';el.style.display='none';}
+  });
+  ['prevLogoLoginCross','prevLogoHdrCross'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.display='';
+  });
+  document.getElementById('cfgLogoFile').value='';
+  toast('Logo eliminado');
+}
+
+function aplicarLogo(src){
+  // Login logo
+  const li=document.getElementById('loginLogoImg');
+  const lc=document.getElementById('loginLogoCross');
+  if(src){
+    if(li){li.src=src;li.style.display='block';}
+    if(lc) lc.style.display='none';
+  } else {
+    if(li){li.src='';li.style.display='none';}
+    if(lc) lc.style.display='';
+  }
+  // Header logo
+  const hi=document.getElementById('hdrLogoImg');
+  const hc=document.getElementById('hdrLogoCross');
+  if(src){
+    if(hi){hi.src=src;hi.style.display='block';}
+    if(hc) hc.style.display='none';
+  } else {
+    if(hi){hi.src='';hi.style.display='none';}
+    if(hc) hc.style.display='';
+  }
+}
+
+async function cargarLogoGuardado(){
+  const logoCfg=await dbG('configuracion','logo');
+  if(logoCfg&&logoCfg.src){
+    aplicarLogo(logoCfg.src);
+    // Llenar previews en la tab de config si están visibles
+    ['prevLogoLoginImg','prevLogoHdrImg'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){el.src=logoCfg.src;el.style.display='block';}
+    });
+    ['prevLogoLoginCross','prevLogoHdrCross'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.style.display='none';
+    });
+  }
+}
 
 // ===== BACKUP =====
 async function exportDB(){

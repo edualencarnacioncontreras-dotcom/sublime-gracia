@@ -196,24 +196,21 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
   .hdr-title{font-size:11px}
   .hdr-sub{display:none}
   .vp{padding:12px}
-  /* Botones más grandes en móvil */
-  .btn{padding:10px 16px;font-size:12px}
-  .btn-sm{padding:9px 14px;font-size:11px}
-  /* Tarjetas de asistencia en móvil */
-  .ag{grid-template-columns:1fr!important}
-  .ac{padding:14px;gap:12px}
-  .ac button{padding:8px 14px!important;font-size:11px!important}
-  /* Formulario miembro en móvil */
-  .mftab{padding:8px 10px;font-size:10px}
-  /* Tabla overflow en móvil */
-  .tc{font-size:11px}
-  thead th{padding:8px 8px}
-  tbody td{padding:8px 8px}
-  /* Modal en móvil ocupa más pantalla */
-  .mv{max-height:95vh;border-radius:12px 12px 0 0}
+  /* Finanzas móvil */
+  .fin-cat-card{padding:14px 10px}
+  .fin-cat-ico{font-size:26px}
+  .fin-cat-num{font-size:16px}
+  /* Botones más grandes */
+  .btn{min-height:38px}
+  /* Asistencia móvil */
+  #listaAsist{grid-template-columns:1fr!important}
+  #listaPresentes{grid-template-columns:1fr!important}
+  #buscarAsist{font-size:16px;padding:14px 16px}
+  /* Modales desde abajo en móvil */
+  .mv{border-radius:16px 16px 0 0;max-height:92vh}
   .modal-overlay{align-items:flex-end;padding:0}
-  /* Buscador asistencia */
-  #buscarAsist{font-size:14px;padding:12px 16px}
+  /* Tabla scroll horizontal */
+  .tc{-webkit-overflow-scrolling:touch}
 }
   .ph-t{font-size:15px}
 }
@@ -294,6 +291,27 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 .pbar{height:5px;background:#222;border-radius:3px;overflow:hidden;margin-bottom:8px}
 .pfill{height:100%;border-radius:3px;transition:width .4s ease}
 
+/* ===== TARJETAS FINANZAS ===== */
+.fin-cat-card{background:var(--nc);border:2px solid rgba(255,255,255,.07);border-radius:14px;padding:18px 14px;text-align:center;cursor:pointer;transition:all .25s;position:relative;overflow:hidden}
+.fin-cat-card:hover{transform:translateY(-3px);border-color:rgba(212,175,55,.3);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+.fin-cat-card[data-active="true"]{border-color:var(--do);background:rgba(212,175,55,.07);box-shadow:0 0 20px rgba(212,175,55,.1)}
+.fin-cat-ico{font-size:34px;margin-bottom:8px;line-height:1}
+.fin-cat-lbl{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:6px}
+.fin-cat-num{font-size:20px;font-weight:700;color:#fff;font-family:Cinzel,serif}
+/* ===== MÓDULOS LIMPIOS ===== */
+.vp-clean .panel{margin-bottom:0}
+.modulo-desc{background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.1);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:12px;color:#888;display:flex;align-items:center;gap:10px}
+/* Historial de finanzas en cards */
+.fin-item{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);transition:all .2s}
+.fin-item:last-child{border-bottom:none}
+.fin-item:hover{background:rgba(255,255,255,.02);border-radius:8px;padding-left:8px}
+.fin-item-ico{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.fin-item-info{flex:1;min-width:0}
+.fin-item-nom{font-weight:700;color:#fff;font-size:13px}
+.fin-item-det{font-size:10px;color:#666;margin-top:2px}
+.fin-item-monto{font-size:18px;font-weight:700;font-family:Cinzel,serif;flex-shrink:0;text-align:right}
+.fin-item-monto.entrada{color:#27ae60}
+.fin-item-monto.gasto{color:#e74c3c}
 /* Foto avatar en tabla */
 .mava{width:38px;height:38px;border-radius:50%;background:#2a2a2a;border:2px solid rgba(212,175,55,.25);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:16px;color:#666;flex-shrink:0}
 .mava img{width:100%;height:100%;object-fit:cover}
@@ -618,61 +636,74 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
       <!-- ASISTENCIA -->
       <div id="vp-asistencia" class="vp">
         <div class="ph" style="flex-wrap:wrap;gap:10px">
-          <div><div class="ph-t">📋 Control de Asistencia</div><div class="ph-s">Crea una actividad para pasar lista</div></div>
+          <div><div class="ph-t">📋 Asistencia</div><div class="ph-s">Crea una actividad para pasar lista</div></div>
           <button class="btn btn-p btn-sm" onclick="abrirCrearActividad()">➕ Nueva Actividad</button>
         </div>
 
-        <!-- PANEL: Actividades pendientes de pasar lista -->
+        <!-- Actividades pendientes -->
         <div class="panel" id="panelActividades">
-          <div class="ph2">📅 Actividades — Selecciona para pasar lista</div>
+          <div class="ph2">📅 Actividades pendientes</div>
           <div class="pb" id="listaActividades">
             <div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades. Crea una para comenzar.</div></div>
           </div>
         </div>
 
-        <!-- PANEL: Pasar lista (aparece al seleccionar actividad) -->
+        <!-- Pasar lista (visible solo cuando hay actividad activa) -->
         <div class="panel" id="panelPasarLista" style="display:none">
           <div class="ph2" style="flex-wrap:wrap;gap:8px">
-            <span id="aActividadNombre" style="font-size:13px">Actividad</span>
+            <span id="aActividadNombre">Actividad</span>
             <div style="display:flex;gap:7px;flex-wrap:wrap">
-              <button class="btn btn-e btn-xs" onclick="marcarT('presente')">✅ Todos Presentes</button>
+              <button class="btn btn-e btn-xs" onclick="marcarT('presente')">✅ Marcar todos presentes</button>
               <button class="btn btn-s btn-xs" onclick="cerrarPasarLista()">✖ Cancelar</button>
             </div>
           </div>
           <div class="pb">
-            <!-- Stats en tiempo real -->
-            <div class="sg" style="margin-bottom:16px">
-              <div class="sc ve" style="padding:12px"><div class="sc-ico" style="font-size:18px">✅</div><div class="sc-num" style="font-size:20px" id="aP">0</div><div class="sc-lbl">Presentes</div></div>
-              <div class="sc ro" style="padding:12px"><div class="sc-ico" style="font-size:18px">❌</div><div class="sc-num" style="font-size:20px" id="aA">0</div><div class="sc-lbl">Ausentes</div></div>
-              <div class="sc na" style="padding:12px"><div class="sc-ico" style="font-size:18px">📝</div><div class="sc-num" style="font-size:20px" id="aJ">0</div><div class="sc-lbl">Excusas</div></div>
-              <div class="sc az" style="padding:12px"><div class="sc-ico" style="font-size:18px">👥</div><div class="sc-num" style="font-size:20px" id="aT">0</div><div class="sc-lbl">Total</div></div>
+            <!-- Contadores en tiempo real -->
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">
+              <div style="background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);border-radius:12px;padding:14px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:#27ae60;font-family:Cinzel,serif" id="aP">0</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">✅ Presentes</div>
+              </div>
+              <div style="background:rgba(231,76,60,.07);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:14px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:#e74c3c;font-family:Cinzel,serif" id="aA">0</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">❌ Ausentes</div>
+              </div>
+              <div style="background:rgba(243,156,18,.07);border:1px solid rgba(243,156,18,.2);border-radius:12px;padding:14px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:#f39c12;font-family:Cinzel,serif" id="aJ">0</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">📝 Excusas</div>
+              </div>
+              <div style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+                <div style="font-size:24px;font-weight:700;color:#fff;font-family:Cinzel,serif" id="aT">0</div>
+                <div style="font-size:10px;color:#888;text-transform:uppercase;margin-top:4px">👥 Total</div>
+              </div>
             </div>
 
-            <!-- Búsqueda en lista -->
-            <div style="margin-bottom:12px">
-              <input type="text" id="buscarAsist" placeholder="🔍 Buscar miembro..." oninput="filtrarListaAsist()" style="width:100%;padding:10px 14px;background:var(--gr);border:1px solid var(--gm);border-radius:9px;color:#fff;font-size:13px;font-family:Lato,sans-serif;box-sizing:border-box">
+            <!-- Búsqueda -->
+            <input type="text" id="buscarAsist" placeholder="🔍 Buscar miembro..." oninput="filtrarListaAsist()" style="width:100%;padding:12px 16px;background:var(--gr);border:1px solid var(--gm);border-radius:10px;color:#fff;font-size:14px;font-family:Lato,sans-serif;box-sizing:border-box;margin-bottom:16px">
+
+            <!-- Lista por marcar -->
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:10px">Por marcar</div>
+            <div id="listaAsist" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px"></div>
+
+            <!-- Presentes -->
+            <div id="secPresentes" style="margin-top:20px;display:none">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+                <div style="font-size:10px;color:#27ae60;text-transform:uppercase;letter-spacing:1px;font-weight:700">✅ Asistió</div>
+                <span id="cntPresentes" style="background:rgba(39,174,96,.15);color:#27ae60;border-radius:20px;padding:2px 10px;font-size:11px;font-weight:700">0</span>
+              </div>
+              <div id="listaPresentes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px"></div>
             </div>
 
-            <!-- Lista pendientes de marcar -->
-            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px" id="lblPendientes">Por marcar</div>
-            <div class="ag" id="listaAsist" style="max-height:none"></div>
-
-            <!-- Sección Presentes -->
-            <div id="secPresentes" style="margin-top:16px;display:none">
-              <div style="font-size:10px;color:#27ae60;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">✅ Asistió / Presente <span id="cntPresentes" style="background:rgba(39,174,96,.15);color:#27ae60;border-radius:20px;padding:2px 8px;font-size:10px">0</span></div>
-              <div id="listaPresentes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px"></div>
-            </div>
-
-            <div class="bgrp" style="justify-content:center;margin-top:20px;flex-wrap:wrap;gap:10px">
-              <button class="btn btn-p" style="padding:12px 28px;font-size:13px" onclick="guardarAsist()">💾 Guardar y Finalizar Lista</button>
-              <button class="btn btn-xl" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso de exportar','error');return}exportAsistCSV()">📊 Exportar CSV</button>
+            <div style="margin-top:24px;display:flex;justify-content:center;gap:12px;flex-wrap:wrap">
+              <button class="btn btn-p" style="padding:14px 36px;font-size:14px" onclick="guardarAsist()">💾 Guardar y finalizar</button>
+              <button class="btn btn-xl" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso','error');return}exportAsistCSV()">📊 Exportar CSV</button>
             </div>
           </div>
         </div>
 
-        <!-- PANEL: Historial de listas guardadas -->
-        <div class="panel" id="panelHistorialAsist">
-          <div class="ph2">📜 Historial de Asistencias</div>
+        <!-- Historial -->
+        <div class="panel" id="panelHistorialAsist" style="margin-top:16px">
+          <div class="ph2">📜 Listas guardadas</div>
           <div class="pb" id="listaHistorialAsist">
             <div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>
           </div>
@@ -681,14 +712,14 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 
       <!-- MODAL: Crear Actividad -->
       <div class="modal-overlay" id="mCrearActividad">
-        <div class="mv" style="max-width:480px">
+        <div class="mv" style="max-width:460px">
           <div class="mh">📅 Nueva Actividad <span class="mx" onclick="closeM('mCrearActividad')">✕</span></div>
           <div class="mbody">
             <div class="fg">
-              <div class="ff full"><label>Nombre de la Actividad *</label><input type="text" id="actNombre" placeholder="Ej: Culto Dominical, Célula Jóvenes..."></div>
+              <div class="ff full"><label>Nombre de la actividad *</label><input type="text" id="actNombre" placeholder="Ej: Culto Dominical, Célula Jóvenes..."></div>
               <div class="ff"><label>Fecha *</label><input type="date" id="actFecha"></div>
               <div class="ff"><label>Hora</label><input type="time" id="actHora"></div>
-              <div class="ff"><label>Tipo</label>
+              <div class="ff full"><label>Tipo</label>
                 <select id="actTipo">
                   <option value="culto">⛪ Culto</option>
                   <option value="celula">🏠 Célula</option>
@@ -698,63 +729,239 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
                   <option value="otro">📋 Otro</option>
                 </select>
               </div>
-              <div class="ff full"><label>Descripción (opcional)</label><input type="text" id="actDesc" placeholder="Detalles adicionales..."></div>
             </div>
           </div>
           <div class="mf">
             <button class="btn btn-s" onclick="closeM('mCrearActividad')">Cancelar</button>
-            <button class="btn btn-p" onclick="crearActividad()">✅ Crear y Pasar Lista</button>
+            <button class="btn btn-p" onclick="crearActividad()">✅ Crear y pasar lista</button>
           </div>
         </div>
       </div>
 
-      <!-- FINANZAS -->
+      <!-- FINANZAS (incluye préstamos como pestaña) -->
       <div id="vp-finanzas" class="vp">
-        <div class="ph"><div><div class="ph-t">💰 Gestión de Finanzas</div></div><button class="btn btn-xl btn-sm" onclick="if(!puedeExportar('finanzas')){toast('Sin permiso de exportar','error');return}exportFinCSV()">📊 CSV</button></div>
-        <div class="sg">
-          <div class="sc do"><div class="sc-ico">📖</div><div class="sc-num" id="fDi">$0</div><div class="sc-lbl">Diezmos</div></div>
-          <div class="sc az"><div class="sc-ico">🙏</div><div class="sc-num" id="fOf">$0</div><div class="sc-lbl">Ofrendas</div></div>
-          <div class="sc pu"><div class="sc-ico">🌾</div><div class="sc-num" id="fPr">$0</div><div class="sc-lbl">Primicias</div></div>
-          <div class="sc na"><div class="sc-ico">🎁</div><div class="sc-num" id="fDn">$0</div><div class="sc-lbl">Donaciones</div></div>
-          <div class="sc ve"><div class="sc-ico">💵</div><div class="sc-num" id="fTo">$0</div><div class="sc-lbl">Total</div></div>
+
+        <!-- Cabecera limpia -->
+        <div class="ph" style="flex-wrap:wrap;gap:10px">
+          <div><div class="ph-t">💰 Finanzas</div><div class="ph-s">Entradas, gastos y préstamos</div></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-xl btn-sm" onclick="if(!puedeExportar('finanzas')){toast('Sin permiso','error');return}exportFinCSV()">📊 Exportar</button>
+          </div>
         </div>
-        <div class="panel"><div class="ph2">➕ Nuevo Registro</div><div class="pb">
-          <div class="tg">
-            <button class="tb activo" onclick="selTipo('diezmo',this)">📖 Diezmo</button>
-            <button class="tb" onclick="selTipo('ofrenda',this)">🙏 Ofrenda</button>
-            <button class="tb" onclick="selTipo('primicia',this)">🌾 Primicia</button>
-            <button class="tb" onclick="selTipo('donacion',this)">🎁 Donación</button>
-            <button class="tb" onclick="selTipo('gasto',this)">📤 Gasto</button>
-            <button class="tb" onclick="selTipo('otro',this)">📋 Otro</button>
-          </div>
-          <div class="fg">
-            <div class="ff"><label>Fecha *</label><input type="date" id="fFecha"></div>
-            <div class="ff"><label>Miembro/Donante</label><select id="fMiem"><option value="">-- Anónimo --</option></select></div>
-            <div class="ff"><label>Monto *</label><input type="number" id="fMonto" placeholder="0.00" step="0.01" min="0"></div>
-            <div class="ff"><label>Método</label><select id="fMet"><option value="efectivo">💵 Efectivo</option><option value="transferencia">🏦 Transferencia</option><option value="cheque">📄 Cheque</option><option value="tarjeta">💳 Tarjeta</option></select></div>
-            <div class="ff full"><label>Descripción</label><input type="text" id="fDesc" placeholder="Notas adicionales..."></div>
-          </div>
-          <div id="donBox" class="donbox" style="display:none">
-            <div class="fg"><div class="ff"><label>Tipo Donación</label><select id="donTipo" onchange="cambDon()"><option value="dinero">💵 Dinero</option><option value="articulos">📦 Artículos</option></select></div>
-            <div class="ff" id="artBox" style="display:none"><label>Descripción Artículos</label><textarea id="donArt" placeholder="Artículos donados..."></textarea></div></div>
-          </div>
-          <div class="bgrp"><button class="btn btn-p" onclick="guardarFin()">💾 Guardar</button><button class="btn btn-s" onclick="limpiarFin()">🔄 Limpiar</button></div>
-        </div></div>
-        <div class="panel"><div class="ph2">📋 Historial</div>
-          <div class="tc" style="margin-top:0;border:none;border-radius:0"><table><thead><tr><th>Fecha</th><th>Tipo</th><th>Miembro</th><th>Monto</th><th>Método</th><th>Descripción</th><th>Acciones</th></tr></thead><tbody id="tbFin"></tbody></table></div>
+
+        <!-- Tabs principales -->
+        <div class="tabs" style="margin-bottom:20px">
+          <div class="tab activo" id="ftab-entradas" onclick="finTab('entradas',this)">💚 Entradas</div>
+          <div class="tab" id="ftab-gastos" onclick="finTab('gastos',this)">🔴 Gastos</div>
+          <div class="tab" id="ftab-prestamos" onclick="finTab('prestamos',this)">💳 Préstamos</div>
+          <div class="tab" id="ftab-resumen" onclick="finTab('resumen',this)">📊 Resumen</div>
         </div>
+
+        <!-- ===== PESTAÑA: ENTRADAS ===== -->
+        <div id="fin-entradas">
+          <!-- Tarjetas grandes por categoría -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px">
+            <div class="fin-cat-card" onclick="selTipoFin('diezmo')" id="fcat-diezmo" data-active="true" style="border-color:var(--do);background:rgba(212,175,55,.08)">
+              <div class="fin-cat-ico">📖</div>
+              <div class="fin-cat-lbl">Diezmo</div>
+              <div class="fin-cat-num" id="fDi">$0</div>
+            </div>
+            <div class="fin-cat-card" onclick="selTipoFin('ofrenda')" id="fcat-ofrenda">
+              <div class="fin-cat-ico">🙏</div>
+              <div class="fin-cat-lbl">Ofrenda</div>
+              <div class="fin-cat-num" id="fOf">$0</div>
+            </div>
+            <div class="fin-cat-card" onclick="selTipoFin('primicia')" id="fcat-primicia">
+              <div class="fin-cat-ico">🌾</div>
+              <div class="fin-cat-lbl">Primicia</div>
+              <div class="fin-cat-num" id="fPr">$0</div>
+            </div>
+            <div class="fin-cat-card" onclick="selTipoFin('donacion')" id="fcat-donacion">
+              <div class="fin-cat-ico">🎁</div>
+              <div class="fin-cat-lbl">Donación</div>
+              <div class="fin-cat-num" id="fDn">$0</div>
+            </div>
+            <div class="fin-cat-card" onclick="selTipoFin('otro')" id="fcat-otro">
+              <div class="fin-cat-ico">📋</div>
+              <div class="fin-cat-lbl">Otro ingreso</div>
+              <div class="fin-cat-num" id="fOt">$0</div>
+            </div>
+          </div>
+
+          <!-- Total grande y visible -->
+          <div style="background:linear-gradient(135deg,rgba(39,174,96,.12),rgba(39,174,96,.04));border:1px solid rgba(39,174,96,.3);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700">Total Entradas</div>
+              <div style="font-size:36px;font-weight:700;color:#27ae60;font-family:Cinzel,serif" id="fTo">$0.00</div>
+            </div>
+            <div style="text-align:right">
+              <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px">Categoría seleccionada</div>
+              <div style="font-size:16px;font-weight:700;color:var(--do)" id="fCatSelLbl">📖 Diezmo</div>
+            </div>
+          </div>
+
+          <!-- Formulario de registro -->
+          <div class="panel">
+            <div class="ph2">➕ Registrar entrada — <span id="fCatSelLbl2" style="color:var(--do)">Diezmo</span></div>
+            <div class="pb">
+              <div class="fg">
+                <div class="ff"><label>Fecha *</label><input type="date" id="fFecha"></div>
+                <div class="ff"><label>Miembro / Donante</label><select id="fMiem"><option value="">— Anónimo —</option></select></div>
+                <div class="ff"><label>Monto *</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#888;font-weight:700;font-size:15px">$</span>
+                    <input type="number" id="fMonto" placeholder="0.00" step="0.01" min="0" style="padding-left:26px">
+                  </div>
+                </div>
+                <div class="ff"><label>Método de pago</label>
+                  <select id="fMet">
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="cheque">📄 Cheque</option>
+                    <option value="tarjeta">💳 Tarjeta</option>
+                  </select>
+                </div>
+                <div class="ff full"><label>Nota (opcional)</label><input type="text" id="fDesc" placeholder="Descripción adicional..."></div>
+              </div>
+              <!-- Campos extra para donación -->
+              <div id="donBox" style="display:none;margin-top:12px;background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.15);border-radius:10px;padding:14px">
+                <div class="fg">
+                  <div class="ff"><label>Tipo de donación</label><select id="donTipo" onchange="cambDon()"><option value="dinero">💵 Dinero</option><option value="articulos">📦 Artículos</option></select></div>
+                  <div class="ff" id="artBox" style="display:none"><label>Descripción artículos</label><textarea id="donArt" placeholder="Artículos donados..."></textarea></div>
+                </div>
+              </div>
+              <div class="bgrp" style="margin-top:16px">
+                <button class="btn btn-e" style="padding:12px 28px;font-size:13px" onclick="guardarFin()">✅ Guardar entrada</button>
+                <button class="btn btn-s" onclick="limpiarFin()">🔄 Limpiar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Historial de entradas -->
+          <div class="panel" style="margin-top:16px">
+            <div class="ph2" style="justify-content:space-between">
+              <span>📋 Historial de entradas</span>
+              <div style="display:flex;gap:6px;flex-wrap:wrap">
+                <select id="fFiltroTipo" onchange="renderFin()" style="padding:5px 10px;background:var(--gr);border:1px solid var(--gm);border-radius:7px;color:#ccc;font-size:11px">
+                  <option value="">Todas las categorías</option>
+                  <option value="diezmo">📖 Diezmo</option>
+                  <option value="ofrenda">🙏 Ofrenda</option>
+                  <option value="primicia">🌾 Primicia</option>
+                  <option value="donacion">🎁 Donación</option>
+                  <option value="otro">📋 Otro</option>
+                </select>
+              </div>
+            </div>
+            <div id="listaFinEntradas" style="padding:14px"></div>
+          </div>
+        </div>
+
+        <!-- ===== PESTAÑA: GASTOS ===== -->
+        <div id="fin-gastos" style="display:none">
+          <!-- Total gastos -->
+          <div style="background:linear-gradient(135deg,rgba(231,76,60,.1),rgba(231,76,60,.03));border:1px solid rgba(231,76,60,.28);border-radius:14px;padding:20px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700">Total Gastos</div>
+              <div style="font-size:36px;font-weight:700;color:var(--pe);font-family:Cinzel,serif" id="fGa">$0.00</div>
+            </div>
+            <div>
+              <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:1px">Balance neto</div>
+              <div style="font-size:18px;font-weight:700" id="fBalance">$0.00</div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="ph2">📤 Registrar gasto</div>
+            <div class="pb">
+              <div class="fg">
+                <div class="ff"><label>Fecha *</label><input type="date" id="gFecha"></div>
+                <div class="ff"><label>Categoría</label>
+                  <select id="gCategoria">
+                    <option value="servicios">🔌 Servicios (luz, agua, internet)</option>
+                    <option value="mantenimiento">🔧 Mantenimiento</option>
+                    <option value="ministerio">🎤 Ministerio / Actividades</option>
+                    <option value="alimentacion">🍽️ Alimentación</option>
+                    <option value="transporte">🚗 Transporte</option>
+                    <option value="otro">📋 Otro</option>
+                  </select>
+                </div>
+                <div class="ff"><label>Monto *</label>
+                  <div style="position:relative">
+                    <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#888;font-weight:700;font-size:15px">$</span>
+                    <input type="number" id="gMonto" placeholder="0.00" step="0.01" min="0" style="padding-left:26px">
+                  </div>
+                </div>
+                <div class="ff"><label>Método</label>
+                  <select id="gMet">
+                    <option value="efectivo">💵 Efectivo</option>
+                    <option value="transferencia">🏦 Transferencia</option>
+                    <option value="cheque">📄 Cheque</option>
+                    <option value="tarjeta">💳 Tarjeta</option>
+                  </select>
+                </div>
+                <div class="ff full"><label>Descripción *</label><input type="text" id="gDesc" placeholder="¿En qué se usó el dinero?"></div>
+              </div>
+              <div class="bgrp" style="margin-top:16px">
+                <button class="btn btn-d" style="padding:12px 28px;font-size:13px" onclick="guardarGasto()">📤 Registrar gasto</button>
+                <button class="btn btn-s" onclick="limpiarGasto()">🔄 Limpiar</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:16px">
+            <div class="ph2">📋 Historial de gastos</div>
+            <div id="listaFinGastos" style="padding:14px"></div>
+          </div>
+        </div>
+
+        <!-- ===== PESTAÑA: PRÉSTAMOS ===== -->
+        <div id="fin-prestamos" style="display:none">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <button class="btn btn-p btn-sm" onclick="openM('mPrestamo');document.getElementById('preId').value='';document.getElementById('preFecha').valueAsDate=new Date()">➕ Nuevo préstamo</button>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:20px">
+            <div class="sc az"><div class="sc-ico">💳</div><div class="sc-num" id="pTot">0</div><div class="sc-lbl">Total</div></div>
+            <div class="sc na"><div class="sc-ico">⏳</div><div class="sc-num" id="pAct">0</div><div class="sc-lbl">Activos</div></div>
+            <div class="sc ro"><div class="sc-ico">⚠️</div><div class="sc-num" id="pVen">0</div><div class="sc-lbl">Vencidos</div></div>
+            <div class="sc ve"><div class="sc-ico">✅</div><div class="sc-num" id="pPag">0</div><div class="sc-lbl">Pagados</div></div>
+          </div>
+          <div id="listaPres"></div>
+        </div>
+
+        <!-- ===== PESTAÑA: RESUMEN ===== -->
+        <div id="fin-resumen" style="display:none">
+          <!-- Balance general -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+            <div style="background:linear-gradient(135deg,rgba(39,174,96,.12),rgba(39,174,96,.04));border:1px solid rgba(39,174,96,.3);border-radius:14px;padding:20px;text-align:center">
+              <div style="font-size:13px;color:#888;margin-bottom:8px">💚 Total Entradas</div>
+              <div style="font-size:32px;font-weight:700;color:#27ae60;font-family:Cinzel,serif" id="resTot">$0.00</div>
+            </div>
+            <div style="background:linear-gradient(135deg,rgba(231,76,60,.1),rgba(231,76,60,.03));border:1px solid rgba(231,76,60,.28);border-radius:14px;padding:20px;text-align:center">
+              <div style="font-size:13px;color:#888;margin-bottom:8px">🔴 Total Gastos</div>
+              <div style="font-size:32px;font-weight:700;color:var(--pe);font-family:Cinzel,serif" id="resGas">$0.00</div>
+            </div>
+          </div>
+          <div style="background:linear-gradient(135deg,rgba(212,175,55,.1),rgba(212,175,55,.03));border:2px solid rgba(212,175,55,.35);border-radius:14px;padding:22px;text-align:center;margin-bottom:20px">
+            <div style="font-size:13px;color:#888;margin-bottom:8px">⚖️ Balance Neto</div>
+            <div style="font-size:42px;font-weight:700;font-family:Cinzel,serif" id="resBalance">$0.00</div>
+          </div>
+          <!-- Detalle por categoría -->
+          <div class="panel">
+            <div class="ph2">📊 Detalle por categoría</div>
+            <div id="resDetalle" style="padding:14px"></div>
+          </div>
+        </div>
+
       </div>
 
-      <!-- PRÉSTAMOS -->
+      <!-- PRÉSTAMOS (redirige a finanzas) — mantenemos el id para compatibilidad -->
       <div id="vp-prestamos" class="vp">
-        <div class="ph"><div><div class="ph-t">💳 Préstamos</div><div class="ph-s">Control de préstamos y pagos</div></div><button class="btn btn-p btn-sm" onclick="openM('mPrestamo');document.getElementById('preId').value='';document.getElementById('preFecha').valueAsDate=new Date()">➕ Nuevo</button></div>
-        <div class="sg">
-          <div class="sc az"><div class="sc-ico">💳</div><div class="sc-num" id="pTot">0</div><div class="sc-lbl">Total</div></div>
-          <div class="sc na"><div class="sc-ico">⏳</div><div class="sc-num" id="pAct">0</div><div class="sc-lbl">Activos</div></div>
-          <div class="sc ro"><div class="sc-ico">⚠️</div><div class="sc-num" id="pVen">0</div><div class="sc-lbl">Vencidos</div></div>
-          <div class="sc ve"><div class="sc-ico">✅</div><div class="sc-num" id="pPag">0</div><div class="sc-lbl">Pagados</div></div>
+        <div style="text-align:center;padding:60px 20px">
+          <div style="font-size:48px;margin-bottom:16px">💳</div>
+          <div style="font-family:Cinzel,serif;color:var(--do);font-size:18px;margin-bottom:8px">Préstamos</div>
+          <div style="color:#666;font-size:13px;margin-bottom:20px">Los préstamos ahora están dentro del módulo de Finanzas</div>
+          <button class="btn btn-p" onclick="go('finanzas');setTimeout(()=>finTab('prestamos',document.getElementById('ftab-prestamos')),100)">💰 Ir a Finanzas → Préstamos</button>
         </div>
-        <div id="listaPres"></div>
       </div>
 
       <!-- REPORTES -->
@@ -1391,8 +1598,7 @@ async function cargarDatos(){
   else{usuarios=[{id:'admin_001',nombre:'Administrador',usuario:'admin',clave:'12345',rol:'administrador',activo:true},{id:'pastor_001',nombre:'Pastor Principal',usuario:'pastor',clave:'12345',rol:'pastor',activo:true},{id:'tesorero_001',nombre:'Tesorero',usuario:'tesorero',clave:'12345',rol:'tesorero',activo:true},{id:'secretario_001',nombre:'Secretario',usuario:'secretario',clave:'12345',rol:'secretario',activo:true}];for(let u of usuarios)await dbP('usuarios',u)}
   miembros=await dbA('miembros');finanzas=await dbA('finanzas');ninos=await dbA('ninos');anuncios=await dbA('anuncios');eventos=await dbA('eventos');visitas=await dbA('visitas');celulas=await dbA('celulas');oraciones=await dbA('oraciones');prestamos=await dbA('prestamos');
   (await dbA('asistencia')).forEach(a=>asistData[a.fecha]=a.datos);
-  // Cargar actividades
-  if(!_db.actividades) _db.actividades = {};
+  if(!_db.actividades) _db.actividades={};
   const c=await dbG('configuracion','general');if(c)config=c;
 }
 
@@ -1469,7 +1675,7 @@ function go(v){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('activo'));
   const el=document.getElementById('vp-'+v);if(el)el.classList.add('activa');
   const nv=document.getElementById('nav-'+v);if(nv)nv.classList.add('activo');
-  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{renderFin();resumen();selFinMiem();document.getElementById('fFecha').valueAsDate=new Date()},ninos:()=>{renderN();selPadres()},asistencia:()=>{renderActividades()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,prestamos:renderPres,auditoria:()=>{renderAudit()}};
+  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{if(!_db.actividades)_db.actividades={};renderFin();renderGastos();resumen();selFinMiem();const fd=document.getElementById('fFecha');if(fd)fd.valueAsDate=new Date();const gd=document.getElementById('gFecha');if(gd)gd.valueAsDate=new Date();},ninos:()=>{renderN();selPadres()},asistencia:()=>{if(!_db.actividades)_db.actividades={};renderActividades()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,prestamos:()=>{go('finanzas');setTimeout(()=>finTab('prestamos',document.getElementById('ftab-prestamos')),150)},auditoria:()=>{renderAudit()}};
   if(act[v])act[v]();
 }
 function openM(id){document.getElementById(id).classList.add('activo');if(id==='mAnuncio')initEditor();if(id==='mAnunciosG')renderAnuG();if(id==='mCelula')selLideres();if(id==='mPrestamo'||id==='mOracion'){const s={mPrestamo:'preMiem',mOracion:'orMiem'}[id];if(s)selGen(s,miembros)}; if(id==='mVisita'){document.getElementById('visFecha').valueAsDate=new Date()}}
@@ -1590,14 +1796,6 @@ function limpiarM(){
 }
 function editM(i){
   const m=miembros[i];
-  // Si ya hay datos en el formulario (mNom tiene valor), pedir confirmación
-  const nomActual = document.getElementById('mNom').value.trim();
-  const editando = document.getElementById('mId').value;
-  if(nomActual && editando !== m.id){
-    if(!confirm(`¿Descartar los cambios actuales y editar a "${m.nombre}"?`)) return;
-  } else if(!editando && nomActual){
-    if(!confirm(`¿Descartar el formulario actual y editar a "${m.nombre}"?`)) return;
-  }
   document.getElementById('mId').value=m.id;
   document.getElementById('mNom').value=m.nombre;
   document.getElementById('mTel').value=m.telefono||'';
@@ -1632,7 +1830,7 @@ function editM(i){
   document.querySelector('.contenido').scrollTo(0,0);
   tabMForm('general', document.querySelector('.mftab'));
 }
-async function delM(i){if(!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR al miembro "${miembros[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+miembros[i].nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado')}
+async function delM(i){if(!confirm(`⚠️ ¿Estás seguro de eliminar a "${miembros[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+miembros[i].nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado')}
 function filtrarM(){const q=document.getElementById('buscarM').value.toLowerCase();document.querySelectorAll('#tbM tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
 function actCelSel(){const s=document.getElementById('mCel');s.innerHTML='<option value="">Sin célula</option>';celulas.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nombre;s.appendChild(o)})}
 const EBADGE={activo:'ba',inactivo:'bi',visitante:'bv','visitante-habitual':'bvh','visita-nueva':'bvn'};
@@ -1669,7 +1867,7 @@ function exportMiembrosCSV(){let c='Nombre,Teléfono,Email,Estado,Ministerio,Cé
 // ===== VISITAS =====
 async function guardarVis(){const n=document.getElementById('visNom').value.trim();if(!n){toast('El nombre es requerido','error');return}const v={id:document.getElementById('visId').value||'vis_'+Date.now(),nombre:n,telefono:document.getElementById('visTel').value,email:document.getElementById('visEmail').value,fecha:document.getElementById('visFecha').value,llego:document.getElementById('visLleg').value,estado:document.getElementById('visEst').value,notas:document.getElementById('visNotas').value};await dbP('visitas',v);const idx=visitas.findIndex(x=>x.id===v.id);if(idx>=0)visitas[idx]=v;else visitas.push(v);closeM('mVisita');renderVis();statVis();toast('Visita registrada')}
 function statVis(){document.getElementById('vTot').textContent=visitas.length;document.getElementById('vHab').textContent=visitas.filter(v=>v.estado==='visitante-habitual').length;document.getElementById('vNuv').textContent=visitas.filter(v=>v.estado==='visita-nueva').length;document.getElementById('vConv').textContent=visitas.filter(v=>v.estado==='convertido').length}
-async function delVis(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('visitas',visitas[i].id);visitas.splice(i,1);renderVis();statVis();toast('Eliminado')}
+async function delVis(i){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('visitas',visitas[i].id);visitas.splice(i,1);renderVis();statVis();toast('Eliminado')}
 function renderVis(){const t=document.getElementById('tbVis');if(!visitas.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay visitas</td></tr>';return}t.innerHTML=visitas.slice().reverse().map((v,i)=>`<tr><td style="font-weight:700;color:#fff">${v.nombre}</td><td>${v.telefono||'-'}</td><td>${fmtF(v.fecha)}</td><td>${v.llego||'-'}</td><td><span class="badge bvn">${v.estado}</span></td><td>${v.notas||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delVis(${visitas.length-1-i})">🗑️</button></td></tr>`).join('')}
 
 // ===== CÉLULAS =====
@@ -1687,50 +1885,267 @@ function renderCel(){
 async function guardarN(){const n=document.getElementById('nNom').value.trim(),p=document.getElementById('nPadre').value;if(!n||!p){toast('Complete nombre y padre/tutor','error');return}const pa=miembros.find(m=>m.id===p);const ni={id:'nino_'+Date.now(),nombre:n,edad:document.getElementById('nEdad').value,fechaNac:document.getElementById('nFNac').value,grado:document.getElementById('nGrado').value,padreId:p,padreNombre:pa?pa.nombre:'',alergias:document.getElementById('nAler').value,emergencia:document.getElementById('nEmerg').value};await dbP('ninos',ni);ninos.push(ni);limpiarN();renderN();toast('Niño registrado')}
 function limpiarN(){['nNom','nEdad','nFNac','nGrado','nPadre','nAler','nEmerg'].forEach(id=>document.getElementById(id).value='')}
 function selPadres(){const s=document.getElementById('nPadre');s.innerHTML='<option value="">-- Seleccione --</option>';miembros.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
-async function delN(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('ninos',ninos[i].id);ninos.splice(i,1);renderN();toast('Eliminado')}
+async function delN(i){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('ninos',ninos[i].id);ninos.splice(i,1);renderN();toast('Eliminado')}
 function renderN(){const t=document.getElementById('tbNin');if(!ninos.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay niños</td></tr>';return}t.innerHTML=ninos.map((n,i)=>`<tr><td style="font-weight:700;color:#fff">${n.nombre}</td><td>${n.edad||'-'}</td><td>${n.grado||'-'}</td><td>${n.padreNombre}</td><td>${n.alergias?'<span style="color:var(--pe)">⚠️ '+n.alergias+'</span>':'-'}</td><td>${n.emergencia||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delN(${i})">🗑️</button></td></tr>`).join('')}
 
 // ===== ORACIÓN =====
 async function guardarOra(){const t=document.getElementById('orTit').value.trim();if(!t){toast('El título es requerido','error');return}const mid=document.getElementById('orMiem').value;const mb=miembros.find(m=>m.id===mid);const o={id:document.getElementById('orId').value||'ora_'+Date.now(),titulo:t,texto:document.getElementById('orTxt').value,miembroId:mid,sol:mb?mb.nombre:'Anónimo',urgencia:document.getElementById('orUrg').value,estado:document.getElementById('orEst').value,fecha:new Date().toISOString().split('T')[0]};await dbP('oraciones',o);const idx=oraciones.findIndex(x=>x.id===o.id);if(idx>=0)oraciones[idx]=o;else oraciones.push(o);closeM('mOracion');renderOra();toast('Petición guardada')}
 async function togOra(id){const o=oraciones.find(x=>x.id===id);if(!o)return;o.estado=o.estado==='activa'?'respondida':'activa';await dbP('oraciones',o);renderOra();toast('Estado actualizado')}
-async function delOra(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('oraciones',id);oraciones=oraciones.filter(o=>o.id!==id);renderOra();toast('Eliminado')}
+async function delOra(id){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('oraciones',id);oraciones=oraciones.filter(o=>o.id!==id);renderOra();toast('Eliminado')}
 function filtOra(f,el){filtroOra=f;document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('activo'));el.classList.add('activo');renderOra()}
 function renderOra(){let l=oraciones;if(filtroOra!=='todas')l=oraciones.filter(o=>filtroOra==='urgente'?o.urgencia==='urgente':o.estado===filtroOra);const c=document.getElementById('listaOra');if(!l.length){c.innerHTML='<div class="empty"><div class="empty-ico">🙏</div><div class="empty-txt">No hay peticiones</div></div>';return}c.innerHTML=l.map(o=>`<div class="orc"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ort">${o.urgencia==='urgente'?'🔴 ':''}${o.titulo} <span class="badge ${o.estado==='respondida'?'ba':'bv'}" style="margin-left:6px">${o.estado==='respondida'?'Respondida':'Activa'}</span></div><div class="orx">${o.texto||''}</div><div class="orm">🙏 ${o.sol} · ${fmtF(o.fecha)}</div></div><div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px"><button class="btn btn-e btn-xs" onclick="togOra('${o.id}')">${o.estado==='activa'?'✅':'🔄'}</button><button class="btn btn-d btn-xs" onclick="delOra('${o.id}')">🗑️</button></div></div></div>`).join('')}
 function selGen(id,l){const s=document.getElementById(id);if(!s)return;s.innerHTML='<option value="">-- Seleccione --</option>';l.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
 
+// ===== FINANZAS (nuevo sistema de pestañas) =====
+let tipoFinActivo = 'diezmo';
+
+function finTab(tab, el){
+  ['entradas','gastos','prestamos','resumen'].forEach(t=>{
+    const d=document.getElementById('fin-'+t);
+    if(d) d.style.display = t===tab ? 'block':'none';
+  });
+  document.querySelectorAll('#vp-finanzas .tab').forEach(x=>x.classList.remove('activo'));
+  if(el) el.classList.add('activo');
+  if(tab==='resumen') renderResumenFin();
+  if(tab==='prestamos') renderPres();
+  if(tab==='gastos') renderGastos();
+  if(tab==='entradas') renderFin();
+}
+
+function selTipoFin(tipo){
+  tipoFinActivo = tipo;
+  // Quitar activo de todas
+  document.querySelectorAll('.fin-cat-card').forEach(c=>c.removeAttribute('data-active'));
+  const card = document.getElementById('fcat-'+tipo);
+  if(card) card.setAttribute('data-active','true');
+  const labels={diezmo:'📖 Diezmo',ofrenda:'🙏 Ofrenda',primicia:'🌾 Primicia',donacion:'🎁 Donación',otro:'📋 Otro ingreso'};
+  const lbl = labels[tipo]||tipo;
+  const l1=document.getElementById('fCatSelLbl'); if(l1) l1.textContent=lbl;
+  const l2=document.getElementById('fCatSelLbl2'); if(l2) l2.textContent=lbl;
+  document.getElementById('donBox').style.display = tipo==='donacion' ? 'block':'none';
+}
+
+// Alias para compatibilidad con código viejo
+function selTipo(t,btn){ tipoFinActivo=t; selTipoFin(t); }
+
+function cambDon(){document.getElementById('artBox').style.display=document.getElementById('donTipo').value==='articulos'?'block':'none'}
+
+function selFinMiem(){
+  const s=document.getElementById('fMiem');
+  s.innerHTML='<option value="">— Anónimo —</option>';
+  miembros.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)});
+}
+
+async function guardarFin(){
+  const f=document.getElementById('fFecha').value;
+  const m=parseFloat(document.getElementById('fMonto').value)||0;
+  if(!f){toast('Seleccione una fecha','error');return}
+  if(m<=0){toast('Ingrese un monto válido','error');return}
+  const mid=document.getElementById('fMiem').value;
+  const mb=miembros.find(x=>x.id===mid);
+  const fn={
+    id:'fin_'+Date.now(),
+    fecha:f,
+    tipo:tipoFinActivo,
+    miembroId:mid,
+    miembroNombre:mb?mb.nombre:'Anónimo',
+    monto:m,
+    metodo:document.getElementById('fMet').value,
+    descripcion:document.getElementById('fDesc').value
+  };
+  if(tipoFinActivo==='donacion'){
+    fn.donTipo=document.getElementById('donTipo').value;
+    if(fn.donTipo==='articulos') fn.articulos=document.getElementById('donArt').value;
+  }
+  await dbP('finanzas',fn);
+  finanzas.push(fn);
+  limpiarFin();
+  renderFin();
+  resumen();
+  logAudit('CREATE','Registro financiero: $'+m+' tipo '+tipoFinActivo);
+  toast('✅ Entrada registrada correctamente');
+}
+
+function limpiarFin(){
+  document.getElementById('fFecha').valueAsDate=new Date();
+  ['fMonto','fDesc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('fMiem').value='';
+  document.getElementById('fMet').value='efectivo';
+  document.getElementById('donBox').style.display='none';
+  selTipoFin('diezmo');
+}
+
+// Gastos
+async function guardarGasto(){
+  const f=document.getElementById('gFecha').value;
+  const m=parseFloat(document.getElementById('gMonto').value)||0;
+  if(!f){toast('Seleccione una fecha','error');return}
+  if(m<=0){toast('Ingrese un monto válido','error');return}
+  const desc=document.getElementById('gDesc').value.trim();
+  if(!desc){toast('Ingrese una descripción del gasto','error');return}
+  const fn={
+    id:'fin_'+Date.now(),
+    fecha:f,
+    tipo:'gasto',
+    categoria:document.getElementById('gCategoria').value,
+    miembroNombre:'—',
+    monto:m,
+    metodo:document.getElementById('gMet').value,
+    descripcion:desc
+  };
+  await dbP('finanzas',fn);
+  finanzas.push(fn);
+  limpiarGasto();
+  renderGastos();
+  resumen();
+  logAudit('CREATE','Gasto registrado: $'+m);
+  toast('📤 Gasto registrado');
+}
+
+function limpiarGasto(){
+  document.getElementById('gFecha').valueAsDate=new Date();
+  ['gMonto','gDesc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.getElementById('gCategoria').value='servicios';
+  document.getElementById('gMet').value='efectivo';
+}
+
+function resumen(){
+  const tipos=['diezmo','ofrenda','primicia','donacion'],ids=['fDi','fOf','fPr','fDn'];
+  let tot=0;
+  tipos.forEach((tp,i)=>{
+    const s=finanzas.filter(f=>f.tipo===tp).reduce((a,f)=>a+parseFloat(f.monto||0),0);
+    const el=document.getElementById(ids[i]);
+    if(el) el.textContent='$'+s.toFixed(2);
+    tot+=s;
+  });
+  // otro ingreso
+  const sOt=finanzas.filter(f=>f.tipo==='otro').reduce((a,f)=>a+parseFloat(f.monto||0),0);
+  const elOt=document.getElementById('fOt'); if(elOt) elOt.textContent='$'+sOt.toFixed(2);
+  tot+=sOt;
+  const elTo=document.getElementById('fTo'); if(elTo) elTo.textContent='$'+tot.toFixed(2);
+  // gastos
+  const gas=finanzas.filter(f=>f.tipo==='gasto').reduce((a,f)=>a+parseFloat(f.monto||0),0);
+  const elGa=document.getElementById('fGa'); if(elGa) elGa.textContent='$'+gas.toFixed(2);
+  const bal=tot-gas;
+  const elBal=document.getElementById('fBalance');
+  if(elBal){elBal.textContent='$'+bal.toFixed(2);elBal.style.color=bal>=0?'#27ae60':'#e74c3c';}
+  // dashboard
+  ['db_d','db_o','db_pr','db_dn'].forEach((id,i)=>{const el=document.getElementById(id);if(el)el.textContent='$'+finanzas.filter(f=>f.tipo===tipos[i]).reduce((a,f)=>a+parseFloat(f.monto||0),0).toFixed(2)});
+  const elT=document.getElementById('db_t'); if(elT) elT.textContent='$'+tot.toFixed(2);
+}
+
+const TIPO_ICO={diezmo:'📖',ofrenda:'🙏',primicia:'🌾',donacion:'🎁',gasto:'📤',otro:'📋'};
+const TIPO_COLOR={diezmo:'rgba(212,175,55,.15)',ofrenda:'rgba(41,128,185,.15)',primicia:'rgba(39,174,96,.15)',donacion:'rgba(142,68,173,.15)',gasto:'rgba(231,76,60,.15)',otro:'rgba(255,255,255,.07)'};
+
+function renderFin(){
+  const c=document.getElementById('listaFinEntradas');
+  if(!c) return;
+  const filtro=(document.getElementById('fFiltroTipo')||{}).value||'';
+  let lista=finanzas.filter(f=>f.tipo!=='gasto').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  if(filtro) lista=lista.filter(f=>f.tipo===filtro);
+  if(!lista.length){c.innerHTML='<div class="empty" style="padding:28px"><div class="empty-ico">💰</div><div class="empty-txt">No hay entradas registradas</div></div>';return}
+  c.innerHTML=lista.map(f=>`
+    <div class="fin-item">
+      <div class="fin-item-ico" style="background:${TIPO_COLOR[f.tipo]||TIPO_COLOR.otro}">${TIPO_ICO[f.tipo]||'📋'}</div>
+      <div class="fin-item-info">
+        <div class="fin-item-nom">${TIPO_LBL[f.tipo]||f.tipo} · ${f.miembroNombre}</div>
+        <div class="fin-item-det">${fmtF(f.fecha)} · ${f.metodo}${f.descripcion?' · '+f.descripcion:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="fin-item-monto entrada">$${parseFloat(f.monto).toFixed(2)}</div>
+        <button class="btn btn-d btn-xs" onclick="if(!confirm('⚠️ ¿Eliminar este registro?\\nEsta acción no se puede deshacer.'))return;delFin('${f.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderGastos(){
+  const c=document.getElementById('listaFinGastos');
+  if(!c) return;
+  const lista=finanzas.filter(f=>f.tipo==='gasto').sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  if(!lista.length){c.innerHTML='<div class="empty" style="padding:28px"><div class="empty-ico">📤</div><div class="empty-txt">No hay gastos registrados</div></div>';return}
+  const GICO={servicios:'🔌',mantenimiento:'🔧',ministerio:'🎤',alimentacion:'🍽️',transporte:'🚗',otro:'📋'};
+  c.innerHTML=lista.map(f=>`
+    <div class="fin-item">
+      <div class="fin-item-ico" style="background:rgba(231,76,60,.12)">${GICO[f.categoria]||'📤'}</div>
+      <div class="fin-item-info">
+        <div class="fin-item-nom">${f.descripcion||'Gasto'}</div>
+        <div class="fin-item-det">${fmtF(f.fecha)} · ${f.metodo}${f.categoria?' · '+f.categoria:''}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="fin-item-monto gasto">-$${parseFloat(f.monto).toFixed(2)}</div>
+        <button class="btn btn-d btn-xs" onclick="if(!confirm('⚠️ ¿Eliminar este gasto?\\nEsta acción no se puede deshacer.'))return;delFin('${f.id}')">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+function renderResumenFin(){
+  const tot=finanzas.filter(f=>f.tipo!=='gasto').reduce((a,f)=>a+parseFloat(f.monto||0),0);
+  const gas=finanzas.filter(f=>f.tipo==='gasto').reduce((a,f)=>a+parseFloat(f.monto||0),0);
+  const bal=tot-gas;
+  const elT=document.getElementById('resTot'); if(elT) elT.textContent='$'+tot.toFixed(2);
+  const elG=document.getElementById('resGas'); if(elG) elG.textContent='$'+gas.toFixed(2);
+  const elB=document.getElementById('resBalance');
+  if(elB){elB.textContent='$'+bal.toFixed(2);elB.style.color=bal>=0?'#27ae60':'#e74c3c';}
+  // detalle por categoría
+  const cats=['diezmo','ofrenda','primicia','donacion','otro','gasto'];
+  const lbl={diezmo:'📖 Diezmos',ofrenda:'🙏 Ofrendas',primicia:'🌾 Primicias',donacion:'🎁 Donaciones',otro:'📋 Otros ingresos',gasto:'📤 Gastos'};
+  const c=document.getElementById('resDetalle');
+  if(c) c.innerHTML=cats.map(cat=>{
+    const s=finanzas.filter(f=>f.tipo===cat).reduce((a,f)=>a+parseFloat(f.monto||0),0);
+    if(s===0) return '';
+    return `<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;border-radius:50%;background:${TIPO_COLOR[cat]};display:flex;align-items:center;justify-content:center;font-size:18px">${TIPO_ICO[cat]||'📋'}</div>
+        <div style="font-weight:700;color:#fff;font-size:13px">${lbl[cat]}</div>
+      </div>
+      <div style="font-size:18px;font-weight:700;font-family:Cinzel,serif;color:${cat==='gasto'?'#e74c3c':'#27ae60'}">$${s.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+}
+
+async function delFin(id){
+  await dbD('finanzas',id);
+  finanzas=finanzas.filter(f=>f.id!==id);
+  renderFin();renderGastos();resumen();
+  toast('Eliminado');
+}
+
+function exportFinCSV(){
+  let c='Fecha,Tipo,Miembro,Monto,Método,Descripción\n';
+  finanzas.forEach(f=>c+=`${f.fecha},"${f.tipo}","${f.miembroNombre||''}",${f.monto},"${f.metodo||''}","${f.descripcion||''}"\n`);
+  dl(c,'finanzas.csv','text/csv');
+  toast('CSV exportado');
+}
+
 // ===== ASISTENCIA (Sistema de Actividades) =====
-let actividadActual = null; // actividad siendo pasada lista
-let asistEstados = {};      // {miembroId: 'pendiente'|'presente'|'ausente'|'justificado'}
+let actividadActual = null;
+let asistEstados = {};
 
 function abrirCrearActividad(){
-  const hoy = new Date().toISOString().split('T')[0];
+  const hoy=new Date().toISOString().split('T')[0];
   document.getElementById('actNombre').value='';
   document.getElementById('actFecha').value=hoy;
   document.getElementById('actHora').value='';
-  document.getElementById('actDesc').value='';
   document.getElementById('actTipo').value='culto';
   openM('mCrearActividad');
 }
 
 async function crearActividad(){
-  const nom = document.getElementById('actNombre').value.trim();
-  const fecha = document.getElementById('actFecha').value;
-  if(!nom){toast('Ingrese el nombre de la actividad','error');return;}
-  if(!fecha){toast('Seleccione una fecha','error');return;}
-  const act = {
-    id: 'act_'+Date.now(),
-    nombre: nom,
-    fecha: fecha,
-    hora: document.getElementById('actHora').value,
-    tipo: document.getElementById('actTipo').value,
-    descripcion: document.getElementById('actDesc').value,
-    estado: 'pendiente', // pendiente | guardada
-    creadoPor: usrActual ? usrActual.nombre : '',
-    fc: new Date().toISOString()
+  const nom=document.getElementById('actNombre').value.trim();
+  const fecha=document.getElementById('actFecha').value;
+  if(!nom){toast('Ingrese el nombre de la actividad','error');return}
+  if(!fecha){toast('Seleccione una fecha','error');return}
+  const act={
+    id:'act_'+Date.now(),
+    nombre:nom,fecha,
+    hora:document.getElementById('actHora').value,
+    tipo:document.getElementById('actTipo').value,
+    estado:'pendiente',
+    creadoPor:usrActual?usrActual.nombre:'',
+    fc:new Date().toISOString()
   };
-  // Guardar actividad en DB
-  if(!_db.actividades) _db.actividades = {};
-  _db.actividades[act.id] = act;
+  if(!_db.actividades) _db.actividades={};
+  _db.actividades[act.id]=act;
   await _dbSave();
   closeM('mCrearActividad');
   renderActividades();
@@ -1739,47 +2154,34 @@ async function crearActividad(){
 }
 
 function renderActividades(){
-  const c = document.getElementById('listaActividades');
-  const acts = Object.values(_db.actividades||{}).filter(a=>a.estado==='pendiente').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const c=document.getElementById('listaActividades');
+  const acts=Object.values(_db.actividades||{}).filter(a=>a.estado==='pendiente').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
   if(!acts.length){
     c.innerHTML='<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades pendientes. Crea una nueva.</div></div>';
   } else {
-    c.innerHTML = acts.map(a=>{
-      const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
-      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
-        <div style="font-size:26px">${tipos[a.tipo]||'📋'}</div>
-        <div style="flex:1;min-width:140px">
-          <div style="font-weight:700;color:#fff;font-size:13px">${a.nombre}</div>
-          <div style="font-size:10px;color:#888">${fmtF(a.fecha)} ${a.hora?'· '+a.hora:''} · ${a.descripcion||''}</div>
+    c.innerHTML=acts.map(a=>`
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+        <div style="width:46px;height:46px;border-radius:12px;background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.2);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
+        <div style="flex:1;min-width:130px">
+          <div style="font-weight:700;color:#fff;font-size:14px">${a.nombre}</div>
+          <div style="font-size:11px;color:#888;margin-top:3px">${fmtF(a.fecha)}${a.hora?' · '+a.hora:''}</div>
         </div>
-        <div style="display:flex;gap:7px;flex-wrap:wrap">
-          <button class="btn btn-p btn-sm" onclick="iniciarPasarLista(${JSON.stringify(a).replace(/"/g,'&quot;')})">📋 Pasar Lista</button>
-          <button class="btn btn-d btn-xs" onclick="confirmarEliminarActividad('${a.id}')">🗑️</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn btn-p btn-sm" onclick="iniciarPasarLista(${JSON.stringify(a).replace(/"/g,'&quot;')})">📋 Pasar lista</button>
+          <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta actividad?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
         </div>
-      </div>`;
-    }).join('');
+      </div>`).join('');
   }
   renderHistorialAsist();
 }
 
-function confirmarEliminarActividad(id){
-  if(!confirm('¿Estás seguro de que deseas eliminar esta actividad? Esta acción no se puede deshacer.')) return;
-  delete (_db.actividades||{})[id];
-  _dbSave();
-  renderActividades();
-  toast('Actividad eliminada');
-}
-
 function iniciarPasarLista(act){
-  actividadActual = act;
-  asistEstados = {};
-  // Cargar estados previos si existían
-  const prev = (asistData[act.id]||asistData[act.fecha])||{};
-  // Iniciar todos en pendiente (no aún marcados)
-  miembros.forEach(m=>{
-    asistEstados[m.id] = prev[m.id] || 'pendiente';
-  });
-  document.getElementById('aActividadNombre').textContent = `📋 ${act.nombre} — ${fmtF(act.fecha)}`;
+  actividadActual=act;
+  asistEstados={};
+  const prev=(asistData[act.id]||asistData[act.fecha])||{};
+  miembros.forEach(m=>{asistEstados[m.id]=prev[m.id]||'pendiente'});
+  document.getElementById('aActividadNombre').textContent=`📋 ${act.nombre} — ${fmtF(act.fecha)}`;
   document.getElementById('panelPasarLista').style.display='block';
   document.getElementById('panelPasarLista').scrollIntoView({behavior:'smooth',block:'start'});
   document.getElementById('buscarAsist').value='';
@@ -1787,8 +2189,7 @@ function iniciarPasarLista(act){
 }
 
 function cerrarPasarLista(){
-  actividadActual=null;
-  asistEstados={};
+  actividadActual=null;asistEstados={};
   document.getElementById('panelPasarLista').style.display='none';
 }
 
@@ -1797,80 +2198,65 @@ function renderListaAsist(){
   const cPend=document.getElementById('listaAsist');
   const cPres=document.getElementById('listaPresentes');
   const secPres=document.getElementById('secPresentes');
-  cPend.innerHTML='';
-  cPres.innerHTML='';
+  cPend.innerHTML='';cPres.innerHTML='';
   let nPres=0;
-
   miembros.forEach(m=>{
-    if(busq && !m.nombre.toLowerCase().includes(busq)) return;
+    if(busq&&!m.nombre.toLowerCase().includes(busq)) return;
     const e=asistEstados[m.id]||'pendiente';
     const ini=m.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    const foto=m.foto?`<img src="${m.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:`<span style="font-size:13px;font-weight:700;color:var(--ng)">${ini}</span>`;
     if(e==='presente'){
       nPres++;
-      // Tarjeta pequeña en sección Presentes
       const d=document.createElement('div');
-      d.style.cssText='display:flex;align-items:center;gap:8px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.3);border-radius:9px;padding:8px 10px;cursor:pointer;transition:all .2s';
-      d.title='Clic para cambiar estado';
-      d.onclick=()=>{asistEstados[m.id]='pendiente';renderListaAsist();contAsist();};
-      d.innerHTML=`<div class="ava" style="width:30px;height:30px;font-size:11px">${ini}</div><div style="flex:1"><div style="font-size:11px;font-weight:700;color:#fff">${m.nombre}</div><div style="font-size:9px;color:#888">${MINS[m.ministerio]||''}</div></div><span style="font-size:18px">✅</span>`;
+      d.style.cssText='display:flex;align-items:center;gap:10px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .2s';
+      d.title='Clic para quitar';
+      d.onclick=()=>{asistEstados[m.id]='pendiente';renderListaAsist();contAsist()};
+      d.innerHTML=`<div class="ava" style="width:32px;height:32px;font-size:11px">${foto}</div><div style="flex:1"><div style="font-size:12px;font-weight:700;color:#fff">${m.nombre}</div></div><span style="font-size:20px">✅</span>`;
       cPres.appendChild(d);
     } else {
-      // Tarjeta grande en lista principal
       const d=document.createElement('div');
       d.className='ac '+e;
       d.dataset.id=m.id;
-      const foto=m.foto?`<img src="${m.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:`<span style="font-size:14px;font-weight:700;color:var(--ng)">${ini}</span>`;
       d.innerHTML=`<div class="ava">${foto}</div>
         <div style="flex:1;min-width:0">
-          <div class="an2" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.nombre}</div>
+          <div class="an2" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.nombre}</div>
           <div class="am2">${MINS[m.ministerio]||'Miembro'}</div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;margin-left:auto;flex-shrink:0">
-          <button onclick="event.stopPropagation();marcarMiembro('${m.id}','presente')" style="padding:5px 10px;background:rgba(39,174,96,.15);border:1px solid #27ae60;border-radius:7px;color:#27ae60;font-size:10px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;white-space:nowrap">✅ Asistió</button>
-          <button onclick="event.stopPropagation();marcarMiembro('${m.id}','justificado')" style="padding:5px 10px;background:rgba(243,156,18,.12);border:1px solid #f39c12;border-radius:7px;color:#f39c12;font-size:10px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;white-space:nowrap">📝 Excusa</button>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+          <button onclick="event.stopPropagation();asistEstados['${m.id}']='presente';renderListaAsist();contAsist()" style="padding:7px 12px;background:rgba(39,174,96,.15);border:1px solid #27ae60;border-radius:8px;color:#27ae60;font-size:11px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif">✅ Asistió</button>
+          <button onclick="event.stopPropagation();asistEstados['${m.id}']='justificado';renderListaAsist();contAsist()" style="padding:7px 12px;background:rgba(243,156,18,.12);border:1px solid #f39c12;border-radius:8px;color:#f39c12;font-size:11px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif">📝 Excusa</button>
         </div>`;
       cPend.appendChild(d);
     }
   });
-
-  secPres.style.display = nPres>0 ? 'block':'none';
+  secPres.style.display=nPres>0?'block':'none';
   document.getElementById('cntPresentes').textContent=nPres;
   contAsist();
 }
 
-function filtrarListaAsist(){ renderListaAsist(); }
-
-function marcarMiembro(id, estado){
-  asistEstados[id]=estado;
-  renderListaAsist();
-}
+function filtrarListaAsist(){renderListaAsist()}
 
 function contAsist(){
   const vals=Object.values(asistEstados);
-  document.getElementById('aP').textContent=vals.filter(v=>v==='presente').length;
-  document.getElementById('aA').textContent=vals.filter(v=>v==='ausente'||v==='pendiente').length;
-  document.getElementById('aJ').textContent=vals.filter(v=>v==='justificado').length;
-  document.getElementById('aT').textContent=miembros.length;
+  const pEl=document.getElementById('aP');if(pEl)pEl.textContent=vals.filter(v=>v==='presente').length;
+  const aEl=document.getElementById('aA');if(aEl)aEl.textContent=vals.filter(v=>v==='ausente'||v==='pendiente').length;
+  const jEl=document.getElementById('aJ');if(jEl)jEl.textContent=vals.filter(v=>v==='justificado').length;
+  const tEl=document.getElementById('aT');if(tEl)tEl.textContent=miembros.length;
 }
 
 function marcarT(e){
-  miembros.forEach(m=>{ asistEstados[m.id]=e; });
+  miembros.forEach(m=>{asistEstados[m.id]=e});
   renderListaAsist();
 }
 
 async function guardarAsist(){
-  if(!actividadActual){toast('No hay actividad activa','error');return;}
-  if(!confirm('¿Finalizar la lista? Los miembros no marcados quedarán como Ausentes. Esta acción guardará la asistencia.')){return;}
-  // Los pendientes pasan a ausente automáticamente
-  miembros.forEach(m=>{
-    if(!asistEstados[m.id]||asistEstados[m.id]==='pendiente') asistEstados[m.id]='ausente';
-  });
-  const f=actividadActual.fecha;
+  if(!actividadActual){toast('No hay actividad activa','error');return}
+  if(!confirm('¿Finalizar la lista? Los miembros no marcados quedarán como Ausentes.')) return;
+  miembros.forEach(m=>{if(!asistEstados[m.id]||asistEstados[m.id]==='pendiente') asistEstados[m.id]='ausente'});
   const datos={...asistEstados};
   asistData[actividadActual.id]=datos;
-  asistData[f]=datos; // también por fecha para compatibilidad
-  await dbP('asistencia',{fecha:f,actividadId:actividadActual.id,actividadNombre:actividadActual.nombre,datos});
-  // Marcar actividad como guardada
+  asistData[actividadActual.fecha]=datos;
+  await dbP('asistencia',{fecha:actividadActual.fecha,actividadId:actividadActual.id,actividadNombre:actividadActual.nombre,datos});
   if(_db.actividades&&_db.actividades[actividadActual.id]){
     _db.actividades[actividadActual.id].estado='guardada';
     _db.actividades[actividadActual.id].datosAsist=datos;
@@ -1884,39 +2270,38 @@ async function guardarAsist(){
 function renderHistorialAsist(){
   const c=document.getElementById('listaHistorialAsist');
   const guardadas=Object.values(_db.actividades||{}).filter(a=>a.estado==='guardada').sort((a,b)=>b.fecha.localeCompare(a.fecha));
-  if(!guardadas.length){c.innerHTML='<div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>';return;}
+  const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
+  if(!guardadas.length){c.innerHTML='<div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>';return}
   c.innerHTML=guardadas.map(a=>{
-    const datos=a.datosAsist||asistData[a.id]||asistData[a.fecha]||{};
+    const datos=a.datosAsist||asistData[a.id]||{};
     const vals=Object.values(datos);
     const pres=vals.filter(v=>v==='presente').length;
     const aus=vals.filter(v=>v==='ausente').length;
     const exc=vals.filter(v=>v==='justificado').length;
-    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
-      <div style="flex:1;min-width:160px">
-        <div style="font-weight:700;color:#fff;font-size:12px">${a.nombre}</div>
-        <div style="font-size:10px;color:#888">${fmtF(a.fecha)} ${a.hora?'· '+a.hora:''}</div>
+    return `<div style="display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+      <div style="width:40px;height:40px;border-radius:10px;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">${tipos[a.tipo]||'📋'}</div>
+      <div style="flex:1;min-width:120px">
+        <div style="font-weight:700;color:#fff;font-size:13px">${a.nombre}</div>
+        <div style="font-size:10px;color:#888;margin-top:2px">${fmtF(a.fecha)}${a.hora?' · '+a.hora:''}</div>
       </div>
-      <div style="display:flex;gap:10px;font-size:11px">
+      <div style="display:flex;gap:12px;font-size:12px">
         <span style="color:#27ae60;font-weight:700">✅ ${pres}</span>
         <span style="color:#e74c3c;font-weight:700">❌ ${aus}</span>
         <span style="color:#f39c12;font-weight:700">📝 ${exc}</span>
       </div>
-      <div style="display:flex;gap:5px">
+      <div style="display:flex;gap:6px">
         <button class="btn btn-xl btn-xs" onclick="exportAsistCSVById('${a.id}')">📊 CSV</button>
-        <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta lista guardada?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
+        <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta lista?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
       </div>
     </div>`;
   }).join('');
 }
 
-function exportAsistCSV(){
-  if(!actividadActual) return;
-  exportAsistCSVById(actividadActual.id);
-}
+function exportAsistCSV(){if(!actividadActual)return;exportAsistCSVById(actividadActual.id)}
 
 function exportAsistCSVById(id){
   const act=(_db.actividades||{})[id];
-  if(!act){toast('No se encontraron datos','error');return;}
+  if(!act){toast('No se encontraron datos','error');return}
   const datos=act.datosAsist||asistData[id]||{};
   let c='Actividad,Fecha,Nombre,Estado\n';
   miembros.forEach(m=>c+=`"${act.nombre}","${act.fecha}","${m.nombre}","${datos[m.id]||'ausente'}"\n`);
@@ -1924,21 +2309,10 @@ function exportAsistCSVById(id){
   toast('CSV exportado');
 }
 
-// ===== FINANZAS =====
-function selTipo(t,btn){tipoFin=t;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('activo'));btn.classList.add('activo');document.getElementById('donBox').style.display=t==='donacion'?'block':'none'}
-function cambDon(){document.getElementById('artBox').style.display=document.getElementById('donTipo').value==='articulos'?'block':'none'}
-function selFinMiem(){const s=document.getElementById('fMiem');s.innerHTML='<option value="">-- Anónimo --</option>';miembros.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
-async function guardarFin(){const f=document.getElementById('fFecha').value;const m=parseFloat(document.getElementById('fMonto').value)||0;if(!f){toast('Seleccione fecha','error');return}if(m<=0){toast('Monto inválido','error');return}const mid=document.getElementById('fMiem').value;const mb=miembros.find(x=>x.id===mid);const fn={id:'fin_'+Date.now(),fecha:f,tipo:tipoFin,miembroId:mid,miembroNombre:mb?mb.nombre:'Anónimo',monto:m,metodo:document.getElementById('fMet').value,descripcion:document.getElementById('fDesc').value};if(tipoFin==='donacion'){fn.donTipo=document.getElementById('donTipo').value;if(fn.donTipo==='articulos')fn.articulos=document.getElementById('donArt').value}await dbP('finanzas',fn);finanzas.push(fn);limpiarFin();renderFin();resumen();logAudit('CREATE','Registro financiero: $'+m+' tipo '+tipoFin);toast('Registro guardado')}
-function limpiarFin(){document.getElementById('fFecha').valueAsDate=new Date();['fMonto','fMiem','fDesc'].forEach(id=>document.getElementById(id).value='');document.getElementById('fMet').value='efectivo';document.getElementById('donBox').style.display='none';selTipo('diezmo',document.querySelector('.tb'))}
-function resumen(){const tipos=['diezmo','ofrenda','primicia','donacion'],ids=['fDi','fOf','fPr','fDn'];let t=0;tipos.forEach((tp,i)=>{const s=finanzas.filter(f=>f.tipo===tp).reduce((a,f)=>a+parseFloat(f.monto||0),0);ids[i]&&(document.getElementById(ids[i]).textContent='$'+s.toFixed(2));t+=s});document.getElementById('fTo').textContent='$'+t.toFixed(2)}
-function renderFin(){const t=document.getElementById('tbFin');const s=finanzas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));if(!s.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay registros</td></tr>';return}t.innerHTML=s.map(f=>`<tr><td>${fmtF(f.fecha)}</td><td>${TIPO_LBL[f.tipo]||f.tipo}</td><td>${f.miembroNombre}</td><td style="font-weight:700;color:${f.tipo==='gasto'?'var(--pe)':'var(--ex)'}">$${parseFloat(f.monto).toFixed(2)}</td><td>${f.metodo}</td><td>${f.descripcion||f.articulos||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delFin('${f.id}')">🗑️</button></td></tr>`).join('')}
-async function delFin(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro financiero?\n\nEsta acción no se puede deshacer.'))return;await dbD('finanzas',id);finanzas=finanzas.filter(f=>f.id!==id);renderFin();resumen();toast('Eliminado')}
-function exportFinCSV(){let c='Fecha,Tipo,Miembro,Monto,Método,Descripción\n';finanzas.forEach(f=>c+=`${f.fecha},"${f.tipo}","${f.miembroNombre}",${f.monto},"${f.metodo}","${f.descripcion||''}"\n`);dl(c,'finanzas.csv','text/csv');toast('CSV exportado')}
-
 // ===== PRÉSTAMOS =====
 async function guardarPre(){const mid=document.getElementById('preMiem').value;const m=parseFloat(document.getElementById('preMonto').value)||0;if(!mid||m<=0){toast('Complete miembro y monto','error');return}const mb=miembros.find(x=>x.id===mid);const p={id:document.getElementById('preId').value||'pre_'+Date.now(),miembroId:mid,miembroNombre:mb?mb.nombre:'',monto:m,fecha:document.getElementById('preFecha').value,vencimiento:document.getElementById('preVenc').value,motivo:document.getElementById('preMot').value,estado:'activo'};await dbP('prestamos',p);const idx=prestamos.findIndex(x=>x.id===p.id);if(idx>=0)prestamos[idx]=p;else prestamos.push(p);closeM('mPrestamo');renderPres();toast('Préstamo registrado')}
 async function pagarPre(id){const p=prestamos.find(x=>x.id===id);if(!p)return;p.estado='pagado';await dbP('prestamos',p);renderPres();toast('Marcado como pagado')}
-async function delPre(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('prestamos',id);prestamos=prestamos.filter(p=>p.id!==id);renderPres();toast('Eliminado')}
+async function delPre(id){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('prestamos',id);prestamos=prestamos.filter(p=>p.id!==id);renderPres();toast('Eliminado')}
 function renderPres(){const hoy=new Date().toISOString().split('T')[0];document.getElementById('pTot').textContent=prestamos.length;document.getElementById('pAct').textContent=prestamos.filter(p=>p.estado==='activo').length;document.getElementById('pVen').textContent=prestamos.filter(p=>p.estado==='activo'&&p.vencimiento&&p.vencimiento<hoy).length;document.getElementById('pPag').textContent=prestamos.filter(p=>p.estado==='pagado').length;const c=document.getElementById('listaPres');if(!prestamos.length){c.innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">No hay préstamos</div></div>';return}c.innerHTML=prestamos.map(p=>{const vc=p.estado==='activo'&&p.vencimiento&&p.vencimiento<hoy;return`<div class="prc${vc?' vc':p.estado==='pagado'?' pg':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700;color:#fff;font-size:13px">${p.miembroNombre}</div><div style="color:#888;font-size:11px;margin-top:3px">${p.motivo||''}</div><div style="margin-top:6px;font-size:11px;color:#aaa">Otorgado: ${fmtF(p.fecha)} ${p.vencimiento?'· Vence: '+fmtF(p.vencimiento):''}</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:700;color:${vc?'var(--pe)':p.estado==='pagado'?'var(--ex)':'var(--do)'}">$${p.monto.toFixed(2)}</div><span class="badge ${p.estado==='pagado'?'ba':vc?'bi':'bv'}" style="margin-top:5px">${p.estado==='pagado'?'Pagado':vc?'Vencido':'Activo'}</span></div></div><div class="bgrp" style="margin-top:10px">${p.estado==='activo'?`<button class="btn btn-e btn-xs" onclick="pagarPre('${p.id}')">✅ Pagado</button>`:''}<button class="btn btn-d btn-xs" onclick="delPre('${p.id}')">🗑️</button></div></div>`}).join('')}
 
 // ===== REPORTES =====
@@ -2227,7 +2601,7 @@ function expPNG(){const ca=document.getElementById('pvCanvas');if(!ca)return;con
 async function guardarAnu(){const t=document.getElementById('anTit').value.trim();if(!t){toast('Ingrese un título','error');return}const ca=document.getElementById('pvCanvas');const a={id:'anu_'+Date.now(),titulo:t,subtitulo:document.getElementById('anSub').value,fecha:document.getElementById('anFecha').value,hora:document.getElementById('anHora').value,lugar:document.getElementById('anLugar').value,versiculo:document.getElementById('anVers').value,referencia:document.getElementById('anRef').value,contacto:document.getElementById('anCont').value,horarios:document.getElementById('anHors').value,dia:diaPub,colores:colorPub,preview:ca.toDataURL('image/jpeg',.55),creadoPor:usrActual.nombre,fc:new Date().toISOString()};await dbP('anuncios',a);anuncios.push(a);closeM('mAnuncio');initPub();toast('Anuncio guardado')}
 function renderAnuG(){const c=document.getElementById('listaAnuG');if(!anuncios.length){c.innerHTML='<div class="empty"><div class="empty-ico">📢</div><div class="empty-txt">No hay anuncios guardados</div></div>';return}c.innerHTML=anuncios.slice().reverse().map((a,i)=>{const ri=anuncios.length-1-i;return`<div style="display:flex;gap:13px;align-items:center;padding:11px;border-bottom:1px solid rgba(255,255,255,.04)"><img src="${a.preview||''}" style="width:75px;height:56px;object-fit:cover;border-radius:7px;border:1px solid rgba(212,175,55,.18)"><div style="flex:1"><div style="font-weight:700;color:#fff;font-size:13px">${a.titulo}</div><div style="font-size:11px;color:#888">${fmtF(a.fecha)} · ${a.creadoPor||''}</div></div><div style="display:flex;gap:5px"><button class="btn btn-e btn-xs" onclick="dlAnu(${ri})">📷</button><button class="btn btn-d btn-xs" onclick="delAnu(${ri})">🗑️</button></div></div>`}).join('')}
 function dlAnu(i){const a=anuncios[i];if(!a.preview)return;const l=document.createElement('a');l.href=a.preview;l.download=a.titulo+'.jpg';l.click()}
-async function delAnu(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('anuncios',anuncios[i].id);anuncios.splice(i,1);renderAnuG();initPub();toast('Anuncio eliminado')}
+async function delAnu(i){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('anuncios',anuncios[i].id);anuncios.splice(i,1);renderAnuG();initPub();toast('Anuncio eliminado')}
 
 // ===== COMUNICACIÓN =====
 function envWA(){const m=document.getElementById('comMsg').value;if(!m.trim()){toast('Escriba un mensaje','error');return}window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank')}
@@ -2919,7 +3293,6 @@ function limpiarUsr(){
 
 function editUsr(i){
   const u = usuarios[i];
-  if(!confirm(`¿Deseas editar al usuario "${u.nombre}"? Podrás modificar sus datos y permisos.`)) return;
   document.getElementById('admId').value   = u.id;
   document.getElementById('admNom').value  = u.nombre;
   document.getElementById('admUsr').value  = u.usuario;
@@ -2953,7 +3326,7 @@ function renderUsr(){
 
 async function delUsr(i){
   if(usuarios[i].id===usrActual.id){toast('No puedes eliminar tu propio usuario','error');return}
-  if(!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR al usuario "${usuarios[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;
+  if(!confirm('¿Eliminar usuario '+usuarios[i].nombre+'?'))return;
   logAudit('DELETE','Eliminar usuario: '+usuarios[i].nombre);
   await dbD('usuarios',usuarios[i].id);
   usuarios.splice(i,1); renderUsr(); poblarSelUsr();

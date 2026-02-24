@@ -196,6 +196,25 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
   .hdr-title{font-size:11px}
   .hdr-sub{display:none}
   .vp{padding:12px}
+  /* Botones más grandes en móvil */
+  .btn{padding:10px 16px;font-size:12px}
+  .btn-sm{padding:9px 14px;font-size:11px}
+  /* Tarjetas de asistencia en móvil */
+  .ag{grid-template-columns:1fr!important}
+  .ac{padding:14px;gap:12px}
+  .ac button{padding:8px 14px!important;font-size:11px!important}
+  /* Formulario miembro en móvil */
+  .mftab{padding:8px 10px;font-size:10px}
+  /* Tabla overflow en móvil */
+  .tc{font-size:11px}
+  thead th{padding:8px 8px}
+  tbody td{padding:8px 8px}
+  /* Modal en móvil ocupa más pantalla */
+  .mv{max-height:95vh;border-radius:12px 12px 0 0}
+  .modal-overlay{align-items:flex-end;padding:0}
+  /* Buscador asistencia */
+  #buscarAsist{font-size:14px;padding:12px 16px}
+}
   .ph-t{font-size:15px}
 }
 /* === MENÚ MÓVIL === */
@@ -598,24 +617,93 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 
       <!-- ASISTENCIA -->
       <div id="vp-asistencia" class="vp">
-        <div class="ph">
-          <div><div class="ph-t">📋 Control de Asistencia</div></div>
-          <input type="date" id="aFecha" style="padding:8px 12px;background:var(--gr);border:1px solid var(--gm);border-radius:9px;color:#fff;font-family:Lato,sans-serif;font-size:12px" onchange="cargarAsist()">
+        <div class="ph" style="flex-wrap:wrap;gap:10px">
+          <div><div class="ph-t">📋 Control de Asistencia</div><div class="ph-s">Crea una actividad para pasar lista</div></div>
+          <button class="btn btn-p btn-sm" onclick="abrirCrearActividad()">➕ Nueva Actividad</button>
         </div>
-        <div class="sg">
-          <div class="sc ve"><div class="sc-ico">✅</div><div class="sc-num" id="aP">0</div><div class="sc-lbl">Presentes</div></div>
-          <div class="sc ro"><div class="sc-ico">❌</div><div class="sc-num" id="aA">0</div><div class="sc-lbl">Ausentes</div></div>
-          <div class="sc na"><div class="sc-ico">📝</div><div class="sc-num" id="aJ">0</div><div class="sc-lbl">Justificados</div></div>
-          <div class="sc az"><div class="sc-ico">👥</div><div class="sc-num" id="aT">0</div><div class="sc-lbl">Total</div></div>
+
+        <!-- PANEL: Actividades pendientes de pasar lista -->
+        <div class="panel" id="panelActividades">
+          <div class="ph2">📅 Actividades — Selecciona para pasar lista</div>
+          <div class="pb" id="listaActividades">
+            <div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades. Crea una para comenzar.</div></div>
+          </div>
         </div>
-        <div class="panel">
-          <div class="ph2">Lista de Asistencia<div style="display:flex;gap:7px"><button class="btn btn-e btn-xs" onclick="marcarT('presente')">✅ Todos</button><button class="btn btn-d btn-xs" onclick="marcarT('ausente')">❌ Ninguno</button></div></div>
-          <div class="pb">
-            <div class="ag" id="listaAsist"></div>
-            <div class="bgrp" style="justify-content:center;margin-top:18px">
-              <button class="btn btn-p" onclick="guardarAsist()">💾 Guardar</button>
-              <button class="btn btn-xl" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso de exportar','error');return}exportAsistCSV()">📊 Exportar</button>
+
+        <!-- PANEL: Pasar lista (aparece al seleccionar actividad) -->
+        <div class="panel" id="panelPasarLista" style="display:none">
+          <div class="ph2" style="flex-wrap:wrap;gap:8px">
+            <span id="aActividadNombre" style="font-size:13px">Actividad</span>
+            <div style="display:flex;gap:7px;flex-wrap:wrap">
+              <button class="btn btn-e btn-xs" onclick="marcarT('presente')">✅ Todos Presentes</button>
+              <button class="btn btn-s btn-xs" onclick="cerrarPasarLista()">✖ Cancelar</button>
             </div>
+          </div>
+          <div class="pb">
+            <!-- Stats en tiempo real -->
+            <div class="sg" style="margin-bottom:16px">
+              <div class="sc ve" style="padding:12px"><div class="sc-ico" style="font-size:18px">✅</div><div class="sc-num" style="font-size:20px" id="aP">0</div><div class="sc-lbl">Presentes</div></div>
+              <div class="sc ro" style="padding:12px"><div class="sc-ico" style="font-size:18px">❌</div><div class="sc-num" style="font-size:20px" id="aA">0</div><div class="sc-lbl">Ausentes</div></div>
+              <div class="sc na" style="padding:12px"><div class="sc-ico" style="font-size:18px">📝</div><div class="sc-num" style="font-size:20px" id="aJ">0</div><div class="sc-lbl">Excusas</div></div>
+              <div class="sc az" style="padding:12px"><div class="sc-ico" style="font-size:18px">👥</div><div class="sc-num" style="font-size:20px" id="aT">0</div><div class="sc-lbl">Total</div></div>
+            </div>
+
+            <!-- Búsqueda en lista -->
+            <div style="margin-bottom:12px">
+              <input type="text" id="buscarAsist" placeholder="🔍 Buscar miembro..." oninput="filtrarListaAsist()" style="width:100%;padding:10px 14px;background:var(--gr);border:1px solid var(--gm);border-radius:9px;color:#fff;font-size:13px;font-family:Lato,sans-serif;box-sizing:border-box">
+            </div>
+
+            <!-- Lista pendientes de marcar -->
+            <div style="font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px" id="lblPendientes">Por marcar</div>
+            <div class="ag" id="listaAsist" style="max-height:none"></div>
+
+            <!-- Sección Presentes -->
+            <div id="secPresentes" style="margin-top:16px;display:none">
+              <div style="font-size:10px;color:#27ae60;text-transform:uppercase;letter-spacing:1px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:8px">✅ Asistió / Presente <span id="cntPresentes" style="background:rgba(39,174,96,.15);color:#27ae60;border-radius:20px;padding:2px 8px;font-size:10px">0</span></div>
+              <div id="listaPresentes" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:9px"></div>
+            </div>
+
+            <div class="bgrp" style="justify-content:center;margin-top:20px;flex-wrap:wrap;gap:10px">
+              <button class="btn btn-p" style="padding:12px 28px;font-size:13px" onclick="guardarAsist()">💾 Guardar y Finalizar Lista</button>
+              <button class="btn btn-xl" onclick="if(!puedeExportar('asistencia')){toast('Sin permiso de exportar','error');return}exportAsistCSV()">📊 Exportar CSV</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- PANEL: Historial de listas guardadas -->
+        <div class="panel" id="panelHistorialAsist">
+          <div class="ph2">📜 Historial de Asistencias</div>
+          <div class="pb" id="listaHistorialAsist">
+            <div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODAL: Crear Actividad -->
+      <div class="modal-overlay" id="mCrearActividad">
+        <div class="mv" style="max-width:480px">
+          <div class="mh">📅 Nueva Actividad <span class="mx" onclick="closeM('mCrearActividad')">✕</span></div>
+          <div class="mbody">
+            <div class="fg">
+              <div class="ff full"><label>Nombre de la Actividad *</label><input type="text" id="actNombre" placeholder="Ej: Culto Dominical, Célula Jóvenes..."></div>
+              <div class="ff"><label>Fecha *</label><input type="date" id="actFecha"></div>
+              <div class="ff"><label>Hora</label><input type="time" id="actHora"></div>
+              <div class="ff"><label>Tipo</label>
+                <select id="actTipo">
+                  <option value="culto">⛪ Culto</option>
+                  <option value="celula">🏠 Célula</option>
+                  <option value="jovenes">🎯 Jóvenes</option>
+                  <option value="ninos">👶 Niños</option>
+                  <option value="capacitacion">📚 Capacitación</option>
+                  <option value="otro">📋 Otro</option>
+                </select>
+              </div>
+              <div class="ff full"><label>Descripción (opcional)</label><input type="text" id="actDesc" placeholder="Detalles adicionales..."></div>
+            </div>
+          </div>
+          <div class="mf">
+            <button class="btn btn-s" onclick="closeM('mCrearActividad')">Cancelar</button>
+            <button class="btn btn-p" onclick="crearActividad()">✅ Crear y Pasar Lista</button>
           </div>
         </div>
       </div>
@@ -1303,6 +1391,8 @@ async function cargarDatos(){
   else{usuarios=[{id:'admin_001',nombre:'Administrador',usuario:'admin',clave:'12345',rol:'administrador',activo:true},{id:'pastor_001',nombre:'Pastor Principal',usuario:'pastor',clave:'12345',rol:'pastor',activo:true},{id:'tesorero_001',nombre:'Tesorero',usuario:'tesorero',clave:'12345',rol:'tesorero',activo:true},{id:'secretario_001',nombre:'Secretario',usuario:'secretario',clave:'12345',rol:'secretario',activo:true}];for(let u of usuarios)await dbP('usuarios',u)}
   miembros=await dbA('miembros');finanzas=await dbA('finanzas');ninos=await dbA('ninos');anuncios=await dbA('anuncios');eventos=await dbA('eventos');visitas=await dbA('visitas');celulas=await dbA('celulas');oraciones=await dbA('oraciones');prestamos=await dbA('prestamos');
   (await dbA('asistencia')).forEach(a=>asistData[a.fecha]=a.datos);
+  // Cargar actividades
+  if(!_db.actividades) _db.actividades = {};
   const c=await dbG('configuracion','general');if(c)config=c;
 }
 
@@ -1379,7 +1469,7 @@ function go(v){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('activo'));
   const el=document.getElementById('vp-'+v);if(el)el.classList.add('activa');
   const nv=document.getElementById('nav-'+v);if(nv)nv.classList.add('activo');
-  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{renderFin();resumen();selFinMiem();document.getElementById('fFecha').valueAsDate=new Date()},ninos:()=>{renderN();selPadres()},asistencia:()=>{document.getElementById('aFecha').valueAsDate=new Date();cargarAsist()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,prestamos:renderPres,auditoria:()=>{renderAudit()}};
+  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{renderFin();resumen();selFinMiem();document.getElementById('fFecha').valueAsDate=new Date()},ninos:()=>{renderN();selPadres()},asistencia:()=>{renderActividades()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,prestamos:renderPres,auditoria:()=>{renderAudit()}};
   if(act[v])act[v]();
 }
 function openM(id){document.getElementById(id).classList.add('activo');if(id==='mAnuncio')initEditor();if(id==='mAnunciosG')renderAnuG();if(id==='mCelula')selLideres();if(id==='mPrestamo'||id==='mOracion'){const s={mPrestamo:'preMiem',mOracion:'orMiem'}[id];if(s)selGen(s,miembros)}; if(id==='mVisita'){document.getElementById('visFecha').valueAsDate=new Date()}}
@@ -1500,6 +1590,14 @@ function limpiarM(){
 }
 function editM(i){
   const m=miembros[i];
+  // Si ya hay datos en el formulario (mNom tiene valor), pedir confirmación
+  const nomActual = document.getElementById('mNom').value.trim();
+  const editando = document.getElementById('mId').value;
+  if(nomActual && editando !== m.id){
+    if(!confirm(`¿Descartar los cambios actuales y editar a "${m.nombre}"?`)) return;
+  } else if(!editando && nomActual){
+    if(!confirm(`¿Descartar el formulario actual y editar a "${m.nombre}"?`)) return;
+  }
   document.getElementById('mId').value=m.id;
   document.getElementById('mNom').value=m.nombre;
   document.getElementById('mTel').value=m.telefono||'';
@@ -1534,7 +1632,7 @@ function editM(i){
   document.querySelector('.contenido').scrollTo(0,0);
   tabMForm('general', document.querySelector('.mftab'));
 }
-async function delM(i){if(!confirm('¿Eliminar miembro?'))return;await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+miembros[i].nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado')}
+async function delM(i){if(!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR al miembro "${miembros[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;await dbD('miembros',miembros[i].id);logAudit('DELETE','Eliminar miembro: '+miembros[i].nombre);miembros.splice(i,1);renderM();toast('Miembro eliminado')}
 function filtrarM(){const q=document.getElementById('buscarM').value.toLowerCase();document.querySelectorAll('#tbM tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none')}
 function actCelSel(){const s=document.getElementById('mCel');s.innerHTML='<option value="">Sin célula</option>';celulas.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=c.nombre;s.appendChild(o)})}
 const EBADGE={activo:'ba',inactivo:'bi',visitante:'bv','visitante-habitual':'bvh','visita-nueva':'bvn'};
@@ -1571,7 +1669,7 @@ function exportMiembrosCSV(){let c='Nombre,Teléfono,Email,Estado,Ministerio,Cé
 // ===== VISITAS =====
 async function guardarVis(){const n=document.getElementById('visNom').value.trim();if(!n){toast('El nombre es requerido','error');return}const v={id:document.getElementById('visId').value||'vis_'+Date.now(),nombre:n,telefono:document.getElementById('visTel').value,email:document.getElementById('visEmail').value,fecha:document.getElementById('visFecha').value,llego:document.getElementById('visLleg').value,estado:document.getElementById('visEst').value,notas:document.getElementById('visNotas').value};await dbP('visitas',v);const idx=visitas.findIndex(x=>x.id===v.id);if(idx>=0)visitas[idx]=v;else visitas.push(v);closeM('mVisita');renderVis();statVis();toast('Visita registrada')}
 function statVis(){document.getElementById('vTot').textContent=visitas.length;document.getElementById('vHab').textContent=visitas.filter(v=>v.estado==='visitante-habitual').length;document.getElementById('vNuv').textContent=visitas.filter(v=>v.estado==='visita-nueva').length;document.getElementById('vConv').textContent=visitas.filter(v=>v.estado==='convertido').length}
-async function delVis(i){if(!confirm('¿Eliminar?'))return;await dbD('visitas',visitas[i].id);visitas.splice(i,1);renderVis();statVis();toast('Eliminado')}
+async function delVis(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('visitas',visitas[i].id);visitas.splice(i,1);renderVis();statVis();toast('Eliminado')}
 function renderVis(){const t=document.getElementById('tbVis');if(!visitas.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay visitas</td></tr>';return}t.innerHTML=visitas.slice().reverse().map((v,i)=>`<tr><td style="font-weight:700;color:#fff">${v.nombre}</td><td>${v.telefono||'-'}</td><td>${fmtF(v.fecha)}</td><td>${v.llego||'-'}</td><td><span class="badge bvn">${v.estado}</span></td><td>${v.notas||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delVis(${visitas.length-1-i})">🗑️</button></td></tr>`).join('')}
 
 // ===== CÉLULAS =====
@@ -1589,24 +1687,242 @@ function renderCel(){
 async function guardarN(){const n=document.getElementById('nNom').value.trim(),p=document.getElementById('nPadre').value;if(!n||!p){toast('Complete nombre y padre/tutor','error');return}const pa=miembros.find(m=>m.id===p);const ni={id:'nino_'+Date.now(),nombre:n,edad:document.getElementById('nEdad').value,fechaNac:document.getElementById('nFNac').value,grado:document.getElementById('nGrado').value,padreId:p,padreNombre:pa?pa.nombre:'',alergias:document.getElementById('nAler').value,emergencia:document.getElementById('nEmerg').value};await dbP('ninos',ni);ninos.push(ni);limpiarN();renderN();toast('Niño registrado')}
 function limpiarN(){['nNom','nEdad','nFNac','nGrado','nPadre','nAler','nEmerg'].forEach(id=>document.getElementById(id).value='')}
 function selPadres(){const s=document.getElementById('nPadre');s.innerHTML='<option value="">-- Seleccione --</option>';miembros.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
-async function delN(i){if(!confirm('¿Eliminar?'))return;await dbD('ninos',ninos[i].id);ninos.splice(i,1);renderN();toast('Eliminado')}
+async function delN(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('ninos',ninos[i].id);ninos.splice(i,1);renderN();toast('Eliminado')}
 function renderN(){const t=document.getElementById('tbNin');if(!ninos.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay niños</td></tr>';return}t.innerHTML=ninos.map((n,i)=>`<tr><td style="font-weight:700;color:#fff">${n.nombre}</td><td>${n.edad||'-'}</td><td>${n.grado||'-'}</td><td>${n.padreNombre}</td><td>${n.alergias?'<span style="color:var(--pe)">⚠️ '+n.alergias+'</span>':'-'}</td><td>${n.emergencia||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delN(${i})">🗑️</button></td></tr>`).join('')}
 
 // ===== ORACIÓN =====
 async function guardarOra(){const t=document.getElementById('orTit').value.trim();if(!t){toast('El título es requerido','error');return}const mid=document.getElementById('orMiem').value;const mb=miembros.find(m=>m.id===mid);const o={id:document.getElementById('orId').value||'ora_'+Date.now(),titulo:t,texto:document.getElementById('orTxt').value,miembroId:mid,sol:mb?mb.nombre:'Anónimo',urgencia:document.getElementById('orUrg').value,estado:document.getElementById('orEst').value,fecha:new Date().toISOString().split('T')[0]};await dbP('oraciones',o);const idx=oraciones.findIndex(x=>x.id===o.id);if(idx>=0)oraciones[idx]=o;else oraciones.push(o);closeM('mOracion');renderOra();toast('Petición guardada')}
 async function togOra(id){const o=oraciones.find(x=>x.id===id);if(!o)return;o.estado=o.estado==='activa'?'respondida':'activa';await dbP('oraciones',o);renderOra();toast('Estado actualizado')}
-async function delOra(id){if(!confirm('¿Eliminar?'))return;await dbD('oraciones',id);oraciones=oraciones.filter(o=>o.id!==id);renderOra();toast('Eliminado')}
+async function delOra(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('oraciones',id);oraciones=oraciones.filter(o=>o.id!==id);renderOra();toast('Eliminado')}
 function filtOra(f,el){filtroOra=f;document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('activo'));el.classList.add('activo');renderOra()}
 function renderOra(){let l=oraciones;if(filtroOra!=='todas')l=oraciones.filter(o=>filtroOra==='urgente'?o.urgencia==='urgente':o.estado===filtroOra);const c=document.getElementById('listaOra');if(!l.length){c.innerHTML='<div class="empty"><div class="empty-ico">🙏</div><div class="empty-txt">No hay peticiones</div></div>';return}c.innerHTML=l.map(o=>`<div class="orc"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ort">${o.urgencia==='urgente'?'🔴 ':''}${o.titulo} <span class="badge ${o.estado==='respondida'?'ba':'bv'}" style="margin-left:6px">${o.estado==='respondida'?'Respondida':'Activa'}</span></div><div class="orx">${o.texto||''}</div><div class="orm">🙏 ${o.sol} · ${fmtF(o.fecha)}</div></div><div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px"><button class="btn btn-e btn-xs" onclick="togOra('${o.id}')">${o.estado==='activa'?'✅':'🔄'}</button><button class="btn btn-d btn-xs" onclick="delOra('${o.id}')">🗑️</button></div></div></div>`).join('')}
 function selGen(id,l){const s=document.getElementById(id);if(!s)return;s.innerHTML='<option value="">-- Seleccione --</option>';l.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
 
-// ===== ASISTENCIA =====
-function cargarAsist(){const f=document.getElementById('aFecha').value;const c=document.getElementById('listaAsist');if(!miembros.length){c.innerHTML='<div class="empty"><div class="empty-ico">👥</div><div class="empty-txt">No hay miembros</div></div>';return}const a=asistData[f]||{};c.innerHTML='';miembros.forEach(m=>{const e=a[m.id]||'pendiente';const d=document.createElement('div');d.className='ac '+e;d.onclick=()=>cambAsist(d,m.id);d.dataset.id=m.id;const ini=m.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();d.innerHTML=`<div class="ava">${ini}</div><div><div class="an2">${m.nombre}</div><div class="am2">${MINS[m.ministerio]||'Miembro'}</div></div><span class="aest ${e==='presente'?'ep':e==='ausente'?'ea':e==='justificado'?'ej':'en'}">${e}</span>`;c.appendChild(d)});contAsist()}
-function cambAsist(el,id){const sts=['pendiente','presente','ausente','justificado'];const cu=sts.find(s=>el.classList.contains(s));const ne=sts[(sts.indexOf(cu)+1)%sts.length];el.className='ac '+ne;const sp=el.querySelector('.aest');sp.className='aest '+(ne==='presente'?'ep':ne==='ausente'?'ea':ne==='justificado'?'ej':'en');sp.textContent=ne;contAsist()}
-function contAsist(){document.getElementById('aP').textContent=document.querySelectorAll('.ac.presente').length;document.getElementById('aA').textContent=document.querySelectorAll('.ac.ausente').length;document.getElementById('aJ').textContent=document.querySelectorAll('.ac.justificado').length;document.getElementById('aT').textContent=document.querySelectorAll('.ac').length}
-function marcarT(e){document.querySelectorAll('.ac').forEach(el=>{el.className='ac '+e;const sp=el.querySelector('.aest');sp.className='aest '+(e==='presente'?'ep':e==='ausente'?'ea':'ej');sp.textContent=e});contAsist()}
-async function guardarAsist(){const f=document.getElementById('aFecha').value;const a={};document.querySelectorAll('.ac').forEach(el=>{a[el.dataset.id]=el.classList.contains('presente')?'presente':el.classList.contains('ausente')?'ausente':el.classList.contains('justificado')?'justificado':'pendiente'});asistData[f]=a;await dbP('asistencia',{fecha:f,datos:a});toast('Asistencia guardada')}
-function exportAsistCSV(){const f=document.getElementById('aFecha').value;const a=asistData[f]||{};let c='Fecha,Nombre,Estado\n';miembros.forEach(m=>c+=`${f},"${m.nombre}","${a[m.id]||'pendiente'}"\n`);dl(c,'asistencia_'+f+'.csv','text/csv');toast('CSV exportado')}
+// ===== ASISTENCIA (Sistema de Actividades) =====
+let actividadActual = null; // actividad siendo pasada lista
+let asistEstados = {};      // {miembroId: 'pendiente'|'presente'|'ausente'|'justificado'}
+
+function abrirCrearActividad(){
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('actNombre').value='';
+  document.getElementById('actFecha').value=hoy;
+  document.getElementById('actHora').value='';
+  document.getElementById('actDesc').value='';
+  document.getElementById('actTipo').value='culto';
+  openM('mCrearActividad');
+}
+
+async function crearActividad(){
+  const nom = document.getElementById('actNombre').value.trim();
+  const fecha = document.getElementById('actFecha').value;
+  if(!nom){toast('Ingrese el nombre de la actividad','error');return;}
+  if(!fecha){toast('Seleccione una fecha','error');return;}
+  const act = {
+    id: 'act_'+Date.now(),
+    nombre: nom,
+    fecha: fecha,
+    hora: document.getElementById('actHora').value,
+    tipo: document.getElementById('actTipo').value,
+    descripcion: document.getElementById('actDesc').value,
+    estado: 'pendiente', // pendiente | guardada
+    creadoPor: usrActual ? usrActual.nombre : '',
+    fc: new Date().toISOString()
+  };
+  // Guardar actividad en DB
+  if(!_db.actividades) _db.actividades = {};
+  _db.actividades[act.id] = act;
+  await _dbSave();
+  closeM('mCrearActividad');
+  renderActividades();
+  toast('Actividad creada. Pasando lista...');
+  setTimeout(()=>iniciarPasarLista(act),300);
+}
+
+function renderActividades(){
+  const c = document.getElementById('listaActividades');
+  const acts = Object.values(_db.actividades||{}).filter(a=>a.estado==='pendiente').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if(!acts.length){
+    c.innerHTML='<div class="empty"><div class="empty-ico">📅</div><div class="empty-txt">No hay actividades pendientes. Crea una nueva.</div></div>';
+  } else {
+    c.innerHTML = acts.map(a=>{
+      const tipos={culto:'⛪',celula:'🏠',jovenes:'🎯',ninos:'👶',capacitacion:'📚',otro:'📋'};
+      return `<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+        <div style="font-size:26px">${tipos[a.tipo]||'📋'}</div>
+        <div style="flex:1;min-width:140px">
+          <div style="font-weight:700;color:#fff;font-size:13px">${a.nombre}</div>
+          <div style="font-size:10px;color:#888">${fmtF(a.fecha)} ${a.hora?'· '+a.hora:''} · ${a.descripcion||''}</div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap">
+          <button class="btn btn-p btn-sm" onclick="iniciarPasarLista(${JSON.stringify(a).replace(/"/g,'&quot;')})">📋 Pasar Lista</button>
+          <button class="btn btn-d btn-xs" onclick="confirmarEliminarActividad('${a.id}')">🗑️</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  renderHistorialAsist();
+}
+
+function confirmarEliminarActividad(id){
+  if(!confirm('¿Estás seguro de que deseas eliminar esta actividad? Esta acción no se puede deshacer.')) return;
+  delete (_db.actividades||{})[id];
+  _dbSave();
+  renderActividades();
+  toast('Actividad eliminada');
+}
+
+function iniciarPasarLista(act){
+  actividadActual = act;
+  asistEstados = {};
+  // Cargar estados previos si existían
+  const prev = (asistData[act.id]||asistData[act.fecha])||{};
+  // Iniciar todos en pendiente (no aún marcados)
+  miembros.forEach(m=>{
+    asistEstados[m.id] = prev[m.id] || 'pendiente';
+  });
+  document.getElementById('aActividadNombre').textContent = `📋 ${act.nombre} — ${fmtF(act.fecha)}`;
+  document.getElementById('panelPasarLista').style.display='block';
+  document.getElementById('panelPasarLista').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('buscarAsist').value='';
+  renderListaAsist();
+}
+
+function cerrarPasarLista(){
+  actividadActual=null;
+  asistEstados={};
+  document.getElementById('panelPasarLista').style.display='none';
+}
+
+function renderListaAsist(){
+  const busq=(document.getElementById('buscarAsist').value||'').toLowerCase();
+  const cPend=document.getElementById('listaAsist');
+  const cPres=document.getElementById('listaPresentes');
+  const secPres=document.getElementById('secPresentes');
+  cPend.innerHTML='';
+  cPres.innerHTML='';
+  let nPres=0;
+
+  miembros.forEach(m=>{
+    if(busq && !m.nombre.toLowerCase().includes(busq)) return;
+    const e=asistEstados[m.id]||'pendiente';
+    const ini=m.nombre.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    if(e==='presente'){
+      nPres++;
+      // Tarjeta pequeña en sección Presentes
+      const d=document.createElement('div');
+      d.style.cssText='display:flex;align-items:center;gap:8px;background:rgba(39,174,96,.07);border:1px solid rgba(39,174,96,.3);border-radius:9px;padding:8px 10px;cursor:pointer;transition:all .2s';
+      d.title='Clic para cambiar estado';
+      d.onclick=()=>{asistEstados[m.id]='pendiente';renderListaAsist();contAsist();};
+      d.innerHTML=`<div class="ava" style="width:30px;height:30px;font-size:11px">${ini}</div><div style="flex:1"><div style="font-size:11px;font-weight:700;color:#fff">${m.nombre}</div><div style="font-size:9px;color:#888">${MINS[m.ministerio]||''}</div></div><span style="font-size:18px">✅</span>`;
+      cPres.appendChild(d);
+    } else {
+      // Tarjeta grande en lista principal
+      const d=document.createElement('div');
+      d.className='ac '+e;
+      d.dataset.id=m.id;
+      const foto=m.foto?`<img src="${m.foto}" style="width:100%;height:100%;object-fit:cover;border-radius:50%">`:`<span style="font-size:14px;font-weight:700;color:var(--ng)">${ini}</span>`;
+      d.innerHTML=`<div class="ava">${foto}</div>
+        <div style="flex:1;min-width:0">
+          <div class="an2" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.nombre}</div>
+          <div class="am2">${MINS[m.ministerio]||'Miembro'}</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-left:auto;flex-shrink:0">
+          <button onclick="event.stopPropagation();marcarMiembro('${m.id}','presente')" style="padding:5px 10px;background:rgba(39,174,96,.15);border:1px solid #27ae60;border-radius:7px;color:#27ae60;font-size:10px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;white-space:nowrap">✅ Asistió</button>
+          <button onclick="event.stopPropagation();marcarMiembro('${m.id}','justificado')" style="padding:5px 10px;background:rgba(243,156,18,.12);border:1px solid #f39c12;border-radius:7px;color:#f39c12;font-size:10px;font-weight:700;cursor:pointer;font-family:Lato,sans-serif;white-space:nowrap">📝 Excusa</button>
+        </div>`;
+      cPend.appendChild(d);
+    }
+  });
+
+  secPres.style.display = nPres>0 ? 'block':'none';
+  document.getElementById('cntPresentes').textContent=nPres;
+  contAsist();
+}
+
+function filtrarListaAsist(){ renderListaAsist(); }
+
+function marcarMiembro(id, estado){
+  asistEstados[id]=estado;
+  renderListaAsist();
+}
+
+function contAsist(){
+  const vals=Object.values(asistEstados);
+  document.getElementById('aP').textContent=vals.filter(v=>v==='presente').length;
+  document.getElementById('aA').textContent=vals.filter(v=>v==='ausente'||v==='pendiente').length;
+  document.getElementById('aJ').textContent=vals.filter(v=>v==='justificado').length;
+  document.getElementById('aT').textContent=miembros.length;
+}
+
+function marcarT(e){
+  miembros.forEach(m=>{ asistEstados[m.id]=e; });
+  renderListaAsist();
+}
+
+async function guardarAsist(){
+  if(!actividadActual){toast('No hay actividad activa','error');return;}
+  if(!confirm('¿Finalizar la lista? Los miembros no marcados quedarán como Ausentes. Esta acción guardará la asistencia.')){return;}
+  // Los pendientes pasan a ausente automáticamente
+  miembros.forEach(m=>{
+    if(!asistEstados[m.id]||asistEstados[m.id]==='pendiente') asistEstados[m.id]='ausente';
+  });
+  const f=actividadActual.fecha;
+  const datos={...asistEstados};
+  asistData[actividadActual.id]=datos;
+  asistData[f]=datos; // también por fecha para compatibilidad
+  await dbP('asistencia',{fecha:f,actividadId:actividadActual.id,actividadNombre:actividadActual.nombre,datos});
+  // Marcar actividad como guardada
+  if(_db.actividades&&_db.actividades[actividadActual.id]){
+    _db.actividades[actividadActual.id].estado='guardada';
+    _db.actividades[actividadActual.id].datosAsist=datos;
+    await _dbSave();
+  }
+  cerrarPasarLista();
+  renderActividades();
+  toast('✅ Asistencia guardada correctamente');
+}
+
+function renderHistorialAsist(){
+  const c=document.getElementById('listaHistorialAsist');
+  const guardadas=Object.values(_db.actividades||{}).filter(a=>a.estado==='guardada').sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  if(!guardadas.length){c.innerHTML='<div class="empty"><div class="empty-ico">📜</div><div class="empty-txt">Aún no hay listas guardadas.</div></div>';return;}
+  c.innerHTML=guardadas.map(a=>{
+    const datos=a.datosAsist||asistData[a.id]||asistData[a.fecha]||{};
+    const vals=Object.values(datos);
+    const pres=vals.filter(v=>v==='presente').length;
+    const aus=vals.filter(v=>v==='ausente').length;
+    const exc=vals.filter(v=>v==='justificado').length;
+    return `<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.04);flex-wrap:wrap">
+      <div style="flex:1;min-width:160px">
+        <div style="font-weight:700;color:#fff;font-size:12px">${a.nombre}</div>
+        <div style="font-size:10px;color:#888">${fmtF(a.fecha)} ${a.hora?'· '+a.hora:''}</div>
+      </div>
+      <div style="display:flex;gap:10px;font-size:11px">
+        <span style="color:#27ae60;font-weight:700">✅ ${pres}</span>
+        <span style="color:#e74c3c;font-weight:700">❌ ${aus}</span>
+        <span style="color:#f39c12;font-weight:700">📝 ${exc}</span>
+      </div>
+      <div style="display:flex;gap:5px">
+        <button class="btn btn-xl btn-xs" onclick="exportAsistCSVById('${a.id}')">📊 CSV</button>
+        <button class="btn btn-d btn-xs" onclick="if(!confirm('¿Eliminar esta lista guardada?'))return;delete _db.actividades['${a.id}'];_dbSave();renderActividades();toast('Eliminado')">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function exportAsistCSV(){
+  if(!actividadActual) return;
+  exportAsistCSVById(actividadActual.id);
+}
+
+function exportAsistCSVById(id){
+  const act=(_db.actividades||{})[id];
+  if(!act){toast('No se encontraron datos','error');return;}
+  const datos=act.datosAsist||asistData[id]||{};
+  let c='Actividad,Fecha,Nombre,Estado\n';
+  miembros.forEach(m=>c+=`"${act.nombre}","${act.fecha}","${m.nombre}","${datos[m.id]||'ausente'}"\n`);
+  dl(c,'asistencia_'+act.nombre.replace(/\s+/g,'_')+'_'+act.fecha+'.csv','text/csv');
+  toast('CSV exportado');
+}
 
 // ===== FINANZAS =====
 function selTipo(t,btn){tipoFin=t;document.querySelectorAll('.tb').forEach(b=>b.classList.remove('activo'));btn.classList.add('activo');document.getElementById('donBox').style.display=t==='donacion'?'block':'none'}
@@ -1616,13 +1932,13 @@ async function guardarFin(){const f=document.getElementById('fFecha').value;cons
 function limpiarFin(){document.getElementById('fFecha').valueAsDate=new Date();['fMonto','fMiem','fDesc'].forEach(id=>document.getElementById(id).value='');document.getElementById('fMet').value='efectivo';document.getElementById('donBox').style.display='none';selTipo('diezmo',document.querySelector('.tb'))}
 function resumen(){const tipos=['diezmo','ofrenda','primicia','donacion'],ids=['fDi','fOf','fPr','fDn'];let t=0;tipos.forEach((tp,i)=>{const s=finanzas.filter(f=>f.tipo===tp).reduce((a,f)=>a+parseFloat(f.monto||0),0);ids[i]&&(document.getElementById(ids[i]).textContent='$'+s.toFixed(2));t+=s});document.getElementById('fTo').textContent='$'+t.toFixed(2)}
 function renderFin(){const t=document.getElementById('tbFin');const s=finanzas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));if(!s.length){t.innerHTML='<tr><td colspan="7" style="text-align:center;padding:36px;color:#555">No hay registros</td></tr>';return}t.innerHTML=s.map(f=>`<tr><td>${fmtF(f.fecha)}</td><td>${TIPO_LBL[f.tipo]||f.tipo}</td><td>${f.miembroNombre}</td><td style="font-weight:700;color:${f.tipo==='gasto'?'var(--pe)':'var(--ex)'}">$${parseFloat(f.monto).toFixed(2)}</td><td>${f.metodo}</td><td>${f.descripcion||f.articulos||'-'}</td><td><button class="btn btn-d btn-xs" onclick="delFin('${f.id}')">🗑️</button></td></tr>`).join('')}
-async function delFin(id){if(!confirm('¿Eliminar?'))return;await dbD('finanzas',id);finanzas=finanzas.filter(f=>f.id!==id);renderFin();resumen();toast('Eliminado')}
+async function delFin(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro financiero?\n\nEsta acción no se puede deshacer.'))return;await dbD('finanzas',id);finanzas=finanzas.filter(f=>f.id!==id);renderFin();resumen();toast('Eliminado')}
 function exportFinCSV(){let c='Fecha,Tipo,Miembro,Monto,Método,Descripción\n';finanzas.forEach(f=>c+=`${f.fecha},"${f.tipo}","${f.miembroNombre}",${f.monto},"${f.metodo}","${f.descripcion||''}"\n`);dl(c,'finanzas.csv','text/csv');toast('CSV exportado')}
 
 // ===== PRÉSTAMOS =====
 async function guardarPre(){const mid=document.getElementById('preMiem').value;const m=parseFloat(document.getElementById('preMonto').value)||0;if(!mid||m<=0){toast('Complete miembro y monto','error');return}const mb=miembros.find(x=>x.id===mid);const p={id:document.getElementById('preId').value||'pre_'+Date.now(),miembroId:mid,miembroNombre:mb?mb.nombre:'',monto:m,fecha:document.getElementById('preFecha').value,vencimiento:document.getElementById('preVenc').value,motivo:document.getElementById('preMot').value,estado:'activo'};await dbP('prestamos',p);const idx=prestamos.findIndex(x=>x.id===p.id);if(idx>=0)prestamos[idx]=p;else prestamos.push(p);closeM('mPrestamo');renderPres();toast('Préstamo registrado')}
 async function pagarPre(id){const p=prestamos.find(x=>x.id===id);if(!p)return;p.estado='pagado';await dbP('prestamos',p);renderPres();toast('Marcado como pagado')}
-async function delPre(id){if(!confirm('¿Eliminar?'))return;await dbD('prestamos',id);prestamos=prestamos.filter(p=>p.id!==id);renderPres();toast('Eliminado')}
+async function delPre(id){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('prestamos',id);prestamos=prestamos.filter(p=>p.id!==id);renderPres();toast('Eliminado')}
 function renderPres(){const hoy=new Date().toISOString().split('T')[0];document.getElementById('pTot').textContent=prestamos.length;document.getElementById('pAct').textContent=prestamos.filter(p=>p.estado==='activo').length;document.getElementById('pVen').textContent=prestamos.filter(p=>p.estado==='activo'&&p.vencimiento&&p.vencimiento<hoy).length;document.getElementById('pPag').textContent=prestamos.filter(p=>p.estado==='pagado').length;const c=document.getElementById('listaPres');if(!prestamos.length){c.innerHTML='<div class="empty"><div class="empty-ico">💳</div><div class="empty-txt">No hay préstamos</div></div>';return}c.innerHTML=prestamos.map(p=>{const vc=p.estado==='activo'&&p.vencimiento&&p.vencimiento<hoy;return`<div class="prc${vc?' vc':p.estado==='pagado'?' pg':''}"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div style="font-weight:700;color:#fff;font-size:13px">${p.miembroNombre}</div><div style="color:#888;font-size:11px;margin-top:3px">${p.motivo||''}</div><div style="margin-top:6px;font-size:11px;color:#aaa">Otorgado: ${fmtF(p.fecha)} ${p.vencimiento?'· Vence: '+fmtF(p.vencimiento):''}</div></div><div style="text-align:right"><div style="font-size:22px;font-weight:700;color:${vc?'var(--pe)':p.estado==='pagado'?'var(--ex)':'var(--do)'}">$${p.monto.toFixed(2)}</div><span class="badge ${p.estado==='pagado'?'ba':vc?'bi':'bv'}" style="margin-top:5px">${p.estado==='pagado'?'Pagado':vc?'Vencido':'Activo'}</span></div></div><div class="bgrp" style="margin-top:10px">${p.estado==='activo'?`<button class="btn btn-e btn-xs" onclick="pagarPre('${p.id}')">✅ Pagado</button>`:''}<button class="btn btn-d btn-xs" onclick="delPre('${p.id}')">🗑️</button></div></div>`}).join('')}
 
 // ===== REPORTES =====
@@ -1911,7 +2227,7 @@ function expPNG(){const ca=document.getElementById('pvCanvas');if(!ca)return;con
 async function guardarAnu(){const t=document.getElementById('anTit').value.trim();if(!t){toast('Ingrese un título','error');return}const ca=document.getElementById('pvCanvas');const a={id:'anu_'+Date.now(),titulo:t,subtitulo:document.getElementById('anSub').value,fecha:document.getElementById('anFecha').value,hora:document.getElementById('anHora').value,lugar:document.getElementById('anLugar').value,versiculo:document.getElementById('anVers').value,referencia:document.getElementById('anRef').value,contacto:document.getElementById('anCont').value,horarios:document.getElementById('anHors').value,dia:diaPub,colores:colorPub,preview:ca.toDataURL('image/jpeg',.55),creadoPor:usrActual.nombre,fc:new Date().toISOString()};await dbP('anuncios',a);anuncios.push(a);closeM('mAnuncio');initPub();toast('Anuncio guardado')}
 function renderAnuG(){const c=document.getElementById('listaAnuG');if(!anuncios.length){c.innerHTML='<div class="empty"><div class="empty-ico">📢</div><div class="empty-txt">No hay anuncios guardados</div></div>';return}c.innerHTML=anuncios.slice().reverse().map((a,i)=>{const ri=anuncios.length-1-i;return`<div style="display:flex;gap:13px;align-items:center;padding:11px;border-bottom:1px solid rgba(255,255,255,.04)"><img src="${a.preview||''}" style="width:75px;height:56px;object-fit:cover;border-radius:7px;border:1px solid rgba(212,175,55,.18)"><div style="flex:1"><div style="font-weight:700;color:#fff;font-size:13px">${a.titulo}</div><div style="font-size:11px;color:#888">${fmtF(a.fecha)} · ${a.creadoPor||''}</div></div><div style="display:flex;gap:5px"><button class="btn btn-e btn-xs" onclick="dlAnu(${ri})">📷</button><button class="btn btn-d btn-xs" onclick="delAnu(${ri})">🗑️</button></div></div>`}).join('')}
 function dlAnu(i){const a=anuncios[i];if(!a.preview)return;const l=document.createElement('a');l.href=a.preview;l.download=a.titulo+'.jpg';l.click()}
-async function delAnu(i){if(!confirm('¿Eliminar?'))return;await dbD('anuncios',anuncios[i].id);anuncios.splice(i,1);renderAnuG();initPub();toast('Anuncio eliminado')}
+async function delAnu(i){if(!confirm('⚠️ ¿Estás seguro de que deseas ELIMINAR este registro? Esta acción no se puede deshacer.'))return;await dbD('anuncios',anuncios[i].id);anuncios.splice(i,1);renderAnuG();initPub();toast('Anuncio eliminado')}
 
 // ===== COMUNICACIÓN =====
 function envWA(){const m=document.getElementById('comMsg').value;if(!m.trim()){toast('Escriba un mensaje','error');return}window.open('https://wa.me/?text='+encodeURIComponent(m),'_blank')}
@@ -2603,6 +2919,7 @@ function limpiarUsr(){
 
 function editUsr(i){
   const u = usuarios[i];
+  if(!confirm(`¿Deseas editar al usuario "${u.nombre}"? Podrás modificar sus datos y permisos.`)) return;
   document.getElementById('admId').value   = u.id;
   document.getElementById('admNom').value  = u.nombre;
   document.getElementById('admUsr').value  = u.usuario;
@@ -2636,7 +2953,7 @@ function renderUsr(){
 
 async function delUsr(i){
   if(usuarios[i].id===usrActual.id){toast('No puedes eliminar tu propio usuario','error');return}
-  if(!confirm('¿Eliminar usuario '+usuarios[i].nombre+'?'))return;
+  if(!confirm(`⚠️ ¿Estás seguro de que deseas ELIMINAR al usuario "${usuarios[i].nombre}"?\n\nEsta acción no se puede deshacer.`))return;
   logAudit('DELETE','Eliminar usuario: '+usuarios[i].nombre);
   await dbD('usuarios',usuarios[i].id);
   usuarios.splice(i,1); renderUsr(); poblarSelUsr();

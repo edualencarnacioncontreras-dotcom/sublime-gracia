@@ -398,6 +398,7 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
       <div class="ni" id="nav-celulas" onclick="go('celulas')"><span class="ico">🏠</span>Células</div>
       <div class="ni" id="nav-ninos" onclick="go('ninos')"><span class="ico">👶</span>Área Infantil</div>
       <div class="ni" id="nav-oracion" onclick="go('oracion')"><span class="ico">🙏</span>Peticiones</div>
+      <div class="ni" id="nav-temas" onclick="go('temas')"><span class="ico">📌</span>Temas Pendientes</div>
       <div class="sb-sec">Operaciones</div>
       <div class="ni" id="nav-asistencia" onclick="go('asistencia')"><span class="ico">📋</span>Asistencia</div>
       <div class="ni" id="nav-finanzas" onclick="go('finanzas')"><span class="ico">💰</span>Finanzas</div>
@@ -442,26 +443,9 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
 
       <!-- CALENDARIO -->
       
-        <!-- Alertas de Seguimiento Pastoral -->
-        <div class="panel" style="margin-top:4px">
-          <div class="ph2" style="display:flex;align-items:center;justify-content:space-between">
-            <span>🔔 Alertas de Seguimiento Pastoral <span id="dashAlertasCnt" style="background:rgba(231,76,60,.2);color:#e74c3c;border-radius:20px;padding:2px 8px;font-size:10px;margin-left:6px">0</span></span>
-            <button class="btn btn-s btn-xs" onclick="go('reportes')">Ver todos →</button>
-          </div>
-          <div class="pb" id="dashAlertas">
-            <div style="color:#555;font-size:12px;padding:4px">Genera un reporte en la sección Reportes para ver las alertas aquí.</div>
-          </div>
-        </div>
-        <!-- Alertas Temas Pendientes con Miembros -->
-        <div class="panel" style="margin-top:4px">
-          <div class="ph2" style="display:flex;align-items:center;justify-content:space-between">
-            <span>📌 Temas Urgentes con Miembros <span id="dashTemasCnt" style="background:rgba(231,76,60,.2);color:#e74c3c;border-radius:20px;padding:2px 8px;font-size:10px;margin-left:6px">0</span></span>
-            <button class="btn btn-s btn-xs" onclick="go('membresia')">Ver miembros →</button>
-          </div>
-          <div class="pb" id="dashTemasPend">
-            <div style="color:#555;font-size:11px;padding:6px">Los temas de alta prioridad o vencidos aparecerán aquí.</div>
-          </div>
-        </div>
+        <!-- Alertas movidas al módulo Temas Pendientes -->
+        <!-- Hidden elements to avoid JS errors -->
+        <div style="display:none"><span id="dashAlertasCnt">0</span><span id="dashTemasCnt">0</span><div id="dashAlertas"></div><div id="dashTemasPend"></div></div>
       <div id="vp-calendario" class="vp">
         <div class="ph"><div><div class="ph-t">📅 Calendario de Eventos</div><div class="ph-s">Gestiona los eventos de la iglesia</div></div><button class="btn btn-p btn-sm" onclick="openM('mEvento');document.getElementById('evId').value='';document.getElementById('evFecha').valueAsDate=new Date()">➕ Nuevo</button></div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
@@ -486,7 +470,6 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
             <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap">
               <button class="btn btn-p btn-sm mftab activo" onclick="tabMForm('general',this)">👤 General</button>
               <button class="btn btn-s btn-sm mftab" onclick="tabMForm('identidad',this)">🪪 Identidad y Foto</button>
-              <button class="btn btn-s btn-sm mftab" onclick="tabMForm('temas',this)">📌 Temas Pendientes</button>
               <button class="btn btn-s btn-sm mftab" onclick="tabMForm('historial',this)">📋 Historial</button>
             </div>
             <div id="mfGeneral">
@@ -587,7 +570,7 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
           </div>
         </div>
         <div class="panel"><div class="ph2">👥 Lista <span id="cuentaM" style="font-size:10px;color:#666"></span></div>
-          <div class="tc" style="margin-top:0;border:none;border-radius:0"><table><thead><tr><th style="width:50px">Foto</th><th>Nombre / Cédula</th><th>Ministerio</th><th>Estado</th><th>Alertas</th><th>Acciones</th></tr></thead><tbody id="tbM"></tbody></table></div>
+          <div class="tc" style="margin-top:0;border:none;border-radius:0"><table><thead><tr><th style="width:50px">Foto</th><th>Nombre / Cédula</th><th>Ministerio</th><th>Estado</th><th>Acciones</th></tr></thead><tbody id="tbM"></tbody></table></div>
         </div>
       </div>
 
@@ -639,6 +622,123 @@ input[type=color]{width:100%;height:36px;border:none;border-radius:7px;cursor:po
         <div class="ph"><div><div class="ph-t">🙏 Peticiones de Oración</div></div><button class="btn btn-p btn-sm" onclick="openM('mOracion');document.getElementById('orId').value=''">➕ Nueva Petición</button></div>
         <div class="tabs"><div class="tab activo" onclick="filtOra('todas',this)">Todas</div><div class="tab" onclick="filtOra('activa',this)">Activas</div><div class="tab" onclick="filtOra('respondida',this)">Respondidas</div><div class="tab" onclick="filtOra('urgente',this)">Urgentes</div></div>
         <div id="listaOra"></div>
+      </div>
+
+      <!-- TEMAS PENDIENTES -->
+      <div id="vp-temas" class="vp">
+        <div class="ph">
+          <div><div class="ph-t">📌 Alertas y Temas con Miembros</div><div class="ph-s" id="subTemas">Seguimiento pastoral · problemas · instrumentos · materiales · ministerios</div></div>
+          <button class="btn btn-p btn-sm" onclick="abrirNuevoTemaGlobal()">➕ Nueva Alerta</button>
+        </div>
+
+        <!-- Tarjetas resumen -->
+        <div class="sg" style="margin-bottom:18px">
+          <div class="sc do"><div class="sc-ico">🔴</div><div class="sc-num" id="tcAlta">0</div><div class="sc-lbl">Alta prioridad</div></div>
+          <div class="sc na"><div class="sc-ico">🟡</div><div class="sc-num" id="tcMedia">0</div><div class="sc-lbl">Media prioridad</div></div>
+          <div class="sc ve"><div class="sc-ico">🟢</div><div class="sc-num" id="tcBaja">0</div><div class="sc-lbl">Baja prioridad</div></div>
+          <div class="sc az"><div class="sc-ico">✅</div><div class="sc-num" id="tcResuelto">0</div><div class="sc-lbl">Resueltos</div></div>
+        </div>
+
+        <!-- Formulario nueva alerta (oculto por defecto) -->
+        <div class="panel" id="panelNuevoTema" style="display:none;margin-bottom:16px">
+          <div class="ph2">➕ Nueva Alerta / Tema con Miembro</div>
+          <div class="pb">
+            <div class="fg">
+              <div class="ff">
+                <label>Miembro *</label>
+                <select id="ntMiembro" onchange="actualizarInfoMiembroTema()">
+                  <option value="">-- Seleccione miembro --</option>
+                </select>
+              </div>
+              <div class="ff">
+                <label>Categoría / Tipo *</label>
+                <select id="ntCategoria">
+                  <option value="pastoral">🙏 Pastoral / Espiritual</option>
+                  <option value="problema">⚠️ Problema personal</option>
+                  <option value="instrumento">🎸 Instrumento / Equipo</option>
+                  <option value="material">📦 Material / Recurso</option>
+                  <option value="ministerio">⛪ Ministerio</option>
+                  <option value="liderazgo">👑 Liderazgo</option>
+                  <option value="disciplina">📋 Disciplina</option>
+                  <option value="otro">📝 Otro</option>
+                </select>
+              </div>
+              <div class="ff">
+                <label>Título / Asunto *</label>
+                <input type="text" id="ntTitulo" placeholder="Ej: Necesita guitarra, problema familiar, seguimiento...">
+              </div>
+              <div class="ff">
+                <label>Prioridad</label>
+                <select id="ntPrioridad">
+                  <option value="alta">🔴 Alta</option>
+                  <option value="media" selected>🟡 Media</option>
+                  <option value="baja">🟢 Baja</option>
+                </select>
+              </div>
+              <div class="ff">
+                <label>Fecha límite (opcional)</label>
+                <input type="date" id="ntFechaLimite">
+              </div>
+              <div class="ff" id="ntInfoMiem" style="background:rgba(212,175,55,.05);border:1px solid rgba(212,175,55,.1);border-radius:9px;padding:10px;display:none">
+                <label>Info del miembro</label>
+                <div id="ntInfoMiemContenido" style="font-size:12px;color:#aaa;margin-top:4px"></div>
+              </div>
+              <div class="ff full">
+                <label>Descripción / Detalle</label>
+                <textarea id="ntDetalle" placeholder="Describe el tema, problema o situación con detalle..." rows="3"></textarea>
+              </div>
+            </div>
+            <div class="bgrp">
+              <button class="btn btn-p" onclick="guardarNuevoTemaGlobal()">💾 Guardar Alerta</button>
+              <button class="btn btn-s" onclick="document.getElementById('panelNuevoTema').style.display='none'">Cancelar</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas de Seguimiento Pastoral -->
+        <div class="panel" style="margin-bottom:16px">
+          <div class="ph2" style="display:flex;align-items:center;justify-content:space-between">
+            <span>🔔 Alertas de Seguimiento Pastoral <span id="temaAlertasCnt" style="background:rgba(231,76,60,.2);color:#e74c3c;border-radius:20px;padding:2px 8px;font-size:10px;margin-left:6px">0</span></span>
+            <button class="btn btn-s btn-xs" onclick="go('reportes')">Ver reportes →</button>
+          </div>
+          <div class="pb" id="temasAlertasSeg">
+            <div style="color:#555;font-size:12px;padding:4px">Genera un reporte en la sección Reportes para ver las alertas aquí.</div>
+          </div>
+        </div>
+
+        <!-- Lista completa de temas con filtros -->
+        <div class="panel">
+          <div class="ph2" style="flex-wrap:wrap;gap:8px">
+            <span>📋 Todas las Alertas y Temas</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <select id="filtroTemaEst" onchange="renderTemas()" style="padding:5px 10px;background:#2a2a2a;border:1px solid #444;border-radius:7px;color:#fff;font-size:11px">
+                <option value="todos">Todos</option>
+                <option value="pendiente">Pendientes</option>
+                <option value="resuelto">Resueltos</option>
+              </select>
+              <select id="filtroTemaPri" onchange="renderTemas()" style="padding:5px 10px;background:#2a2a2a;border:1px solid #444;border-radius:7px;color:#fff;font-size:11px">
+                <option value="todos">Toda prioridad</option>
+                <option value="alta">🔴 Alta</option>
+                <option value="media">🟡 Media</option>
+                <option value="baja">🟢 Baja</option>
+              </select>
+              <select id="filtroTemaCat" onchange="renderTemas()" style="padding:5px 10px;background:#2a2a2a;border:1px solid #444;border-radius:7px;color:#fff;font-size:11px">
+                <option value="todos">Toda categoría</option>
+                <option value="pastoral">🙏 Pastoral</option>
+                <option value="problema">⚠️ Problema</option>
+                <option value="instrumento">🎸 Instrumento</option>
+                <option value="material">📦 Material</option>
+                <option value="ministerio">⛪ Ministerio</option>
+                <option value="liderazgo">👑 Liderazgo</option>
+                <option value="disciplina">📋 Disciplina</option>
+                <option value="otro">📝 Otro</option>
+              </select>
+            </div>
+          </div>
+          <div class="pb" id="listaTemasMod">
+            <div class="empty"><div class="empty-ico">📌</div><div class="empty-txt">No hay alertas registradas.<br>Presiona "Nueva Alerta" para comenzar.</div></div>
+          </div>
+        </div>
       </div>
 
       <!-- ASISTENCIA -->
@@ -1759,7 +1859,7 @@ function go(v){
   document.querySelectorAll('.ni').forEach(e=>e.classList.remove('activo'));
   const el=document.getElementById('vp-'+v);if(el)el.classList.add('activa');
   const nv=document.getElementById('nav-'+v);if(nv)nv.classList.add('activo');
-  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{if(!_db.actividades)_db.actividades={};renderFin();renderGastos();resumen();selFinMiem();const fd=document.getElementById('fFecha');if(fd)fd.valueAsDate=new Date();const gd=document.getElementById('gFecha');if(gd)gd.valueAsDate=new Date();},ninos:()=>{renderN();selPadres()},asistencia:()=>{if(!_db.actividades)_db.actividades={};renderActividades()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,prestamos:()=>{go('finanzas');setTimeout(()=>finTab('prestamos',document.getElementById('ftab-prestamos')),150)},auditoria:()=>{renderAudit()}};
+  const act={dashboard:renderDash,calendario:renderCal,membresia:()=>{renderM();actCelSel()},finanzas:()=>{if(!_db.actividades)_db.actividades={};renderFin();renderGastos();resumen();selFinMiem();const fd=document.getElementById('fFecha');if(fd)fd.valueAsDate=new Date();const gd=document.getElementById('gFecha');if(gd)gd.valueAsDate=new Date();},ninos:()=>{renderN();selPadres()},asistencia:()=>{if(!_db.actividades)_db.actividades={};renderActividades()},reportes:()=>{const fi=new Date();fi.setMonth(fi.getMonth()-3);document.getElementById('rFI').valueAsDate=fi;document.getElementById('rFF').valueAsDate=new Date();if(_repData.length)renderListaRep()},publicidad:initPub,admin:()=>{renderUsr();if(!document.getElementById("pcard-dashboard"))cargarPermisosPorRol();},visitas:()=>{renderVis();statVis()},celulas:()=>{renderCel();selLideres()},oracion:renderOra,temas:renderTemas,prestamos:()=>{go('finanzas');setTimeout(()=>finTab('prestamos',document.getElementById('ftab-prestamos')),150)},auditoria:()=>{renderAudit()}};
   if(act[v])act[v]();
 }
 function openM(id){document.getElementById(id).classList.add('activo');if(id==='mAnuncio')initEditor();if(id==='mAnunciosG')renderAnuG();if(id==='mCelula')selLideres();if(id==='mPrestamo'||id==='mOracion'){const s={mPrestamo:'preMiem',mOracion:'orMiem'}[id];if(s)selGen(s,miembros)}; if(id==='mVisita'){document.getElementById('visFecha').valueAsDate=new Date()}}
@@ -1929,11 +2029,7 @@ function renderM(){
   const t=document.getElementById('tbM');
   if(!miembros.length){t.innerHTML='<tr><td colspan="6" style="text-align:center;padding:36px;color:#555">No hay miembros registrados</td></tr>';document.getElementById('subMiem').textContent='0 miembros';document.getElementById('cuentaM').textContent='';return}
   t.innerHTML=miembros.map((m,i)=>{
-    const temasAbiertos=(m.temas||[]).filter(t=>t.estado!=='resuelto');
-    const hayAlta=temasAbiertos.some(t=>t.prioridad==='alta');
-    const alertaHtml=temasAbiertos.length>0
-      ?`<span class="alerta-cnt" title="${temasAbiertos.map(t=>t.titulo).join(', ')}" style="${hayAlta?'background:rgba(231,76,60,.2);color:#e74c3c':'background:rgba(243,156,18,.15);color:#f39c12'}">${hayAlta?'🔴':'🟡'} ${temasAbiertos.length}</span>`
-      :'<span style="color:#444;font-size:10px">—</span>';
+
     const fotoHtml=m.foto
       ?`<div class="mava"><img src="${m.foto}" alt=""></div>`
       :`<div class="mava">${(m.nombre||'?').substring(0,2).toUpperCase()}</div>`;
@@ -1942,7 +2038,6 @@ function renderM(){
       <td><div style="font-weight:700;color:#fff">${m.nombre}</div>${m.cedula?'<div style="font-size:9px;color:#666;font-family:monospace">ID: '+m.cedula+'</div>':''}${m.email?'<div style="font-size:9px;color:#777">'+m.email+'</div>':''}</td>
       <td><span class="badge bvol" style="font-size:9px">${MINS[m.ministerio]||'—'}</span></td>
       <td><span class="badge ${EBADGE[m.estado]||'bi'}">${ELABEL[m.estado]||m.estado}</span></td>
-      <td>${alertaHtml}</td>
       <td style="white-space:nowrap">
         <button class="btn btn-i btn-xs" title="Editar miembro" onclick="editM(${i})">✏️ Editar</button>
         ${m.telefono?`<button class="btn btn-wa btn-xs" onclick="waM('${m.telefono}','${m.nombre}')">📱</button>`:''}
@@ -1984,6 +2079,207 @@ async function togOra(id){const o=oraciones.find(x=>x.id===id);if(!o)return;o.es
 async function delOra(id){if(!confirm('⚠️ ¿Estás seguro? Esta acción no se puede deshacer.'))return;await dbD('oraciones',id);oraciones=oraciones.filter(o=>o.id!==id);renderOra();toast('Eliminado')}
 function filtOra(f,el){filtroOra=f;document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('activo'));el.classList.add('activo');renderOra()}
 function renderOra(){let l=oraciones;if(filtroOra!=='todas')l=oraciones.filter(o=>filtroOra==='urgente'?o.urgencia==='urgente':o.estado===filtroOra);const c=document.getElementById('listaOra');if(!l.length){c.innerHTML='<div class="empty"><div class="empty-ico">🙏</div><div class="empty-txt">No hay peticiones</div></div>';return}c.innerHTML=l.map(o=>`<div class="orc"><div style="display:flex;justify-content:space-between;align-items:flex-start"><div><div class="ort">${o.urgencia==='urgente'?'🔴 ':''}${o.titulo} <span class="badge ${o.estado==='respondida'?'ba':'bv'}" style="margin-left:6px">${o.estado==='respondida'?'Respondida':'Activa'}</span></div><div class="orx">${o.texto||''}</div><div class="orm">🙏 ${o.sol} · ${fmtF(o.fecha)}</div></div><div style="display:flex;gap:5px;flex-shrink:0;margin-left:8px"><button class="btn btn-e btn-xs" onclick="togOra('${o.id}')">${o.estado==='activa'?'✅':'🔄'}</button><button class="btn btn-d btn-xs" onclick="delOra('${o.id}')">🗑️</button></div></div></div>`).join('')}
+
+// ===== MÓDULO TEMAS / ALERTAS GLOBAL =====
+const TEMA_CAT = {
+  pastoral:    {ico:'🙏', label:'Pastoral',    color:'#8e44ad'},
+  problema:    {ico:'⚠️', label:'Problema',    color:'#e74c3c'},
+  instrumento: {ico:'🎸', label:'Instrumento', color:'#2980b9'},
+  material:    {ico:'📦', label:'Material',    color:'#f39c12'},
+  ministerio:  {ico:'⛪', label:'Ministerio',  color:'#27ae60'},
+  liderazgo:   {ico:'👑', label:'Liderazgo',   color:'#d4af37'},
+  disciplina:  {ico:'📋', label:'Disciplina',  color:'#e67e22'},
+  otro:        {ico:'📝', label:'Otro',        color:'#777'}
+};
+
+function abrirNuevoTemaGlobal(){
+  const p = document.getElementById('panelNuevoTema');
+  p.style.display = p.style.display==='none'?'block':'none';
+  // Poblar selector de miembros
+  const sel = document.getElementById('ntMiembro');
+  sel.innerHTML = '<option value="">-- Seleccione miembro --</option>';
+  miembros.forEach(m=>{
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.nombre + (m.estado?' ('+m.estado+')':'');
+    sel.appendChild(o);
+  });
+  document.getElementById('ntTitulo').value='';
+  document.getElementById('ntDetalle').value='';
+  document.getElementById('ntFechaLimite').value='';
+  document.getElementById('ntPrioridad').value='media';
+  document.getElementById('ntCategoria').value='pastoral';
+  document.getElementById('ntInfoMiem').style.display='none';
+}
+
+function actualizarInfoMiembroTema(){
+  const mid = document.getElementById('ntMiembro').value;
+  const box = document.getElementById('ntInfoMiem');
+  const con = document.getElementById('ntInfoMiemContenido');
+  if(!mid){box.style.display='none';return;}
+  const m = miembros.find(x=>x.id===mid);
+  if(!m){box.style.display='none';return;}
+  const cel = celulas.find(c=>c.id===m.celula);
+  box.style.display='block';
+  con.innerHTML = `
+    <div style="display:flex;flex-wrap:wrap;gap:12px">
+      <div>👤 <b style="color:#d4af37">${m.nombre}</b></div>
+      <div>📊 Estado: <b style="color:#ccc">${m.estado||'—'}</b></div>
+      <div>⛪ Ministerio: <b style="color:#ccc">${MINS[m.ministerio]||'Ninguno'}</b></div>
+      <div>🏠 Célula: <b style="color:#ccc">${cel?cel.nombre:'Sin célula'}</b></div>
+      ${cel&&cel.liderNombre?`<div>👑 Líder: <b style="color:#d4af37">${cel.liderNombre}</b></div>`:''}
+      ${m.telefono?`<div>📱 Tel: <b style="color:#ccc">${m.telefono}</b></div>`:''}
+    </div>`;
+}
+
+async function guardarNuevoTemaGlobal(){
+  const mid = document.getElementById('ntMiembro').value;
+  const titulo = document.getElementById('ntTitulo').value.trim();
+  if(!mid){toast('Seleccione un miembro','error');return;}
+  if(!titulo){toast('Ingrese un título','error');return;}
+  const m = miembros.find(x=>x.id===mid);
+  if(!m){toast('Miembro no encontrado','error');return;}
+  if(!m.temas) m.temas=[];
+  m.temas.push({
+    id: 'tema_'+Date.now(),
+    titulo,
+    detalle: document.getElementById('ntDetalle').value,
+    prioridad: document.getElementById('ntPrioridad').value,
+    categoria: document.getElementById('ntCategoria').value,
+    fechaLimite: document.getElementById('ntFechaLimite').value,
+    estado: 'pendiente',
+    fechaCreacion: new Date().toISOString().split('T')[0],
+    creadoPor: usrActual?.usuario||'—'
+  });
+  await dbP('miembros', m);
+  document.getElementById('panelNuevoTema').style.display='none';
+  renderTemas();
+  toast('✅ Alerta guardada para '+m.nombre);
+}
+
+function renderTemas(){
+  const filtEst = (document.getElementById('filtroTemaEst')||{value:'todos'}).value||'todos';
+  const filtPri = (document.getElementById('filtroTemaPri')||{value:'todos'}).value||'todos';
+  const filtCat = (document.getElementById('filtroTemaCat')||{value:'todos'}).value||'todos';
+  const c = document.getElementById('listaTemasMod');
+  if(!c) return;
+
+  // Recolectar todos los temas de todos los miembros
+  let items = [];
+  miembros.forEach(m=>{
+    const cel = celulas.find(x=>x.id===m.celula);
+    (m.temas||[]).forEach(t=>{
+      items.push({miembro:m, tema:t, miIdx:miembros.indexOf(m), celula:cel});
+    });
+  });
+
+  // Aplicar filtros
+  if(filtEst!=='todos') items=items.filter(x=>filtEst==='pendiente'?x.tema.estado!=='resuelto':x.tema.estado==='resuelto');
+  if(filtPri!=='todos') items=items.filter(x=>x.tema.prioridad===filtPri);
+  if(filtCat!=='todos') items=items.filter(x=>x.tema.categoria===filtCat);
+
+  // Ordenar: alta primero, luego vencidos, luego media, baja, resueltos al final
+  const priOrd={alta:0,media:1,baja:2};
+  items.sort((a,b)=>{
+    if(a.tema.estado==='resuelto' && b.tema.estado!=='resuelto') return 1;
+    if(b.tema.estado==='resuelto' && a.tema.estado!=='resuelto') return -1;
+    return (priOrd[a.tema.prioridad]??3)-(priOrd[b.tema.prioridad]??3);
+  });
+
+  // Actualizar contadores
+  const all=[]; miembros.forEach(m=>(m.temas||[]).forEach(t=>all.push(t)));
+  const pend=all.filter(t=>t.estado!=='resuelto');
+  document.getElementById('tcAlta').textContent=pend.filter(t=>t.prioridad==='alta').length;
+  document.getElementById('tcMedia').textContent=pend.filter(t=>t.prioridad==='media').length;
+  document.getElementById('tcBaja').textContent=pend.filter(t=>t.prioridad==='baja').length;
+  document.getElementById('tcResuelto').textContent=all.filter(t=>t.estado==='resuelto').length;
+  document.getElementById('subTemas').textContent=pend.length+' pendientes · '+all.filter(t=>t.estado==='resuelto').length+' resueltos';
+
+  // Alertas de seguimiento pastoral
+  const segEl = document.getElementById('temasAlertasSeg');
+  const segCnt = document.getElementById('temaAlertasCnt');
+  if(segEl && typeof _repData!=='undefined' && _repData.length){
+    const alertas=_repData.filter(s=>s.categoria==='casinunca'||s.categoria==='noasiste'||(s.categoria==='ocasional'&&s.diasSinVenir>21)).sort((a,b)=>b.diasSinVenir-a.diasSinVenir);
+    segCnt.textContent=alertas.length;
+    segEl.innerHTML=alertas.length?alertas.slice(0,10).map(s=>{
+      const esGrave=s.categoria==='noasiste'||s.diasSinVenir>45;
+      const miIdx=miembros.findIndex(x=>x.id===s.miembro?.id||x.nombre===s.miembro?.nombre);
+      const m2=miembros[miIdx]||s.miembro||{};
+      const cel2=celulas.find(c=>c.id===m2.celula);
+      return`<div class="alerta-seg ${esGrave?'':'oc'}" onclick="editM(${miIdx});go('membresia')">
+        <div class="alerta-ico">${esGrave?'🔴':'🟡'}</div>
+        <div class="alerta-info">
+          <div class="alerta-nom">👤 ${s.miembro?.nombre||'—'}</div>
+          <div class="alerta-det">
+            ${s.diasSinVenir<999?'Última vez hace '+s.diasSinVenir+' días':'Sin registro'} · ${s.pct?.toFixed(0)||0}% asistencia
+            ${cel2?` · 🏠 ${cel2.nombre} · 👑 ${cel2.liderNombre||'—'}`:''}
+            · ⛪ ${MINS[m2.ministerio]||'Sin ministerio'}
+          </div>
+        </div>
+        <span style="padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap;background:${esGrave?'rgba(231,76,60,.15)':'rgba(243,156,18,.15)'};color:${esGrave?'#e74c3c':'#f39c12'}">${esGrave?'URGENTE':'AVISO'}</span>
+      </div>`;
+    }).join(''):'<div style="color:#555;font-size:12px;padding:4px">Sin alertas activas. Genera un reporte primero.</div>';
+  }
+
+  // Lista principal
+  if(!items.length){
+    c.innerHTML='<div class="empty"><div class="empty-ico">📌</div><div class="empty-txt">No hay alertas que coincidan con los filtros.<br>Presiona "Nueva Alerta" para agregar una.</div></div>';
+    return;
+  }
+
+  const priCol={alta:'var(--pe)',media:'var(--ad)',baja:'var(--ex)'};
+  const priIco={alta:'🔴',media:'🟡',baja:'🟢'};
+
+  c.innerHTML=items.map(({miembro:m,tema:t,miIdx,celula:cel})=>{
+    const resuelto=t.estado==='resuelto';
+    const vencido=t.fechaLimite&&!resuelto&&new Date(t.fechaLimite)<new Date();
+    const cat=TEMA_CAT[t.categoria]||TEMA_CAT.otro;
+    return`<div style="background:var(--nc);border:1px solid rgba(255,255,255,.06);border-radius:11px;padding:14px;margin-bottom:10px;${resuelto?'opacity:.6':''}">
+      <div style="display:flex;align-items:flex-start;gap:12px">
+        <div style="flex-shrink:0;width:36px;height:36px;border-radius:50%;background:rgba(${resuelto?'39,174,96':'212,175,55'},.1);border:1px solid rgba(${resuelto?'39,174,96':'212,175,55'},.2);display:flex;align-items:center;justify-content:center;font-size:18px">${resuelto?'✅':cat.ico}</div>
+        <div style="flex:1;min-width:0">
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+            <span style="font-weight:700;color:#fff;font-size:13px">${t.titulo}</span>
+            <span style="font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(255,255,255,.06);color:${cat.color}">${cat.ico} ${cat.label}</span>
+            ${!resuelto?`<span style="font-size:9px;font-weight:700;color:${priCol[t.prioridad]||'#888'}">${priIco[t.prioridad]||''} ${(t.prioridad||'').toUpperCase()}</span>`:'<span class="badge ba" style="font-size:9px">✅ RESUELTO</span>'}
+            ${vencido?'<span class="badge bi" style="font-size:9px">⏰ VENCIDO</span>':''}
+          </div>
+          <!-- Info del miembro -->
+          <div style="background:rgba(212,175,55,.04);border:1px solid rgba(212,175,55,.08);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;flex-wrap:wrap;gap:10px">
+            <span style="font-size:11px;color:#bbb">👤 <b style="color:#d4af37">${m.nombre}</b></span>
+            <span style="font-size:11px;color:#888">📊 ${m.estado||'—'}</span>
+            <span style="font-size:11px;color:#888">⛪ ${MINS[m.ministerio]||'Sin ministerio'}</span>
+            ${cel?`<span style="font-size:11px;color:#888">🏠 ${cel.nombre}</span><span style="font-size:11px;color:#888">👑 ${cel.liderNombre||'—'}</span>`:''}
+            ${m.telefono?`<span style="font-size:11px;color:#888">📱 ${m.telefono}</span>`:''}
+          </div>
+          ${t.detalle?`<div style="font-size:11px;color:#888;margin-bottom:4px">${t.detalle}</div>`:''}
+          <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:10px;color:#555">
+            ${t.fechaCreacion?`<span>📅 Creado: ${fmtF(t.fechaCreacion)}</span>`:''}
+            ${t.fechaLimite?`<span style="color:${vencido?'#e74c3c':'#888'}">⏰ Límite: ${fmtF(t.fechaLimite)}</span>`:''}
+            ${t.creadoPor?`<span>👤 Por: ${t.creadoPor}</span>`:''}
+            ${resuelto&&t.fechaResolucion?`<span style="color:#27ae60">✅ Resuelto: ${fmtF(t.fechaResolucion)}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;flex-shrink:0">
+          ${!resuelto?`<button class="btn btn-e btn-xs" title="Marcar resuelto" onclick="resolverTemaGlobal(${miIdx},'${t.id||t.titulo}')">✅</button>`:''}
+          <button class="btn btn-i btn-xs" title="Ver miembro" onclick="editM(${miIdx});go('membresia')">👤</button>
+          ${m.telefono?`<button class="btn btn-wa btn-xs" onclick="waM('${m.telefono}','${m.nombre}')">📱</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function resolverTemaGlobal(miIdx, tId){
+  const m=miembros[miIdx];if(!m)return;
+  const t=(m.temas||[]).find(x=>x.id===tId||x.titulo===tId);
+  if(!t)return;
+  t.estado='resuelto';
+  t.fechaResolucion=new Date().toISOString().split('T')[0];
+  await dbP('miembros',m);
+  renderTemas();
+  toast('✅ Tema marcado como resuelto');
+}
 function selGen(id,l){const s=document.getElementById(id);if(!s)return;s.innerHTML='<option value="">-- Seleccione --</option>';l.forEach(m=>{const o=document.createElement('option');o.value=m.id;o.textContent=m.nombre;s.appendChild(o)})}
 
 // ===== FINANZAS (nuevo sistema de pestañas) =====
@@ -2613,28 +2909,35 @@ function actualizarAlertas(){
     (s.categoria === 'ocasional' && s.diasSinVenir > 21)
   ).sort((a,b) => b.diasSinVenir - a.diasSinVenir);
 
-  // Panel de alertas en dashboard
+  // Actualizar contador oculto del dashboard
   const cDash = document.getElementById('dashAlertas');
-  if(cDash){
+  if(cDash) cDash.innerHTML = '';
+  document.getElementById('dashAlertasCnt').textContent = alertas.length;
+
+  // Panel en módulo Temas Pendientes
+  const segEl = document.getElementById('temasAlertasSeg');
+  const segCnt = document.getElementById('temaAlertasCnt');
+  if(segEl){
+    segCnt.textContent = alertas.length;
     if(!alertas.length){
-      cDash.innerHTML = '<div style="color:#555;font-size:12px;padding:8px">Sin alertas de seguimiento activas.</div>';
+      segEl.innerHTML = '<div style="color:#555;font-size:12px;padding:8px">Sin alertas de seguimiento activas.</div>';
       return;
     }
-    cDash.innerHTML = alertas.slice(0,10).map(s => {
+    segEl.innerHTML = alertas.slice(0,10).map(s => {
       const esGrave = s.categoria === 'noasiste' || s.diasSinVenir > 45;
-      return `<div class="alerta-seg ${esGrave?'':'oc'}" onclick="go('reportes')">
+      const miIdx = miembros.findIndex(x=>x.id===s.miembro?.id||x.nombre===s.miembro?.nombre);
+      return `<div class="alerta-seg ${esGrave?'':'oc'}" onclick="editM(${miIdx});go('membresia')">
         <div class="alerta-ico">${esGrave ? '🔴' : '🟡'}</div>
         <div class="alerta-info">
-          <div class="alerta-nom">${s.miembro.nombre}</div>
+          <div class="alerta-nom">👤 ${s.miembro.nombre}</div>
           <div class="alerta-det">
             ${s.diasSinVenir < 999 ? 'Última vez hace '+s.diasSinVenir+' días' : 'Sin registro de asistencia'} · 
             ${s.pct.toFixed(0)}% de asistencia
           </div>
         </div>
-        <span class="alerta-badge ${esGrave?'badge-peligro':'badge-aviso'}">${esGrave?'URGENTE':'AVISO'}</span>
+        <span class="alerta-badge ${esGrave?'badge-peligro':'badge-aviso'}" style="padding:3px 8px;border-radius:20px;font-size:9px;font-weight:700;background:${esGrave?'rgba(231,76,60,.15)':'rgba(243,156,18,.15)'};color:${esGrave?'#e74c3c':'#f39c12'}">${esGrave?'URGENTE':'AVISO'}</span>
       </div>`;
     }).join('');
-    document.getElementById('dashAlertasCnt').textContent = alertas.length;
   }
 }
 
@@ -3326,6 +3629,7 @@ const MODULOS_DEF = [
   {id:'celulas',     ico:'🏠', nombre:'Células',        acciones:['ver','crear','editar','eliminar']},
   {id:'ninos',       ico:'👶', nombre:'Área Infantil',  acciones:['ver','crear','editar','eliminar']},
   {id:'oracion',     ico:'🙏', nombre:'Peticiones',     acciones:['ver','crear','editar','eliminar']},
+  {id:'temas',       ico:'📌', nombre:'Temas Pendientes',acciones:['ver','crear','editar','eliminar']},
   {id:'asistencia',  ico:'📋', nombre:'Asistencia',     acciones:['ver','crear','exportar']},
   {id:'finanzas',    ico:'💰', nombre:'Finanzas',       acciones:['ver','crear','eliminar','exportar']},
   {id:'prestamos',   ico:'💳', nombre:'Préstamos',      acciones:['ver','crear','editar','eliminar','exportar']},
@@ -3345,6 +3649,7 @@ const PERMISOS_ROL = {
     celulas:{ver:true,crear:true,editar:true,eliminar:true},
     ninos:{ver:true,crear:true,editar:true,eliminar:true},
     oracion:{ver:true,crear:true,editar:true,eliminar:true},
+    temas:{ver:true,crear:true,editar:true,eliminar:true},
     asistencia:{ver:true,crear:true,exportar:true},
     finanzas:{ver:true,crear:true,eliminar:true,exportar:true},
     prestamos:{ver:true,crear:true,editar:true,eliminar:true,exportar:true},
@@ -3357,6 +3662,7 @@ const PERMISOS_ROL = {
     membresia:{ver:true,crear:true,editar:true,exportar:true},
     visitas:{ver:true,crear:true,editar:true}, celulas:{ver:true,crear:true,editar:true},
     ninos:{ver:true,crear:true,editar:true}, oracion:{ver:true,crear:true,editar:true,eliminar:true},
+    temas:{ver:true,crear:true,editar:true,eliminar:true},
     asistencia:{ver:true,crear:true,exportar:true},
     finanzas:{ver:true,exportar:true}, prestamos:{ver:true,exportar:true},
     reportes:{ver:true,exportar:true}, publicidad:{ver:true,crear:true,eliminar:true},
@@ -3364,6 +3670,7 @@ const PERMISOS_ROL = {
   },
   tesorero: {
     dashboard:{ver:true}, membresia:{ver:true},
+    temas:{ver:true},
     finanzas:{ver:true,crear:true,eliminar:true,exportar:true},
     prestamos:{ver:true,crear:true,editar:true,eliminar:true,exportar:true},
     reportes:{ver:true,exportar:true}
@@ -3372,13 +3679,15 @@ const PERMISOS_ROL = {
     dashboard:{ver:true}, calendario:{ver:true,crear:true,editar:true},
     membresia:{ver:true,crear:true,editar:true,exportar:true},
     visitas:{ver:true,crear:true,editar:true},
+    temas:{ver:true,crear:true,editar:true},
     asistencia:{ver:true,crear:true,exportar:true},
     comunicacion:{ver:true,crear:true}, reportes:{ver:true,exportar:true}
   },
   lider: {
     dashboard:{ver:true}, calendario:{ver:true},
     celulas:{ver:true,editar:true}, asistencia:{ver:true,crear:true},
-    oracion:{ver:true,crear:true}, comunicacion:{ver:true}
+    oracion:{ver:true,crear:true}, temas:{ver:true},
+    comunicacion:{ver:true}
   },
   voluntario: {
     dashboard:{ver:true}, calendario:{ver:true}, oracion:{ver:true,crear:true}
@@ -3463,6 +3772,10 @@ function aplicarRol(rol, permisosCustom){
   const permisos = (permisosCustom && Object.keys(permisosCustom).length > 0)
     ? permisosCustom
     : (PERMISOS_ROL[rol] || PERMISOS_ROL['voluntario']);
+
+  // Asegurar que módulos nuevos siempre estén presentes según el rol base
+  const base = PERMISOS_ROL[rol] || {};
+  if(base.temas && !permisos.temas) permisos.temas = base.temas;
 
   // Guardar en variable global para consultas rápidas
   window._permisosActivos = permisos;

@@ -3169,7 +3169,11 @@ function _hideOverlay() {
   }, 380);
 }
 
-// ── ¿Tiene el dispositivo datos locales ya? ──
+// ══════════════════════════════════════════════════════════════════════
+// FIX: SIEMPRE esperar Firebase antes de arrancar, aunque haya datos
+// locales. Esto garantiza que los cambios hechos en otros dispositivos
+// se carguen correctamente al reabrir el sistema.
+// ══════════════════════════════════════════════════════════════════════
 var _hasLocalData = (function() {
   var keys = ['cmm_usuarios_v1','eecdatos_enc_pacientes','medmanager_v1','ingresos_v1'];
   for (var i = 0; i < keys.length; i++) {
@@ -3179,22 +3183,30 @@ var _hasLocalData = (function() {
   return false;
 })();
 
-if (_hasLocalData) {
-  // ── CASO A: Hay datos locales → arrancar INMEDIATAMENTE sin esperar Firebase ──
-  // Firebase sincronizará en segundo plano a través del listener realtime
-  document.dispatchEvent(new Event("cmmSyncReady"));
-  fbStartRealtime();
-  _cmmStartAutoSync(); // ← auto-sync periódico
-  // Mostrar mini-indicador de sincronización en curso (no bloquea la UI)
-  var _miniSync = document.createElement('div');
-  _miniSync.id = 'cmm-mini-sync';
-  _miniSync.style.cssText = 'position:fixed;bottom:16px;right:16px;background:rgba(15,23,42,0.9);color:#60a5fa;font-size:12px;font-weight:600;padding:8px 14px;border-radius:20px;z-index:9999;display:flex;align-items:center;gap:8px;box-shadow:0 4px 12px rgba(0,0,0,0.3);font-family:Nunito,sans-serif;';
-  _miniSync.innerHTML = '<div style="width:10px;height:10px;border:2px solid rgba(96,165,250,0.3);border-top-color:#60a5fa;border-radius:50%;animation:fbSpin 0.8s linear infinite;flex-shrink:0;"></div>Verificando datos en la nube...';
-  document.body.appendChild(_miniSync);
-  // Hacer el pull igualmente para asegurarse que Firebase está al día
+// SIEMPRE mostrar overlay y esperar Firebase — con o sin datos locales
+// así los cambios de otros dispositivos siempre se cargan al abrir
+{
+  document.body.appendChild(overlay);
+  if (_hasLocalData) {
+    _setLoadMsg('🔄 Verificando cambios...', 'Sincronizando con la nube...');
+  } else {
+    _setLoadMsg('☁️ Cargando datos...', 'Primera vez en este dispositivo');
+  }
+
+  var _fbTimeout = setTimeout(function() {
+    // Firebase tardó más de 5s — arrancar con datos locales igual
+    _setLoadMsg('⚠️ Firebase tardando...', 'Continuando con datos locales');
+    setTimeout(function() {
+      _hideOverlay();
+      document.dispatchEvent(new Event("cmmSyncReady"));
+      fbStartRealtime();
+      _cmmStartAutoSync();
+    }, 800);
+  }, 5000);
+
   fbPullAll(function() {
-    // Una vez bajados los datos de Firebase, recargar variables en memoria
-    // y refrescar la página actual silenciosamente
+    clearTimeout(_fbTimeout);
+    // Recargar variables en memoria con los datos frescos de Firebase
     try {
       if (typeof sysUsuarios !== 'undefined') sysUsuarios = JSON.parse(localStorage.getItem('cmm_usuarios_v1') || '[]');
       if (typeof ingresos !== 'undefined') ingresos = JSON.parse(localStorage.getItem('ingresos_v1') || '[]');
@@ -3207,44 +3219,14 @@ if (_hasLocalData) {
       if (typeof loadMtnState === 'function') { try { mtn = loadMtnState(); } catch(e){} }
       if (typeof loadCamasState === 'function') { try { loadCamasState(); } catch(e){} }
     } catch(e) {}
-    // Refrescar la página actual con los datos frescos de Firebase
-    try {
-      var _p = window._currentPage || '';
-      if (_p && typeof window.showPage === 'function') window.showPage(_p);
-      if (typeof loginShowPicker === 'function') {
-        var _lm = document.getElementById('modal-login');
-        if (_lm && _lm.style.display !== 'none') loginShowPicker();
-      }
-    } catch(e) {}
-    // Quitar el mini indicador
-    setTimeout(function() {
-      var _ms = document.getElementById('cmm-mini-sync');
-      if (_ms) {
-        _ms.style.transition = 'opacity 0.4s';
-        _ms.style.opacity = '0';
-        setTimeout(function() { if (_ms.parentNode) _ms.parentNode.removeChild(_ms); }, 420);
-      }
-    }, 800);
-  });
-} else {
-  // ── CASO B: No hay datos locales → mostrar overlay y esperar Firebase ──
-  document.body.appendChild(overlay);
-  _setLoadMsg('☁️ Cargando datos...', 'Primera vez en este dispositivo');
-
-  var _fbTimeout = setTimeout(function() {
-    _setLoadMsg('⚠️ Firebase tardando...', 'Continuando con datos vacíos');
-  }, 5000);
-
-  fbPullAll(function() {
-    clearTimeout(_fbTimeout);
     var _count = localStorage.length;
-    _setLoadMsg('✅ Datos cargados', _count + ' registros sincronizados');
+    _setLoadMsg('✅ Datos actualizados', _count + ' registros sincronizados');
     setTimeout(function() {
       _hideOverlay();
       document.dispatchEvent(new Event("cmmSyncReady"));
       fbStartRealtime();
-      _cmmStartAutoSync(); // ← auto-sync periódico
-    }, 600);
+      _cmmStartAutoSync();
+    }, 500);
   });
 }
 </script>

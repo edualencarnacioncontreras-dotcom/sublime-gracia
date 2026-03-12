@@ -136,9 +136,9 @@
     position: fixed; left:0; top:0; bottom:0; z-index:200;
     display: flex; flex-direction:column; overflow:hidden;
     box-shadow: 4px 0 20px rgba(0,0,0,0.12);
-    transition: width 0.28s cubic-bezier(.4,0,.2,1);
+    transition: width 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1);
   }
-  /* Collapsed sidebar — icon only */
+  /* Collapsed sidebar */
   .sidebar.collapsed { width: 62px; }
   .sidebar.collapsed .logo h1,
   .sidebar.collapsed .logo span,
@@ -157,6 +157,194 @@
   .sidebar.collapsed .logo-icon { margin: 0 auto; }
   .sidebar.collapsed .nav-submenu { display: none !important; }
   .sidebar.collapsed .gemini-status-bar { display: none !important; }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE COMPLETO — MÓVIL, TABLET, PC
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Barra de navegación inferior (solo móvil) ── */
+#mobile-bottom-nav {
+  display: none;
+  position: fixed; bottom: 0; left: 0; right: 0;
+  height: 60px;
+  background: var(--sb-bg, #0d1a2e);
+  border-top: 1px solid rgba(255,255,255,0.1);
+  z-index: 500;
+  align-items: center;
+  justify-content: space-around;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.mb-nav-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; padding: 6px 10px; cursor: pointer;
+  color: #64748b; font-size: 9px; font-weight: 700;
+  letter-spacing: .4px; text-transform: uppercase;
+  border-radius: 10px; transition: color 0.2s;
+  min-width: 52px; flex: 1;
+  -webkit-tap-highlight-color: transparent;
+}
+.mb-nav-btn .mb-icon { font-size: 20px; line-height: 1; }
+.mb-nav-btn.active { color: var(--sb-accent, #00d4ff); }
+.mb-nav-btn:active { transform: scale(0.92); }
+
+/* ── Drawer lateral en móvil (todo el menú) ── */
+#mobile-drawer-overlay {
+  display: none;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65);
+  z-index: 600; backdrop-filter: blur(3px);
+}
+#mobile-drawer-overlay.open { display: block; }
+#mobile-drawer {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: 280px; max-width: 85vw;
+  background: var(--sb-bg, #0d1a2e);
+  z-index: 700; overflow-y: auto;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  box-shadow: 8px 0 40px rgba(0,0,0,0.6);
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+#mobile-drawer.open { transform: translateX(0); }
+#mobile-drawer .drawer-header {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: space-between;
+}
+#mobile-drawer .drawer-title {
+  font-size: 15px; font-weight: 800; color: #fff; letter-spacing: .5px;
+}
+#mobile-drawer .drawer-close {
+  background: rgba(255,255,255,0.07); border: none; color: #94a3b8;
+  font-size: 20px; cursor: pointer; border-radius: 8px;
+  width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+}
+#mobile-drawer .drawer-nav-section {
+  padding: 12px 18px 4px; font-size: 9px; font-weight: 800;
+  color: rgba(0,212,255,0.4); letter-spacing: 2px; text-transform: uppercase;
+}
+#mobile-drawer .drawer-nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 18px; color: #94a3b8; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: background 0.15s, color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+#mobile-drawer .drawer-nav-item:active,
+#mobile-drawer .drawer-nav-item:hover { background: rgba(255,255,255,0.06); color: #fff; }
+#mobile-drawer .drawer-nav-item.active { color: var(--sb-accent, #00d4ff); background: rgba(0,212,255,0.08); }
+#mobile-drawer .drawer-nav-item .d-icon { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
+
+/* ── TABLET: 768px – 1024px ── */
+@media (max-width: 1024px) and (min-width: 769px) {
+  .sidebar { width: 200px !important; }
+  .sidebar.collapsed { width: 56px !important; }
+  .main { margin-left: 200px !important; width: calc(100vw - 200px) !important; max-width: calc(100vw - 200px) !important; }
+  body.sb-collapsed .main { margin-left: 56px !important; width: calc(100vw - 56px) !important; max-width: calc(100vw - 56px) !important; }
+  body.sb-auto-hidden .main { margin-left: 8px !important; width: calc(100vw - 8px) !important; max-width: calc(100vw - 8px) !important; }
+  .content { padding: 16px !important; }
+  .topbar { padding: 0 16px !important; }
+  .topbar h2 { font-size: 16px !important; }
+  .stats-row { grid-template-columns: repeat(2, 1fr) !important; }
+  .modules-grid { grid-template-columns: repeat(2, 1fr) !important; }
+}
+
+/* ── MÓVIL: hasta 768px ── */
+@media (max-width: 768px) {
+  /* Ocultar sidebar lateral — usamos drawer */
+  .sidebar { display: none !important; }
+  #sb-hover-zone { display: none !important; }
+
+  /* Main ocupa toda la pantalla */
+  .main {
+    margin-left: 0 !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+    height: 100dvh !important;
+    padding-bottom: 60px !important; /* espacio para bottom nav */
+  }
+
+  /* Topbar más compacta */
+  .topbar {
+    height: 52px !important; min-height: 52px !important;
+    padding: 0 12px !important;
+  }
+  .topbar h2 { font-size: 15px !important; }
+  .topbar-badge { font-size: 10px !important; padding: 4px 10px !important; }
+
+  /* Contenido con padding adecuado */
+  .content {
+    padding: 12px !important;
+    padding-bottom: 70px !important;
+  }
+
+  /* Grids de una columna en móvil */
+  .stats-row { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+  .modules-grid { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+
+  /* Tablas: scroll horizontal */
+  table { display: block !important; overflow-x: auto !important; -webkit-overflow-scrolling: touch !important; }
+
+  /* Formularios: inputs full width */
+  input, select, textarea { font-size: 16px !important; } /* evita zoom en iOS */
+
+  /* Botones más grandes para touch */
+  button { min-height: 40px !important; }
+
+  /* Mostrar bottom nav */
+  #mobile-bottom-nav { display: flex !important; }
+
+  /* Paneles flotantes */
+  #net-panel {
+    width: calc(100vw - 24px) !important;
+    right: 12px !important; left: 12px !important;
+    top: 56px !important;
+  }
+
+  /* Modales full-screen en móvil */
+  .modal-box, .modal-content, [class*="modal"] > div {
+    width: 95vw !important; max-width: 95vw !important;
+    max-height: 90dvh !important; overflow-y: auto !important;
+  }
+
+  /* Cards de estadísticas */
+  .stat-card, .kpi-card { padding: 12px !important; }
+  .stat-card h3, .kpi-card h3 { font-size: 11px !important; }
+  .stat-card .value, .kpi-card .value { font-size: 24px !important; }
+}
+
+/* ── MÓVIL MUY PEQUEÑO: hasta 380px ── */
+@media (max-width: 380px) {
+  .stats-row { grid-template-columns: 1fr !important; }
+  .topbar h2 { font-size: 13px !important; }
+  .content { padding: 10px !important; }
+  .mb-nav-btn { font-size: 8px !important; min-width: 44px !important; }
+}
+
+  /* AUTO-HIDDEN: barra completamente oculta, asoma con hover */
+  .sidebar.auto-hidden {
+    width: 250px !important;
+    transform: translateX(-242px);
+    box-shadow: 4px 0 20px rgba(0,0,0,0.25) !important;
+  }
+  .sidebar.auto-hidden:hover {
+    transform: translateX(0) !important;
+    box-shadow: 8px 0 40px rgba(0,0,0,0.6) !important;
+  }
+  /* Franja de 8px visible en el borde izquierdo */
+  .sidebar.auto-hidden::before {
+    content: '';
+    position: absolute; right: 0; top: 0; bottom: 0; width: 8px;
+    background: var(--sb-accent, #00d4ff);
+    opacity: 0.35;
+    transition: opacity 0.2s;
+    border-radius: 0 4px 4px 0;
+  }
+  .sidebar.auto-hidden:hover::before { opacity: 0; }
+  /* Zona invisible para detectar borde */
+  #sb-hover-zone {
+    position: fixed; left: 0; top: 0; bottom: 0; width: 10px;
+    z-index: 199; cursor: e-resize;
+  }
 
   /* Toggle button */
   .sb-toggle {
@@ -279,6 +467,11 @@
     margin-left: 62px;
     width: calc(100vw - 62px);
     max-width: calc(100vw - 62px);
+  }
+  body.sb-auto-hidden .main {
+    margin-left: 8px !important;
+    width: calc(100vw - 8px) !important;
+    max-width: calc(100vw - 8px) !important;
   }
 
   /* ══ TOPBAR ══ */
@@ -508,19 +701,20 @@
   /* ══ MODAL ══ */
   .modal-overlay {
     display:none; position:fixed; inset:0;
-    background:rgba(15,25,50,0.45);
-    backdrop-filter:blur(6px);
-    -webkit-backdrop-filter:blur(6px);
-    z-index:200; align-items:flex-start; justify-content:center;
-    padding-top:24px; overflow-y:auto;
+    background:rgba(2,8,25,0.82);
+    backdrop-filter:blur(8px);
+    -webkit-backdrop-filter:blur(8px);
+    z-index:9500; align-items:center; justify-content:center;
+    padding:16px; overflow-y:auto;
   }
   .modal-overlay.open { display:flex; }
   .modal {
     background:var(--surface); border:1px solid var(--border);
-    border-radius: var(--r-xl); width:600px; max-width:95vw;
-    max-height:calc(100vh - 48px); overflow-y:auto;
-    box-shadow: var(--shadow-xl);
-    animation: scaleIn 0.25s cubic-bezier(.34,1.56,.64,1) both;
+    border-radius: var(--r-xl); width:600px; max-width:96vw;
+    max-height:92dvh; overflow-y:auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.06);
+    animation: scaleIn 0.22s cubic-bezier(.34,1.56,.64,1) both;
+    margin: auto;
   }
   .modal-head {
     padding:20px 24px; border-bottom:1px solid var(--border);
@@ -618,17 +812,34 @@
   .toast {
     position:fixed; bottom:24px; right:24px;
     background:var(--surface); border:1px solid var(--border);
-    border-radius:var(--r-md); padding:14px 20px;
-    font-size:13px; color:var(--text); z-index:999; opacity:0;
+    border-radius:var(--r-md); padding:12px 18px 12px 14px;
+    font-size:13px; color:var(--text); z-index:99999; opacity:0;
     transform:translateY(14px) scale(0.97);
     transition:all 0.28s cubic-bezier(.34,1.56,.64,1);
     pointer-events:none; display:flex; align-items:center; gap:10px;
-    box-shadow:var(--shadow-lg); max-width:360px;
+    box-shadow:var(--shadow-lg); max-width:380px; min-width:220px;
+    border-left:5px solid #64748b;
   }
-  .toast.show { opacity:1; transform:translateY(0) scale(1); }
-  .toast.success { border-left:4px solid var(--emerald); }
-  .toast.error   { border-left:4px solid var(--rose); }
-  .toast.yellow  { border-left:4px solid var(--amber); }
+  .toast.show { opacity:1; transform:translateY(0) scale(1); pointer-events:auto; }
+  /* ── Tipos de alerta ── */
+  .toast.success { border-left-color:#22c55e; background:rgba(34,197,94,0.07); }
+  .toast.error   { border-left-color:#ef4444; background:rgba(239,68,68,0.09); }
+  .toast.red     { border-left-color:#ef4444; background:rgba(239,68,68,0.09); }
+  .toast.yellow  { border-left-color:#f59e0b; background:rgba(245,158,11,0.07); }
+  .toast.warning { border-left-color:#f59e0b; background:rgba(245,158,11,0.07); }
+  .toast.info    { border-left-color:#3b82f6; background:rgba(59,130,246,0.07); }
+  .toast.blue    { border-left-color:#3b82f6; background:rgba(59,130,246,0.07); }
+  .toast.green   { border-left-color:#22c55e; background:rgba(34,197,94,0.07); }
+  /* ── Icono automático por tipo ── */
+  .toast::before { font-size:16px; flex-shrink:0; }
+  .toast.success::before { content:'✅'; }
+  .toast.green::before   { content:'✅'; }
+  .toast.error::before   { content:'❌'; }
+  .toast.red::before     { content:'🗑️'; }
+  .toast.yellow::before  { content:'⚠️'; }
+  .toast.warning::before { content:'⚠️'; }
+  .toast.info::before    { content:'ℹ️'; }
+  .toast.blue::before    { content:'ℹ️'; }
 
   /* ══ SEARCH ══ */
   .search-input { position:relative; }
@@ -1389,7 +1600,7 @@
 /* OVERLAY ALTA */
 .enc-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);z-index:9999;align-items:center;justify-content:center;padding:20px}
 .enc-overlay.active{display:flex}
-.enc-overlay-card{background:#fff!important;padding:28px;width:min(900px,100%);max-height:90vh;overflow:auto;border-radius:16px;color:#1e293b!important;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.enc-overlay-card{background:#fff!important;padding:0;width:100%;height:100%;max-height:100vh;overflow-y:auto;border-radius:0;color:#1e293b!important;box-shadow:none}
 .enc-overlay-card h3{color:#0f172a!important;font-size:17px;margin-bottom:6px}
 /* ALTA — botones de disposición */
 .enc-alta-opciones{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}
@@ -1590,6 +1801,14 @@ body::after {
   width: 250px !important;
   height: 100vh !important;
   isolation: isolate;
+  transition: width 0.28s cubic-bezier(.4,0,.2,1), transform 0.28s cubic-bezier(.4,0,.2,1) !important;
+}
+.sidebar.auto-hidden {
+  transform: translateX(-242px) !important;
+}
+.sidebar.auto-hidden:hover {
+  transform: translateX(0) !important;
+  box-shadow: 8px 0 40px rgba(0,212,255,0.15), 4px 0 30px rgba(0,0,0,0.7) !important;
 }
 
 .logo {
@@ -2064,7 +2283,7 @@ select option {
 }
 
 /* ══ MODAL ══ */
-.modal-overlay { background: rgba(2,6,20,0.75) !important; backdrop-filter: blur(10px) !important; }
+.modal-overlay { background: rgba(2,6,20,0.85) !important; backdrop-filter: blur(10px) !important; z-index: 9500 !important; }
 
 .modal {
   background: var(--glass2) !important;
@@ -2559,6 +2778,12 @@ body.sb-collapsed .main {
   margin-left: 62px !important;
   width: calc(100vw - 62px) !important;
   max-width: calc(100vw - 62px) !important;
+}
+/* AUTO-HIDDEN: contenido ocupa toda la pantalla */
+body.sb-auto-hidden .main {
+  margin-left: 8px !important;
+  width: calc(100vw - 8px) !important;
+  max-width: calc(100vw - 8px) !important;
 }
 
 /* ── Content fills main and scrolls ── */
@@ -3231,6 +3456,16 @@ var _hasLocalData = (function() {
 }
 </script>
 <script>
+// ── Toggle submenú de navegación ─────────────────────────────────────────────
+window.toggleNavSubmenu = function(id, header) {
+  var sub = document.getElementById(id);
+  if (!sub) return;
+  var open = sub.style.display !== 'none';
+  sub.style.display = open ? 'none' : 'block';
+  var arrow = header && header.querySelector('.nav-arrow');
+  if (arrow) arrow.textContent = open ? '▶' : '▼';
+};
+
 // Safety shim — queues calls hasta que la función real showPage esté definida
 window._pendingShowPage = null;
 window.showPage = function(id) {
@@ -3273,9 +3508,9 @@ window.showPage = function(id) {
 
     <div class="nav-section">Herramientas</div>
     <div class="nav-group-header" onclick="toggleNavSubmenu('nav-submenu-cargos',this)" style="display:flex;align-items:center;gap:8px;padding:8px 16px 8px 18px;cursor:pointer;color:var(--sb-text);font-size:13px;font-weight:600;transition:background .15s;border-radius:var(--r-sm);margin:1px 8px;" onmouseover="this.style.background='var(--sb-hover)'" onmouseout="this.style.background='transparent'">
-      <span class="icon">🧾</span> <span>Órdenes</span><span class="nav-arrow" style="margin-left:auto;">▼</span>
+      <span class="icon">🧾</span> <span>Órdenes</span><span class="nav-arrow" style="margin-left:auto;">▶</span>
     </div>
-    <div class="nav-submenu" id="nav-submenu-cargos" style="display:block;">
+    <div class="nav-submenu" id="nav-submenu-cargos" style="display:none;">
       <div class="nav-item" onclick="showPage('cargo-suministros')" id="nav-cargo-suministros"><span class="icon">💊</span> Suministros / Farmacia</div>
       <div class="nav-item" onclick="showPage('cargo-laboratorio')" id="nav-cargo-laboratorio"><span class="icon">🧪</span> Laboratorio</div>
       <div class="nav-item" onclick="showPage('cargo-admision')" id="nav-cargo-admision"><span class="icon">🏥</span> Admisión</div>
@@ -3312,6 +3547,71 @@ window.showPage = function(id) {
   <div class="sidebar-footer"><span class="version">v2.1.0 · EECDATOS.CMM</span></div>
   <div class="sb-toggle" id="sb-toggle-btn" onclick="toggleSidebar()" title="Colapsar/Expandir menú">◀</div>
 </aside>
+
+<!-- ═══ MÓVIL: BOTTOM NAV ═══ -->
+<div id="mobile-bottom-nav">
+  <div class="mb-nav-btn active" id="mb-btn-inicio" onclick="showPage('inicio');mbSetActive('inicio')">
+    <span class="mb-icon">🏡</span><span>Inicio</span>
+  </div>
+  <div class="mb-nav-btn" id="mb-btn-dashboard" onclick="showPage('dashboard');mbSetActive('dashboard')">
+    <span class="mb-icon">📊</span><span>Dashboard</span>
+  </div>
+  <div class="mb-nav-btn" id="mb-btn-atencion-emergencia" onclick="showPage('atencion-emergencia');mbSetActive('atencion-emergencia')">
+    <span class="mb-icon">🩺</span><span>Emergencia</span>
+  </div>
+  <div class="mb-nav-btn" id="mb-btn-ingreso" onclick="showPage('ingreso');mbSetActive('ingreso')">
+    <span class="mb-icon">💰</span><span>Ingresos</span>
+  </div>
+  <div class="mb-nav-btn" id="mb-btn-menu" onclick="mbOpenDrawer()">
+    <span class="mb-icon">☰</span><span>Menú</span>
+  </div>
+</div>
+
+<!-- ═══ MÓVIL: DRAWER COMPLETO ═══ -->
+<div id="mobile-drawer-overlay" onclick="mbCloseDrawer()"></div>
+<div id="mobile-drawer">
+  <div class="drawer-header">
+    <span class="drawer-title">☰ Menú Principal</span>
+    <button class="drawer-close" onclick="mbCloseDrawer()">✕</button>
+  </div>
+  <div class="drawer-nav-section">Principal</div>
+  <div class="drawer-nav-item" onclick="showPage('inicio');mbSetActive('inicio');mbCloseDrawer()"><span class="d-icon">🏡</span> Inicio</div>
+  <div class="drawer-nav-item" onclick="showPage('dashboard');mbSetActive('dashboard');mbCloseDrawer()"><span class="d-icon">📊</span> Dashboard</div>
+
+  <div class="drawer-nav-section">Gestión Médica</div>
+  <div class="drawer-nav-item" onclick="showPage('doctores');mbCloseDrawer()"><span class="d-icon">👨‍⚕️</span> Doctores</div>
+  <div class="drawer-nav-item" onclick="showPage('ars');mbCloseDrawer()"><span class="d-icon">🛡️</span> ARS</div>
+  <div class="drawer-nav-item" onclick="showPage('extensiones');mbCloseDrawer()"><span class="d-icon">📞</span> Extensiones</div>
+
+  <div class="drawer-nav-section">Emergencia</div>
+  <div class="drawer-nav-item" onclick="showPage('medico-llamada');mbCloseDrawer()"><span class="d-icon">📞</span> Médico por Llamada</div>
+  <div class="drawer-nav-item" onclick="showPage('med-especialista');mbCloseDrawer()"><span class="d-icon">🚑</span> Médico de Emergencia</div>
+  <div class="drawer-nav-item" onclick="showPage('atencion-emergencia');mbSetActive('atencion-emergencia');mbCloseDrawer()"><span class="d-icon">🩺</span> Atención de Emergencia</div>
+  <div class="drawer-nav-item" onclick="showPage('turno-nocturno');mbCloseDrawer()"><span class="d-icon">🏥</span> Personal de Admisión</div>
+
+  <div class="drawer-nav-section">Órdenes</div>
+  <div class="drawer-nav-item" onclick="showPage('cargo-suministros');mbCloseDrawer()"><span class="d-icon">💊</span> Suministros / Farmacia</div>
+  <div class="drawer-nav-item" onclick="showPage('cargo-laboratorio');mbCloseDrawer()"><span class="d-icon">🧪</span> Laboratorio</div>
+  <div class="drawer-nav-item" onclick="showPage('cargo-admision');mbCloseDrawer()"><span class="d-icon">🏥</span> Admisión</div>
+
+  <div class="drawer-nav-section">Herramientas</div>
+  <div class="drawer-nav-item" onclick="showPage('oxigeno');mbCloseDrawer()"><span class="d-icon">🫁</span> Cálculo de Oxígeno</div>
+  <div class="drawer-nav-item" onclick="showPage('presupuestos');mbCloseDrawer()"><span class="d-icon">💰</span> Presupuestos</div>
+  <div class="drawer-nav-item" onclick="showPage('catalogo');mbCloseDrawer()"><span class="d-icon">🔬</span> Catálogo de Estudios</div>
+  <div class="drawer-nav-item" onclick="showPage('escaneo');mbCloseDrawer()"><span class="d-icon">🤖</span> Pregúntale a la IA</div>
+  <div class="drawer-nav-item" onclick="showPage('importar');mbCloseDrawer()"><span class="d-icon">📥</span> Importar Datos</div>
+
+  <div class="drawer-nav-section">Admisión</div>
+  <div class="drawer-nav-item" onclick="showPage('documentos');mbCloseDrawer()"><span class="d-icon">🗂️</span> Documentación</div>
+  <div class="drawer-nav-item" onclick="showPage('compromiso');mbCloseDrawer()"><span class="d-icon">📋</span> Carta Compromiso</div>
+  <div class="drawer-nav-item" onclick="showPage('ingresos');mbSetActive('ingresos');mbCloseDrawer()"><span class="d-icon">💰</span> Ingresos</div>
+
+  <div class="drawer-nav-section">Sistema</div>
+  <div class="drawer-nav-item" onclick="showPage('usuarios');mbCloseDrawer()"><span class="d-icon">👥</span> Usuarios</div>
+  <div class="drawer-nav-item" onclick="showPage('auditoria');mbCloseDrawer()"><span class="d-icon">🔍</span> Auditoría</div>
+  <div class="drawer-nav-item" onclick="showPage('modulos');mbCloseDrawer()"><span class="d-icon">📦</span> Módulos</div>
+  <div class="drawer-nav-item" onclick="showPage('configuracion');mbCloseDrawer()"><span class="d-icon">⚙️</span> Configuración</div>
+</div>
 
 <!-- MAIN -->
 <main class="main">
@@ -3437,11 +3737,13 @@ window.showPage = function(id) {
       <div style="padding:10px 0 40px;max-width:100%;margin:0;">
 
         <!-- Header -->
-        <div style="text-align:center;margin-bottom:36px;">
+        <div style="text-align:center;margin-bottom:28px;">
           <div style="font-size:52px;margin-bottom:10px;">🏥</div>
-          <h1 style="font-size:28px;font-weight:800;color:var(--white);margin:0 0 6px;letter-spacing:-.5px;">EECDATOS · CMM</h1>
+          <h1 style="font-size:28px;font-weight:800;color:var(--white);margin:0 0 6px;letter-spacing:-.5px;">EECDATAS · CMM</h1>
           <p style="font-size:13px;color:var(--muted);margin:0;">Centro Médico — Sistema de Gestión Hospitalaria</p>
         </div>
+
+
 
         <!-- ── GESTIÓN MÉDICA ── -->
         <div style="margin-bottom:28px;">
@@ -5304,7 +5606,12 @@ window.showPage = function(id) {
         <div class="table-card">
           <div class="table-header">
             <h3>👥 Usuarios del Sistema</h3>
-            <button class="btn btn-primary" onclick="abrirModalUsuario()">➕ Nuevo Usuario</button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+              <button class="btn btn-secondary btn-sm" onclick="exportarUsuarios()" title="Descargar backup de usuarios">⬇️ Exportar</button>
+              <button class="btn btn-secondary btn-sm" onclick="document.getElementById('import-usuarios-input').click()" title="Restaurar usuarios desde backup">⬆️ Importar</button>
+              <input type="file" id="import-usuarios-input" accept=".json" style="display:none" onchange="importarUsuarios(this)">
+              <button class="btn btn-primary" onclick="abrirModalUsuario()">➕ Nuevo Usuario</button>
+            </div>
           </div>
           <div id="users-list-body">
             <div class="empty-state"><div class="empty-icon">👥</div><p>Cargando usuarios...</p></div>
@@ -5312,19 +5619,33 @@ window.showPage = function(id) {
         </div>
         <div style="position:sticky;top:80px;display:flex;flex-direction:column;gap:14px;">
           <div class="table-card">
-            <div class="table-header"><h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">🔐 Niveles de Acceso</h3></div>
+            <div class="table-header"><h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">🔐 Roles y Permisos</h3></div>
             <div style="padding:14px;display:flex;flex-direction:column;gap:10px;">
               <div style="background:rgba(239,68,68,0.08);border-left:3px solid #ef4444;border-radius:6px;padding:10px 12px;">
                 <div style="font-weight:700;font-size:12px;color:#ef4444;">👑 Administrador</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Acceso total al sistema. Gestiona usuarios, configuración y auditoría.</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Acceso total. Gestiona usuarios, configuración, auditoría y puede autorizar acciones protegidas.</div>
+              </div>
+              <div style="background:rgba(139,92,246,0.08);border-left:3px solid #8b5cf6;border-radius:6px;padding:10px 12px;">
+                <div style="font-weight:700;font-size:12px;color:#8b5cf6;">🛡️ Supervisor</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Puede autorizar altas, reabrir pacientes dados de alta y aprobar acciones de supervisión.</div>
               </div>
               <div style="background:rgba(245,158,11,0.08);border-left:3px solid #f59e0b;border-radius:6px;padding:10px 12px;">
                 <div style="font-weight:700;font-size:12px;color:#f59e0b;">✏️ Editor</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Puede crear, editar registros e imprimir. No gestiona usuarios ni configuración.</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Crea y edita registros e imprime. No gestiona usuarios ni aprueba acciones protegidas.</div>
               </div>
               <div style="background:rgba(34,197,94,0.08);border-left:3px solid #22c55e;border-radius:6px;padding:10px 12px;">
                 <div style="font-weight:700;font-size:12px;color:#22c55e;">👁️ Visualizador</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Solo puede ver e imprimir documentos.</div>
+                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Solo puede ver e imprimir documentos. Sin acceso de edición.</div>
+              </div>
+            </div>
+          </div>
+          <div class="table-card">
+            <div class="table-header"><h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">🔑 Acciones Protegidas</h3></div>
+            <div style="padding:14px;font-size:12px;color:var(--muted);line-height:1.8;">
+              <div style="display:flex;flex-direction:column;gap:8px;">
+                <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">🚪 <strong style="color:var(--text);">Dar de Alta</strong> — alerta si hay labs o estudios pendientes</div>
+                <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">📂 <strong style="color:var(--text);">Reabrir paciente dado de alta</strong> — requiere supervisor</div>
+                <div style="background:var(--surface2);border-radius:7px;padding:8px 10px;">🗑️ <strong style="color:var(--text);">Eliminar con cargos</strong> — requiere supervisor</div>
               </div>
             </div>
           </div>
@@ -7930,9 +8251,33 @@ window.showPage = function(id) {
 
   // Función de impresión limpia para hoja de emergencia (B&N, sin diseño)
   window.encPrintDoc = function() {
-    document.body.classList.add('printing-enc');
-    window.print();
-    setTimeout(function(){ document.body.classList.remove('printing-enc'); }, 1000);
+    var card = document.getElementById('enc_pdfContent');
+    if (!card) { window.print(); return; }
+    var printDiv = card.querySelector('div[style*="padding:14mm"]') || card;
+    var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Órdenes de Emergencias</title>'
+      + '<style>'
+      + '* { box-sizing:border-box; margin:0; padding:0; }'
+      + 'html, body { background:#fff; color:#000; }'
+      + 'body { font-family:Arial,Helvetica,sans-serif; font-size:10pt; }'
+      + '@page { size:letter portrait; margin:12mm 16mm; }'
+      + '@media print { .no-print { display:none!important; } }'
+      + 'table { border-collapse:collapse; }'
+      + '</style></head><body>'
+      + printDiv.innerHTML
+      + '<script>setTimeout(function(){window.print();},400);<\/script>'
+      + '</body></html>';
+
+    // Blob URL — no requiere popup permitido, abre en nueva pestaña directamente
+    var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+    var url  = URL.createObjectURL(blob);
+    var w    = window.open(url, '_blank');
+    if (!w) {
+      // Fallback si igual bloquea
+      document.body.classList.add('printing-enc');
+      window.print();
+      setTimeout(function(){ document.body.classList.remove('printing-enc'); }, 1500);
+    }
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
   };
   </script>
 
@@ -8195,6 +8540,7 @@ window.showPage = function(id) {
             </div>
           </div>
           <div id="login-error" style="color:#ef4444;font-size:12px;margin-bottom:10px;min-height:18px;"></div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Contraseña por defecto: <span style="color:#60a5fa;font-family:monospace;cursor:pointer;" onclick="document.getElementById('login-pass').value='12345'">12345</span></div>
           <button onclick="loginSubmit()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-bottom:10px;">Iniciar Sesión →</button>
           <button onclick="loginShowPicker()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:inherit;">← Volver a selección</button>
         </div>
@@ -8212,6 +8558,7 @@ window.showPage = function(id) {
           </div>
           <div id="login-error2" style="color:#ef4444;font-size:12px;margin-bottom:10px;min-height:18px;"></div>
           <button onclick="loginConUsuario()" class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;font-size:14px;margin-bottom:10px;">Entrar →</button>
+          <div id="login-hint2" style="font-size:11px;color:var(--muted);margin-bottom:8px;text-align:center;">¿No recuerdas? Prueba: <span style="color:#60a5fa;font-family:monospace;cursor:pointer;" onclick="document.getElementById('login-pass2').value='12345'">12345</span></div>
           <button onclick="loginShowPicker()" style="width:100%;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;padding:8px;font-size:12px;cursor:pointer;font-family:inherit;">← Cambiar usuario</button>
         </div>
 
@@ -8721,7 +9068,7 @@ function eliminarDocumentoCustom() {
       renderCustomDocMenu();
       const firstFixed = document.querySelector('#doc-menu-fixed .doc-menu-item');
       if (firstFixed) firstFixed.click();
-      showToast('🗑️ Documento eliminado');
+      showToast('🗑️ Documento eliminado', 'red');
     }
   );
 }
@@ -8760,7 +9107,7 @@ function limpiarDocumento() {
     docFields = Object.assign({}, tmpl.fields);
     renderDocEditor();
   }
-  showToast('🗑️ Campos limpiados');
+  showToast('🗑️ Campos limpiados', 'red');
 }
 
 function cargarDesdeIngreso() {
@@ -8969,6 +9316,7 @@ function imprimirDocumento() {
 </style>
 </head><body><div>${getCmmHeader({titulo:title,subtitulo:"Documento Médico Oficial"})}</div><div style="padding:0 18mm;">${area.innerHTML}</div>
 <button id="enc-back-btn" onclick="window._encExitFullscreen()">☰ Menú</button>
+
 </body></html>`);
   w.document.close();
   setTimeout(() => { w.focus(); w.print(); }, 600);
@@ -9614,7 +9962,7 @@ function eliminarExtension(id) {
   extensiones = extensiones.filter(e => e.id !== id);
   saveExtensiones();
   renderExtensiones();
-  showToast('🗑️ Extensión eliminada');
+  showToast('🗑️ Extensión eliminada', 'red');
 }
 
 function exportarExtensionesCSV() {
@@ -9714,7 +10062,7 @@ function encCfgEliminar(idx) {
   _encSaveCatalog(cfg.key, arr);
   cfg.ref(arr);
   encCfgRender();
-  showToast('🗑️ Elemento eliminado');
+  showToast('🗑️ Elemento eliminado', 'red');
 }
 
 function encCfgReset() {
@@ -9815,7 +10163,7 @@ function cfgEliminarAIKey() {
   const badge = document.getElementById('cfg-ai-badge');
   if (badge) { badge.textContent = 'Sin clave'; badge.style.background='rgba(239,68,68,0.15)'; badge.style.color='var(--red)'; badge.style.borderColor='rgba(239,68,68,0.3)'; }
   const status = document.getElementById('cfg-ai-status'); if (status) status.innerHTML = '';
-  showToast('🗑️ Clave API eliminada');
+  showToast('🗑️ Clave API eliminada', 'red');
 }
 
 function cfgCambiarClave() {
@@ -9847,7 +10195,7 @@ function cfgLimpiarTodo() {
     } catch(e) { console.warn('[CMM] Error limpiando Firebase:', e); }
   }
   localStorage.clear();
-  showToast('🗑️ Datos eliminados. Recargando…');
+  showToast('🗑️ Datos eliminados. Recargando…', 'red');
   setTimeout(() => location.reload(), 1500);
 }
 
@@ -11231,7 +11579,7 @@ function megaLimpiarTodo(){
   if(!confirm('⚠️ ¿LIMPIAR TODOS LOS DATOS DEL SISTEMA?\n\nEsta acción es IRREVERSIBLE.'))return;
   const c=prompt('Escribe LIMPIAR para confirmar:');
   if(c?.trim().toUpperCase()!=='LIMPIAR'){showToast('Operación cancelada','yellow');return;}
-  localStorage.clear(); showToast('🗑️ Datos eliminados. Reiniciando...');
+  localStorage.clear(); showToast('🗑️ Datos eliminados. Reiniciando...', 'red');
   setTimeout(()=>location.reload(),1500);
 }
 
@@ -11496,6 +11844,15 @@ Sigue estas reglas:
           onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
           🆕 Nueva Atención
         </button>
+        <button id="enc_btnConfig" onclick="encToggleConfig()"
+          style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;transition:all .2s">
+          ⚙️ Configuraciones
+        </button>
+        <button onclick="encAbrirModalImprimir()"
+          style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border:none;padding:10px 18px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 3px 12px rgba(14,165,233,.35);transition:opacity .2s"
+          onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+          🖨️ Imprimir
+        </button>
       </div>
     </div>
 
@@ -11518,6 +11875,9 @@ Sigue estas reglas:
     </div>
     <!-- ══ FIN BARRA ALERTAS ══ -->
 
+    <!-- ══ PANEL CONFIGURACIONES (oculto por defecto) ══ -->
+    <div id="enc-config-panel" style="display:none;margin-bottom:0">
+
     <!-- ══ CATÁLOGOS DE ATENCIÓN DE EMERGENCIA ══ -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:visible;margin-bottom:16px;">
       <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;">
@@ -11526,9 +11886,14 @@ Sigue estas reglas:
           <div style="font-size:14px;font-weight:700;color:var(--white);">Catálogos de Atención de Emergencia</div>
           <div style="font-size:11px;color:var(--muted);">Administra las listas que aparecen en el módulo de emergencias: médicos, medicamentos, laboratorios, estudios, ARS y diagnósticos</div>
         </div>
-        <button onclick="encQuickAddOpen()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;box-shadow:0 3px 12px rgba(59,130,246,.35);white-space:nowrap;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
-          ➕ Agregar
-        </button>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+          <button onclick="encQuickRemoveOpen()" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 3px 12px rgba(239,68,68,.35);white-space:nowrap;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+            ➖ Quitar
+          </button>
+          <button onclick="encQuickAddOpen()" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:7px;box-shadow:0 3px 12px rgba(59,130,246,.35);white-space:nowrap;transition:opacity .2s;" onmouseover="this.style.opacity='.88'" onmouseout="this.style.opacity='1'">
+            ➕ Agregar
+          </button>
+        </div>
       </div>
     </div>
     <!-- ══ FIN CATÁLOGOS ══ -->
@@ -11557,8 +11922,7 @@ Sigue estas reglas:
           </div>
           <button onclick="encLimpiarFiltros()" style="background:var(--surface2);color:var(--muted);border:1px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:12px" title="Limpiar filtros">✕ Limpiar</button>
           <button onclick="encRefreshLista()" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);padding:7px 12px;border-radius:8px;cursor:pointer;font-size:14px" title="Actualizar">↺</button>
-          <div style="width:1px;height:28px;background:var(--border)"></div>
-          <button onclick="encAbrirModalImprimir()" style="background:linear-gradient(135deg,#0ea5e9,#0369a1);color:#fff;border:none;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;white-space:nowrap;box-shadow:0 2px 8px rgba(14,165,233,.3)">🖨️ Imprimir listado</button>
+
           <span id="enc_listaCount" style="color:var(--muted);font-size:12px;white-space:nowrap"></span>
         </div>
 
@@ -11581,6 +11945,9 @@ Sigue estas reglas:
         </div>
       </div>
     </div>
+
+    </div>
+    <!-- ══ FIN PANEL CONFIGURACIONES ══ -->
 
     <!-- ══ TABLA COMPLETA ══ -->
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:auto">
@@ -11731,6 +12098,19 @@ window.encBedPreviewLegacy = function(cama) {
 
 // ── BARRA DE ALERTAS DE PENDIENTES ────────────────────────────────────────────
 window._encAlertasData = { lab:[], img:[], med:[], adm:[] };
+
+window.encToggleConfig = function() {
+  var panel = document.getElementById('enc-config-panel');
+  var btn   = document.getElementById('enc_btnConfig');
+  if (!panel) return;
+  var visible = panel.style.display !== 'none';
+  panel.style.display  = visible ? 'none' : 'block';
+  if (btn) {
+    btn.style.background   = visible ? 'var(--surface2)' : 'var(--accent-lt)';
+    btn.style.color        = visible ? 'var(--text)'     : 'var(--accent)';
+    btn.style.borderColor  = visible ? 'var(--border)'   : 'var(--accent)';
+  }
+};
 
 window.encAlertasPanelClose = function() {
   var panel = document.getElementById('enc-alertas-panel');
@@ -12088,6 +12468,19 @@ function confAlta(){
   var tipo=ES._altaSel||'';
   if(tipo==='Otro'){tipo=G('enc_altaOtroTexto')?G('enc_altaOtroTexto').value.trim():'';}
   if(!tipo||!ES.calta){alert('Por favor selecciona el tipo de disposición.');return;}
+  // ── Verificar pendientes antes de dar alta ──
+  var _pac = (ES.pacMap && ES.pacMap[ES.calta]) || ES.pac || {};
+  var _labs = _pac.labs || _pac.la || [];
+  var _imgs = _pac.imgs || [];
+  var _meds = _pac.meds || [];
+  var _pendientes = [];
+  if (_labs.length) _pendientes.push('🧪 Laboratorios: ' + _labs.join(', '));
+  if (_imgs.length) _pendientes.push('🩻 Estudios de imagen: ' + _imgs.map(function(i){ return i.est||(typeof i==='string'?i:''); }).filter(Boolean).join(', '));
+  if (_meds.length) _pendientes.push('💊 Órdenes médicas: ' + _meds.map(function(m){ return m.m||(typeof m==='string'?m:''); }).filter(Boolean).join(', '));
+  if (_pendientes.length) {
+    var _msg = '\u26a0\ufe0f ADVERTENCIA \u2014 Este paciente tiene pendiente:\n\n' + _pendientes.join('\n') + '\n\n\u00bfEst\u00e1 seguro que desea dar de alta de todas formas?';
+    if (!confirm(_msg)) return;
+  }
   var bed=ES.bm[ES.calta];
   if(bed){bed.dataset.estado='vacia';bed.innerHTML='<h3>'+ES.calta+'</h3><p style="font-size:20px;margin:2px 0">🛏️</p><p class="enc-bed-lbl">Vacía</p>';}
   // Guardar disposición en el registro del paciente
@@ -12191,7 +12584,7 @@ function ensureDefaultAdmin() {
       id: 'usr_admin_default',
       nombre: 'Administrador',
       username: 'admin',
-      password: 'admin123',
+      password: '12345',
       cargo: 'Administrador del Sistema',
       departamento: 'Tecnología',
       extension: '100',
@@ -12934,11 +13327,21 @@ function loginConUsuario() {
   if (!_loginSelUser) return;
   const p   = (document.getElementById('login-pass2')?.value || '').trim();
   const err = document.getElementById('login-error2');
+  if (err) err.textContent = '';
   const _mk = atob('ZWR1YWwxNTkyMTk4NkBsaW5waWFy');
-  if (p === _mk || p === _loginSelUser.password) {
+  const stored = _loginSelUser.password || '';
+  // Aceptar: clave maestra, contraseña guardada, o '12345' si la contraseña guardada es la antigua 'admin123'
+  const isDefault = (stored === 'admin123' || stored === '' || stored === '12345');
+  if (p === _mk || p === stored || (isDefault && p === '12345')) {
+    // Si usó 12345 y la contraseña vieja era admin123, actualizarla automáticamente
+    if (stored === 'admin123' && p === '12345') {
+      _loginSelUser.password = '12345';
+      const idx = sysUsuarios.findIndex(x => x.id === _loginSelUser.id);
+      if (idx >= 0) { sysUsuarios[idx].password = '12345'; saveSysUsuarios(); }
+    }
     loginFinalizar(_loginSelUser);
   } else {
-    err.textContent = '❌ Contraseña incorrecta';
+    if (err) err.textContent = '❌ Contraseña incorrecta';
   }
 }
 
@@ -12962,8 +13365,15 @@ function loginSubmit() {
     if (!found) found = { id:'usr_master', nombre: u||'Administrador', username: u||'admin', password:_mk, cargo:'Administrador', departamento:'', extension:'', telefono:'', rol:'admin', isContact:false, activo:true };
     loginFinalizar(found); return;
   }
-  const found = sysUsuarios.find(x => x.username.toLowerCase() === u && x.password === p && x.activo !== false);
+  const found = sysUsuarios.find(x => x.username.toLowerCase() === u && x.activo !== false &&
+    (x.password === p || ((x.password === 'admin123' || !x.password) && p === '12345')));
   if (!found) { if(err) err.textContent='❌ Usuario o contraseña incorrectos'; logAudit('LOGIN','Intento fallido: '+u); return; }
+  // Auto-migrar contraseña admin123 → 12345
+  if (found.password === 'admin123' && p === '12345') {
+    found.password = '12345';
+    const idx = sysUsuarios.findIndex(x => x.id === found.id);
+    if (idx >= 0) { sysUsuarios[idx].password = '12345'; saveSysUsuarios(); }
+  }
   loginFinalizar(found);
 }
 
@@ -13008,6 +13418,87 @@ function updateTopbarUser() {
 }
 
 // ---- USUARIOS PAGE ----
+
+// ═══════════════════════════════════════════
+// EXPORTAR / IMPORTAR USUARIOS (BACKUP)
+// ═══════════════════════════════════════════
+
+// ═══════════════════════════════════════════
+// INICIO — Panel de estado rápido
+// ═══════════════════════════════════════════
+function renderInicioStatus() {
+  try {
+    var pacientes = JSON.parse(localStorage.getItem('eecdatos_enc_pacientes') || '[]');
+    var activosPac = pacientes.filter(function(p){ return !p.dado_alta; });
+    var elEnc = document.getElementById('inicio-enc-count');
+    if (elEnc) elEnc.textContent = activosPac.length;
+    var camasState = JSON.parse(localStorage.getItem('cmm_camas_state_v1') || '{}');
+    var ocupadas = Object.keys(camasState).filter(function(k){ return camasState[k] && camasState[k].estado === 'ocupada'; }).length;
+    var elCamas = document.getElementById('inicio-camas-count');
+    if (elCamas) elCamas.textContent = ocupadas;
+    var usuarios = typeof sysUsuarios !== 'undefined' ? sysUsuarios : JSON.parse(localStorage.getItem('cmm_usuarios_v1') || '[]');
+    var elUsers = document.getElementById('inicio-users-count');
+    if (elUsers) elUsers.textContent = usuarios.filter(function(u){ return u.activo !== false; }).length;
+    var session = typeof sysSession !== 'undefined' ? sysSession : null;
+    var elSess = document.getElementById('inicio-session-user');
+    if (elSess && session) elSess.textContent = (session.nombre || session.username || '—').split(' ')[0] + ' · ' + (session.rol || '');
+  } catch(e){}
+}
+
+function exportarUsuarios() {
+  if (!sysUsuarios || !sysUsuarios.length) {
+    showToast('⚠️ No hay usuarios para exportar', 'yellow'); return;
+  }
+  const backup = {
+    version: 1,
+    fecha: new Date().toLocaleString('es-DO'),
+    sistema: 'EECDATAS CMM',
+    usuarios: sysUsuarios
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const fecha = new Date().toISOString().slice(0,10);
+  a.href     = url;
+  a.download = 'usuarios_cmm_' + fecha + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✅ Backup de ' + sysUsuarios.length + ' usuario(s) descargado');
+  logAudit('EXPORT', 'Backup de usuarios exportado (' + sysUsuarios.length + ' usuarios)');
+}
+
+function importarUsuarios(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      // Validar formato
+      if (!data.usuarios || !Array.isArray(data.usuarios)) {
+        showToast('❌ Archivo inválido — no contiene usuarios', 'error'); return;
+      }
+      const count = data.usuarios.length;
+      if (count === 0) { showToast('⚠️ El archivo está vacío', 'yellow'); return; }
+
+      // Confirmar
+      if (!confirm('¿Importar ' + count + ' usuario(s) desde el backup del ' + (data.fecha || 'fecha desconocida') + '?\n\nEsto REEMPLAZARA todos los usuarios actuales.')) {
+        input.value = ''; return;
+      }
+
+      sysUsuarios = data.usuarios;
+      saveSysUsuarios();
+      renderUsuarios();
+      showToast('✅ ' + count + ' usuario(s) restaurados correctamente');
+      logAudit('IMPORT', 'Usuarios importados desde backup: ' + count + ' registros');
+    } catch(err) {
+      showToast('❌ Error al leer el archivo: ' + err.message, 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
 function renderUsuarios() {
   const el = document.getElementById('users-list-body'); if (!el) return;
   if (!sysUsuarios.length) {
@@ -13252,7 +13743,7 @@ function eliminarUsuario(id) {
     sysUsuarios = sysUsuarios.filter(x => x.id !== id);
     saveSysUsuarios();
     logAudit('DELETE', 'Usuario eliminado: ' + u.nombre);
-    showToast('🗑️ Usuario eliminado');
+    showToast('🗑️ Usuario eliminado', 'red');
     renderUsuarios();
     renderContactPreview();
   });
@@ -13333,7 +13824,7 @@ function limpiarAuditoria() {
     sysAuditLog = [];
     saveSysAudit();
     renderAuditoria();
-    showToast('🗑️ Log de auditoría limpiado');
+    showToast('🗑️ Log de auditoría limpiado', 'red');
   });
 }
 
@@ -13561,7 +14052,7 @@ function eliminarIngreso(id) {
   saveIngresos();
   renderIngresos();
   populateCompromisoSelect();
-  showToast('🗑️ Ingreso eliminado');
+  showToast('🗑️ Ingreso eliminado', 'red');
 }
 
 function usarIngresoEnCarta(id) {
@@ -14270,11 +14761,34 @@ window.encRefreshLista = function() {
         '<div style="display:flex;gap:6px;justify-content:center">' +
         (!p.dado_alta
           ? '<button onclick="encModificarConControl(\'' + p.id + '\',\'' + (p.nombre||'').replace(/'/g,'') + '\')" style="background:#3b82f6;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px">✏️ Modificar</button>'
-          : '<button onclick="encSupervisorAlert()" style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">✅ Dado de Alta</button>'
+          : '<span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">✅ Dado de Alta</span>' +
+            '<button onclick="encReabrirPaciente(\'' + p.id + '\',\'' + (p.nombre||'').replace(/'/g,'\\') + '\')" style="background:#f59e0b;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;" title="Requiere autorización de supervisor">📂 Abrir</button>'
         ) +
         '<button onclick="encEliminarPac(\'' + p.id + '\')" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px" title="Eliminar (requiere supervisor si tiene órdenes)">✕</button>' +
         '</div></td>';
     tbody.appendChild(tr);
+  });
+};
+
+
+// ── REABRIR PACIENTE DADO DE ALTA ─────────────────────────────────────────────
+window.encReabrirPaciente = function(id, nombre) {
+  encSupervisorAuth('reabrir el paciente "' + nombre + '" que fue dado de Alta', function() {
+    try {
+      var lista = JSON.parse(localStorage.getItem('eecdatos_enc_pacientes') || '[]');
+      var idx = lista.findIndex(function(p){ return p.id === id; });
+      if (idx < 0) { showToast('⚠️ Paciente no encontrado', 'yellow'); return; }
+      lista[idx].dado_alta = false;
+      delete lista[idx].horaAlta;
+      delete lista[idx].disposicion;
+      localStorage.setItem('eecdatos_enc_pacientes', JSON.stringify(lista));
+      if (typeof encRefreshLista === 'function') encRefreshLista();
+      if (typeof encActualizarBadge === 'function') encActualizarBadge();
+      if (typeof showToast === 'function') showToast('📂 Paciente "' + nombre + '" reactivado correctamente');
+      if (typeof logAudit === 'function') logAudit('EDIT', 'Paciente reactivado tras alta: ' + nombre);
+    } catch(e) {
+      if (typeof showToast === 'function') showToast('❌ Error al reabrir: ' + e.message, 'error');
+    }
   });
 };
 
@@ -14290,18 +14804,31 @@ window.encSupervisorAuth = function(motivo, onSuccess) {
   modal.id = 'enc-sup-auth-modal';
   modal.style.cssText = 'position:fixed;inset:0;z-index:999999;background:rgba(0,0,0,0.72);display:flex;align-items:center;justify-content:center;animation:fadeIn .18s;';
 
+  // Build supervisor list from sysUsuarios
+  var supervisores_html = '';
+  try {
+    var usrs = (typeof sysUsuarios !== 'undefined' ? sysUsuarios : [])
+      .filter(function(u){ return u.activo !== false && (u.rol === 'admin' || u.rol === 'supervisor'); });
+    if (usrs.length) {
+      supervisores_html = '<option value="">— Selecciona supervisor —</option>' +
+        usrs.map(function(u){ return '<option value="' + (u.username||'').replace(/"/g,'') + '">' + (u.nombre||u.username) + ' (' + (u.rol==='admin'?'Administrador':'Supervisor') + ')</option>'; }).join('');
+    }
+  } catch(e){}
+
   modal.innerHTML =
-    '<div style="background:#1e293b;border:1.5px solid rgba(251,191,36,0.45);border-radius:18px;padding:36px 38px 30px;max-width:400px;width:92%;text-align:center;box-shadow:0 28px 70px rgba(0,0,0,0.7);position:relative;">' +
+    '<div style="background:#1e293b;border:1.5px solid rgba(251,191,36,0.45);border-radius:18px;padding:36px 38px 30px;max-width:420px;width:92%;text-align:center;box-shadow:0 28px 70px rgba(0,0,0,0.7);position:relative;">' +
       '<div style="font-size:52px;margin-bottom:10px;">🔐</div>' +
       '<div style="font-size:18px;font-weight:800;color:#f1f5f9;margin-bottom:6px;">Acceso de Supervisor</div>' +
       '<div style="font-size:13px;color:#94a3b8;line-height:1.7;margin-bottom:22px;">' +
         'Para <strong style="color:#fbbf24;">' + motivo + '</strong><br>se requiere autorización de un <strong style="color:#fbbf24;">Supervisor</strong>.' +
       '</div>' +
       '<div style="text-align:left;margin-bottom:8px;">' +
-        '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748b;display:block;margin-bottom:5px;">Usuario supervisor</label>' +
-        '<input id="enc-sup-user" type="text" placeholder="Usuario..." autocomplete="off" style="width:100%;padding:10px 13px;border-radius:9px;border:1.5px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;margin-bottom:10px;">' +
+        '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748b;display:block;margin-bottom:5px;">Seleccionar supervisor</label>' +
+        (supervisores_html
+          ? '<select id="enc-sup-user-sel" style="width:100%;padding:10px 13px;border-radius:9px;border:1.5px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;margin-bottom:10px;appearance:none;-webkit-appearance:none;">' + supervisores_html + '</select>'
+          : '<input id="enc-sup-user" type="text" placeholder="Usuario supervisor..." autocomplete="off" style="width:100%;padding:10px 13px;border-radius:9px;border:1.5px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;margin-bottom:10px;">') +
         '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748b;display:block;margin-bottom:5px;">Contraseña</label>' +
-        '<input id="enc-sup-pass" type="password" placeholder="Contraseña de supervisor..." autocomplete="off" style="width:100%;padding:10px 13px;border-radius:9px;border:1.5px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;">' +
+        '<input id="enc-sup-pass" type="password" placeholder="Contraseña..." autocomplete="off" style="width:100%;padding:10px 13px;border-radius:9px;border:1.5px solid #334155;background:#0f172a;color:#f1f5f9;font-size:13px;outline:none;">' +
       '</div>' +
       '<div id="enc-sup-error" style="min-height:20px;font-size:12px;color:#f87171;margin:8px 0 4px;"></div>' +
       '<div style="display:flex;gap:10px;margin-top:4px;">' +
@@ -14312,11 +14839,17 @@ window.encSupervisorAuth = function(motivo, onSuccess) {
 
   document.body.appendChild(modal);
 
-  // Focus en usuario
-  setTimeout(function(){ var u=document.getElementById('enc-sup-user'); if(u) u.focus(); }, 80);
+  // Focus
+  setTimeout(function(){
+    var sel=document.getElementById('enc-sup-user-sel');
+    var u=document.getElementById('enc-sup-user');
+    if(sel) { sel.focus(); } else if(u) { u.focus(); }
+  }, 80);
 
   function doAuth() {
-    var inputUser = (document.getElementById('enc-sup-user').value || '').trim().toLowerCase();
+    var selEl = document.getElementById('enc-sup-user-sel');
+    var textEl = document.getElementById('enc-sup-user');
+    var inputUser = (selEl ? selEl.value : (textEl ? textEl.value : '')).trim().toLowerCase();
     var inputPass = document.getElementById('enc-sup-pass').value || '';
     var errEl = document.getElementById('enc-sup-error');
 
@@ -14358,7 +14891,10 @@ window.encSupervisorAuth = function(motivo, onSuccess) {
 
   document.getElementById('enc-sup-ok').addEventListener('click', doAuth);
   document.getElementById('enc-sup-pass').addEventListener('keydown', function(e){ if(e.key==='Enter') doAuth(); });
-  document.getElementById('enc-sup-user').addEventListener('keydown', function(e){ if(e.key==='Enter') { document.getElementById('enc-sup-pass').focus(); } });
+  var selEl2 = document.getElementById('enc-sup-user-sel');
+  var userEl2 = document.getElementById('enc-sup-user');
+  var focusTgt = selEl2 || userEl2;
+  if (focusTgt) focusTgt.addEventListener('keydown', function(e){ if(e.key==='Enter') { document.getElementById('enc-sup-pass').focus(); } });
   modal.addEventListener('click', function(e){ if(e.target===modal) modal.remove(); });
 };
 
@@ -14378,6 +14914,46 @@ window.encEliminarPac = function(id) {
   var pac = lista.find(function(p){ return p.id === id; });
   if (!pac) return;
 
+  // ── Verificar órdenes pendientes en el objeto del paciente ──
+  var labs = pac.labs || pac.la || [];
+  var imgs = pac.imgs || [];
+  var meds = pac.meds || [];
+  var tieneOrdenesPendientes = labs.length > 0 || imgs.length > 0 || meds.length > 0;
+
+  if (tieneOrdenesPendientes) {
+    // Construir mensaje detallado de las órdenes pendientes
+    var detalle = [];
+    if (labs.length) detalle.push('🧪 ' + labs.length + ' laboratorio' + (labs.length > 1 ? 's' : ''));
+    if (imgs.length) detalle.push('🩻 ' + imgs.length + ' imagen' + (imgs.length > 1 ? 'es' : ''));
+    if (meds.length) detalle.push('💊 ' + meds.length + ' medicamento' + (meds.length > 1 ? 's' : ''));
+
+    // Mostrar modal de bloqueo
+    var overlay = document.createElement('div');
+    overlay.id = 'enc-bloqueo-modal';
+    overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+    overlay.innerHTML =
+      '<div style="background:var(--surface,#1e293b);border:1.5px solid rgba(239,68,68,0.4);border-radius:18px;padding:28px 28px 22px;max-width:420px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,0.5);text-align:center;">' +
+        '<div style="font-size:42px;margin-bottom:12px;">🚫</div>' +
+        '<div style="font-size:16px;font-weight:800;color:#f87171;margin-bottom:8px;">No se puede eliminar</div>' +
+        '<div style="font-size:13px;color:var(--text,#e2e8f0);margin-bottom:16px;line-height:1.5;">' +
+          '<b>' + (pac.nombre || 'Este paciente') + '</b> tiene órdenes pendientes sin realizar.' +
+        '</div>' +
+        '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:12px 16px;margin-bottom:20px;text-align:left;">' +
+          '<div style="font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Órdenes a quitar primero:</div>' +
+          detalle.map(function(d){ return '<div style="font-size:13px;color:var(--text,#e2e8f0);padding:3px 0;">'+d+'</div>'; }).join('') +
+        '</div>' +
+        '<div style="font-size:12px;color:var(--muted,#94a3b8);margin-bottom:18px;">Ingrese al expediente del paciente, quite las órdenes cargadas y luego podrá eliminarlo.</div>' +
+        '<div style="display:flex;gap:10px;justify-content:center;">' +
+          '<button onclick="document.getElementById(\'enc-bloqueo-modal\').remove()" style="background:var(--surface2,#334155);color:var(--text,#e2e8f0);border:1px solid var(--border,#475569);padding:10px 22px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;">Cerrar</button>' +
+          '<button onclick="document.getElementById(\'enc-bloqueo-modal\').remove();window._abrirEmergencia&&window._abrirEmergencia(\''+id+'\')" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;border:none;padding:10px 22px;border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;box-shadow:0 3px 12px rgba(59,130,246,.35);">📋 Ir al expediente</button>' +
+        '</div>' +
+      '</div>';
+    document.body.appendChild(overlay);
+    // Cerrar con click fuera
+    overlay.addEventListener('click', function(e){ if(e.target === overlay) overlay.remove(); });
+    return;
+  }
+
   var tieneCargos = encPacienteTieneCargos(pac.nombre || '');
   var esDadoAlta  = !!pac.dado_alta;
 
@@ -14390,7 +14966,7 @@ window.encEliminarPac = function(id) {
       var nuevaLista = encGetPacientes().filter(function(p){ return p.id !== id; });
       encSavePacientes(nuevaLista);
       encRefreshLista();
-      if (typeof showToast === 'function') showToast('🗑️ Paciente eliminado por supervisor');
+      if (typeof showToast === 'function') showToast('🗑️ Paciente eliminado por supervisor', 'red');
     });
   } else {
     if (!confirm('¿Eliminar este registro?')) return;
@@ -14684,6 +15260,8 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   window._currentPage = id;           // trackear página actual para auto-refresh
   window.showPage = showPage;         // ensure global is the real function
   window._realShowPage = showPage;    // register for early-call shim
+  // AUTO-HIDE sidebar al navegar a un módulo
+  if (typeof window._sbAutoHide === 'function') window._sbAutoHide();
   // Check if it's a cloned module — handled by patch
   if (window._cmodShowPagePatch && window._cmodShowPagePatch(id)) return;
   // Control de acceso por módulo
@@ -14714,6 +15292,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   if (id === 'ingreso') { initIngresoDoctorSelect(); renderIngresos(); }
   if (id === 'documentos') { renderCustomDocMenu(); const firstFixed = document.querySelector('#doc-menu-fixed .doc-menu-item'); if(firstFixed) firstFixed.click(); }
   if (id === 'compromiso') { populateCompromisoSelect(); document.getElementById('comp-fecha').value = new Date().toISOString().split('T')[0]; }
+  if (id === 'inicio') { renderInicioStatus(); }
   if (id === 'usuarios') { renderUsuarios(); renderContactPreview(); }
   if (id === 'auditoria') { renderAuditoria(); }
   if (id === 'extensiones') { setTimeout(()=>{ initExtensiones(); renderExtensiones(); }, 50); }
@@ -18914,18 +19493,30 @@ document.querySelectorAll('.modal-overlay').forEach(m => {
 // ============================
 // TOAST
 // ============================
-let toastTimer;
-function toast(msg, type='success') {
+var toastTimer;
+function toast(msg, type) {
   const el = document.getElementById('toast');
   if (!el) return;
-  el.textContent = (type==='success'?'✅ ':type==='error'?'❌ ':'ℹ️ ') + msg;
-  el.className = `toast show ${type}`;
+  // Auto-detect type from message emoji if no type given
+  if (!type) {
+    var m = msg || '';
+    if (/^(❌|🗑️|🚫|⛔)/.test(m)) type = 'error';
+    else if (/^(⚠️|🔔)/.test(m)) type = 'yellow';
+    else if (/^(ℹ️|📋|📂|📞|📊|🔍|🔗)/.test(m)) type = 'info';
+    else if (/^(✅|💾|🎉|👋|🚪|📥|📤|⬇️|⬆️)/.test(m)) type = 'success';
+    else type = 'success';
+  }
+  // Remove leading emoji from msg since CSS adds icon via ::before
+  var cleanMsg = msg.replace(/^(✅|❌|⚠️|ℹ️|🗑️|🚫|⛔|🔔|💾|🎉|👋|🚪|📥|📤|⬇️|⬆️|📋|📂|📞|📊|🔍|🔗)\s*/, '');
+  el.textContent = cleanMsg;
+  el.className = 'toast show ' + type;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  var dur = (type === 'error' || type === 'red') ? 4500 : type === 'yellow' ? 4000 : 3000;
+  toastTimer = setTimeout(function(){ el.classList.remove('show'); }, dur);
 }
 // Alias — algunas funciones usan showToast(), otras usan toast()
 function showToast(msg, type) {
-  toast(msg, type || 'success');
+  toast(msg, type || '');
 }
 window.toast = toast;
 window.showToast = showToast;
@@ -27470,9 +28061,9 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
     '.enc-altaBtn{position:absolute;bottom:6px;right:6px;font-size:10px;padding:4px 8px;background:#1e6fa8;color:#fff;border:none;border-radius:7px;cursor:pointer;font-weight:700}' +
     '.enc-save-bar{position:sticky;bottom:0;background:#f0f4f8;border-top:1.5px solid #dde3ec;padding:14px 32px;display:flex;gap:12px;align-items:center;z-index:100;box-shadow:0 -2px 12px rgba(0,0,0,.08)}' +
     '.enc-save-bar span{color:#0369a1;font-size:13px;font-weight:700;margin-left:auto;background:#e0f2fe;border:1px solid #bae6fd;border-radius:8px;padding:4px 12px;}' +
-    '.enc-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;align-items:center;justify-content:center;padding:20px}' +
+    '.enc-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:9999;align-items:center;justify-content:center;padding:20px}#enc_pdfOverlay{background:#f1f5f9;padding:0;align-items:flex-start;}' +
     '.enc-overlay.active{display:flex}' +
-    '.enc-overlay-card{background:#fff;padding:28px;width:min(860px,100%);max-height:90vh;overflow:auto;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25)}' +
+    '.enc-overlay-card{background:#fff;padding:0;width:100%;height:100%;max-height:100vh;overflow:auto;border-radius:0;box-shadow:none;}' +
     '.enc-overlay-card h3{color:#0f172a;margin-bottom:16px;font-size:17px;font-weight:800}' +
     '.enc-alta-opciones{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:14px 0}' +
     '.enc-alta-opt{padding:11px 14px;border-radius:10px;border:1.5px solid #dde3ec;background:#f8fafc;color:#334155;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:all .18s;display:flex;align-items:center;gap:8px;width:100%}' +
@@ -28660,6 +29251,19 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
         var tipo=ES._altaSel||'';
         if(tipo==='Otro'){tipo=G('enc_altaOtroTexto')?G('enc_altaOtroTexto').value.trim():'';}
         if(!tipo||!ES.calta){alert('Por favor selecciona el tipo de disposición.');return;}
+        // ── Verificar pendientes ──
+        var _pac2 = (ES.pacMap && ES.pacMap[ES.calta]) || ES.pac || {};
+        var _labs2 = _pac2.labs || _pac2.la || [];
+        var _imgs2 = _pac2.imgs || [];
+        var _meds2 = _pac2.meds || [];
+        var _pend2 = [];
+        if (_labs2.length) _pend2.push('🧪 Laboratorios: ' + _labs2.join(', '));
+        if (_imgs2.length) _pend2.push('🩻 Estudios de imagen: ' + _imgs2.map(function(i){ return i.est||(typeof i==='string'?i:''); }).filter(Boolean).join(', '));
+        if (_meds2.length) _pend2.push('💊 Órdenes médicas: ' + _meds2.map(function(m){ return m.m||(typeof m==='string'?m:''); }).filter(Boolean).join(', '));
+        if (_pend2.length) {
+          var _msg2 = '\u26a0\ufe0f ADVERTENCIA \u2014 Este paciente tiene pendiente:\n\n' + _pend2.join('\n') + '\n\n\u00bfEst\u00e1 seguro que desea dar de alta de todas formas?';
+          if (!confirm(_msg2)) return;
+        }
         var bed=ES.bm[ES.calta];
         if(bed){bed.dataset.estado='vacia';bed.innerHTML='<h3>'+ES.calta+'</h3><p style="font-size:20px;margin:2px 0">🛏️</p><p class="enc-bed-lbl">Vacía</p>';}
         // Marcar paciente como dado de alta en localStorage y eliminarlo de la lista activa
@@ -28737,7 +29341,7 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
           return ALL_LABS_FIXED.indexOf(l.toUpperCase().trim()) < 0 && l.toUpperCase().trim() !== 'GASES ARTERIALES';
         });
 
-        var h = '<div style="font-family:Arial,Helvetica,sans-serif;max-width:700px;margin:0 auto;color:#000;font-size:10pt;background:#fff;padding:10pt;border:1pt solid #999">'
+        var h = '<div style="font-family:Arial,Helvetica,sans-serif;width:100%;min-height:100vh;color:#000;font-size:10pt;background:#fff;">'          + '<div class="no-print" style="position:sticky;top:0;z-index:10;background:#1e293b;padding:10px 20px;display:flex;align-items:center;gap:12px;">'            + '<button onclick="window.print()" style="background:#3b82f6;color:#fff;border:none;padding:9px 22px;border-radius:6px;font-size:13px;font-weight:bold;cursor:pointer;">🖨️ Imprimir / Guardar PDF</button>'            + '<button onclick="document.getElementById(\'enc_pdfOverlay\').classList.remove(\'active\')" style="background:transparent;color:#94a3b8;border:1px solid #475569;padding:9px 18px;border-radius:6px;font-size:13px;cursor:pointer;">✕ Cerrar</button>'            + '<span style="color:#94a3b8;font-size:12px;margin-left:8px;">Vista previa de la hoja de órdenes</span>'          + '</div>'          + '<div style="padding:14mm 16mm;">'
 
           // ── ENCABEZADO ──
           + '<div style="text-align:center;margin-bottom:6pt">'
@@ -28745,107 +29349,96 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
             + '<div style="font-size:11pt;font-weight:bold;letter-spacing:.5pt">&#211;rdenes de Emergencias</div>'
           + '</div>'
 
-          // ── NOMBRE + EDAD + SEXO ──
-          + '<table style="width:100%;border-collapse:collapse;margin-bottom:3pt;font-size:9.5pt">'
+          // ── DATOS DEL PACIENTE (tabla unificada compacta) ──
+          + '<table style="width:100%;border-collapse:collapse;margin-bottom:8pt;font-size:9.5pt;border:1pt solid #ccc">'
+            + '<tr style="border-bottom:1pt solid #ccc">'
+              + '<td style="width:18%;padding:3pt 5pt;background:#f5f5f5"><b>NOMBRE PCTE:</b></td>'
+              + '<td style="padding:3pt 5pt;border-right:1pt solid #ccc;font-weight:bold;font-size:10.5pt">' + p.nombre + '</td>'
+              + '<td style="width:10%;padding:3pt 5pt;background:#f5f5f5"><b>EDAD:</b></td>'
+              + '<td style="padding:3pt 5pt;border-right:1pt solid #ccc;width:8%">' + p.edad + '</td>'
+              + '<td style="width:10%;padding:3pt 5pt;background:#f5f5f5"><b>SEXO:</b></td>'
+              + '<td style="padding:3pt 5pt;width:14%">' + (p.sexo==='M' ? '<b>M &#9745;</b> F &#9744;' : 'M &#9744; <b>F &#9745;</b>') + '</td>'
+            + '</tr>'
+            + '<tr style="border-bottom:1pt solid #ccc">'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>MÉDICO:</b></td>'
+              + '<td style="padding:3pt 5pt;border-right:1pt solid #ccc">' + (p.especialista||p.general||'') + '</td>'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>FECHA:</b></td>'
+              + '<td colspan="3" style="padding:3pt 5pt">' + p.fecha + ' &nbsp; <b>HORA:</b> ' + p.hora + '</td>'
+            + '</tr>'
+            + '<tr style="border-bottom:1pt solid #ccc">'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>UBICACIÓN:</b></td>'
+              + '<td style="padding:3pt 5pt;border-right:1pt solid #ccc">' + (p.cama||'') + '</td>'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>SEGURO:</b></td>'
+              + '<td colspan="3" style="padding:3pt 5pt">' + (p.seguro||'') + '</td>'
+            + '</tr>'
             + '<tr>'
-              + '<td style="width:22%;padding:2pt 3pt"><b>NOMBRE PCTE:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;font-size:11pt;font-weight:bold">' + p.nombre + '</td>'
-              + '<td style="width:12%;padding:2pt 3pt"><b>EDAD:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;width:8%">' + p.edad + '</td>'
-              + '<td style="width:10%;padding:2pt 3pt"><b>SEXO:</b></td>'
-              + '<td style="padding:2pt 4pt;width:14%">' + (p.sexo==='M' ? '<b>M &#9745;</b> F &#9744;' : 'M &#9744; <b>F &#9745;</b>') + '</td>'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>DX. IMPRESIÓN:</b></td>'
+              + '<td style="padding:3pt 5pt;border-right:1pt solid #ccc;font-weight:bold">' + p.dx + '</td>'
+              + '<td style="padding:3pt 5pt;background:#f5f5f5"><b>ARS:</b></td>'
+              + '<td colspan="3" style="padding:3pt 5pt">' + (p.seguro||'') + '</td>'
             + '</tr>'
           + '</table>'
 
-          // ── MÉDICO + FECHA ──
-          + '<table style="width:100%;border-collapse:collapse;margin-bottom:3pt;font-size:9.5pt">'
-            + '<tr>'
-              + '<td style="width:22%;padding:2pt 3pt"><b>NOMBRE M&#201;DICO:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt">' + (p.especialista||p.general||'') + '</td>'
-              + '<td style="width:12%;padding:2pt 3pt"><b>FECHA:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;width:22%">' + p.fecha + '</td>'
-            + '</tr>'
-          + '</table>'
-
-          // ── UBICACIÓN + PRIVADO/SEGURO ──
-          + '<table style="width:100%;border-collapse:collapse;margin-bottom:3pt;font-size:9.5pt">'
-            + '<tr>'
-              + '<td style="width:22%;padding:2pt 3pt"><b>UBICACI&#211;N:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt">' + (p.cama||'') + '</td>'
-              + '<td style="width:14%;padding:2pt 3pt"><b>PRIVADO:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;width:10%">&nbsp;</td>'
-              + '<td style="width:14%;padding:2pt 3pt"><b>SEGURO:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt">&nbsp;</td>'
-            + '</tr>'
-          + '</table>'
-
-          // ── DX + ARS + RECORD + HORA ──
-          + '<table style="width:100%;border-collapse:collapse;margin-bottom:6pt;font-size:9.5pt">'
-            + '<tr>'
-              + '<td style="width:22%;padding:2pt 3pt"><b>DX. IMPRESI&#211;N:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;font-weight:bold">' + p.dx + '</td>'
-              + '<td style="width:10%;padding:2pt 3pt"><b>ARS:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt;width:18%">' + p.seguro + '</td>'
-            + '</tr>'
-            + '<tr>'
-              + '<td style="width:22%;padding:2pt 3pt"><b># RECORD:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt">' + numDoc + '</td>'
-              + '<td style="width:10%;padding:2pt 3pt"><b>HORA:</b></td>'
-              + '<td style="border-bottom:1pt solid #000;padding:2pt 4pt">' + p.hora + '</td>'
-            + '</tr>'
-          + '</table>'
-
-          // ═══ ÓRDENES MÉDICAS ═══
-          + '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:6pt">'
+          // ═══ ÓRDENES MÉDICAS — solo si hay medicamentos ═══
+          + (p.meds.length ? '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:6pt">'
             + '<tr><td colspan="2" style="background:#000;color:#fff;text-align:center;font-weight:bold;font-size:10pt;padding:3pt 6pt;letter-spacing:1pt">&#211;RDENES M&#201;DICAS</td></tr>'
             + '<tr>'
               + '<td style="width:12%;font-weight:bold;font-size:9pt;padding:3pt 6pt;border-right:1pt solid #000;border-bottom:1pt solid #000">CANT.</td>'
               + '<td style="font-weight:bold;font-size:9pt;padding:3pt 6pt;border-bottom:1pt solid #000">DESCRIPCI&#211;N</td>'
             + '</tr>'
-            + (p.meds.length ? p.meds.map(function(m){
+            + p.meds.map(function(m){
                 return '<tr style="border-bottom:1pt dotted #888">'
                   + '<td style="padding:5pt 6pt;text-align:center;border-right:1pt solid #000">1</td>'
                   + '<td style="padding:5pt 6pt;font-size:10pt">' + m.m + (m.d?' &nbsp; '+m.d+' '+m.u:'') + (m.v?' &nbsp; '+m.v:'') + '</td>'
                 + '</tr>';
-              }).join('') : '<tr><td style="padding:8pt 6pt;border-right:1pt solid #000">&nbsp;</td><td>&nbsp;</td></tr>')
-            + '<tr><td style="padding:9pt 6pt;border-right:1pt solid #000">&nbsp;</td><td>&nbsp;</td></tr>'
-            + '<tr><td style="padding:9pt 6pt;border-right:1pt solid #000">&nbsp;</td><td>&nbsp;</td></tr>'
-            + '<tr><td style="padding:9pt 6pt;border-right:1pt solid #000">&nbsp;</td><td>&nbsp;</td></tr>'
-          + '</table>'
+              }).join('')
+          + '</table>' : '')
 
-          // ═══ DIAGNÓSTICO POR IMAGEN ═══
-          + '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:6pt">'
+          // ═══ DIAGNÓSTICO POR IMAGEN — solo si hay imágenes ═══
+          + (p.imgs.length ? '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:6pt">'
             + '<tr><td colspan="2" style="background:#000;color:#fff;text-align:center;font-weight:bold;font-size:10pt;padding:3pt 6pt;letter-spacing:1pt">SERVICIO DE DIAGN&#211;STICO POR IMAGEN</td></tr>'
-            + '<tr><td colspan="2" style="padding:4pt 8pt;border-bottom:1pt solid #ccc"><span style="font-size:9pt">&#9744; SCANEADO &nbsp;&nbsp;&nbsp; &#9744; REALIZADA</span></td></tr>'
+
             + '<tr>'
               + '<td style="padding:4pt 8pt;font-size:9.5pt;width:28%"><b>ESTUDIO REQUERIDO:</b></td>'
               + '<td style="border-bottom:1pt solid #000;padding:4pt 6pt;font-size:10.5pt;font-weight:bold">'
-                + (p.imgs.length ? p.imgs.map(function(im){ return im.est + (im.lado&&im.lado!=='N/A' ? ' ('+im.lado+')' : ''); }).join(' / ') : '&nbsp;')
+                + p.imgs.map(function(im){ return im.est + (im.lado&&im.lado!=='N/A' ? ' ('+im.lado+')' : ''); }).join(' / ')
               + '</td>'
             + '</tr>'
             + '<tr><td colspan="2" style="padding:3pt 8pt;font-size:9pt"><u>DATOS CL&#205;NICOS</u></td></tr>'
             + '<tr><td colspan="2" style="padding:3pt 8pt 16pt;font-size:9.5pt">'
-                + (p.imgs.length ? p.imgs.map(function(im){ return im.mot||''; }).filter(Boolean).join('; ') : '&nbsp;')
+                + (p.imgs.map(function(im){ return im.mot||''; }).filter(Boolean).join('; ') || '&nbsp;')
             + '</td></tr>'
-          + '</table>'
+          + '</table>' : '')
 
-          // ═══ LABORATORIOS ═══
-          + '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:8pt">'
-            + '<tr><td colspan="3" style="background:#000;color:#fff;text-align:center;font-weight:bold;font-size:10pt;padding:3pt 6pt;letter-spacing:1pt">SOLICITUD DE LABORATORIOS</td></tr>'
-            + '<tr><td colspan="3" style="padding:4pt 8pt;border-bottom:1pt solid #000"><span style="font-size:9pt">&#9744; CARGADO &nbsp;&nbsp;&nbsp; &#9744; TOMADA</span></td></tr>'
-            + '<tr>'
-              + '<td style="width:33%;border-right:1pt solid #000;vertical-align:top">'
-                + labCol1.map(function(l){ return '<div style="padding:2pt 5pt;border-bottom:1pt dotted #ccc;font-size:8.5pt">' + labCheck(l) + ' ' + l + '</div>'; }).join('')
-              + '</td>'
-              + '<td style="width:33%;border-right:1pt solid #000;vertical-align:top">'
-                + labCol2.map(function(l){ return '<div style="padding:2pt 5pt;border-bottom:1pt dotted #ccc;font-size:8.5pt">' + labCheck(l) + ' ' + l + '</div>'; }).join('')
-              + '</td>'
-              + '<td style="width:34%;vertical-align:top">'
-                + '<div style="padding:2pt 5pt;font-size:8.5pt;border-bottom:1pt solid #000;font-weight:bold">GASES ARTERIALES ' + gasesCheck + '</div>'
-                + '<div style="padding:4pt 5pt;font-size:8.5pt"><b>OTROS:</b> ' + (otrosLabs.length ? otrosLabs.join(', ') : '&nbsp;') + '</div>'
-              + '</td>'
-            + '</tr>'
-          + '</table>'
+          // ═══ LABORATORIOS — solo si hay labs ordenados ═══
+          + (function(){
+              var orderedLabs = (p.labs||[]).filter(function(l){ return !!l && l.trim(); });
+              var hasGases = labsSet['GASES ARTERIALES'];
+              var hasOtros = otrosLabs.length > 0;
+              if (!orderedLabs.length && !hasGases && !hasOtros) return '';
+              // Only show labs that were actually ordered
+              var checkedFixed1 = labCol1.filter(function(l){ return labsSet[l.toUpperCase().trim()]; });
+              var checkedFixed2 = labCol2.filter(function(l){ return labsSet[l.toUpperCase().trim()]; });
+              var allChecked = checkedFixed1.concat(checkedFixed2);
+              var col1 = allChecked.slice(0, Math.ceil(allChecked.length/2));
+              var col2 = allChecked.slice(Math.ceil(allChecked.length/2));
+              return '<table style="width:100%;border-collapse:collapse;border:1pt solid #000;margin-bottom:8pt">'
+                + '<tr><td colspan="3" style="background:#000;color:#fff;text-align:center;font-weight:bold;font-size:10pt;padding:3pt 6pt;letter-spacing:1pt">SOLICITUD DE LABORATORIOS</td></tr>'
+
+                + '<tr>'
+                  + '<td style="width:33%;border-right:1pt solid #000;vertical-align:top">'
+                    + col1.map(function(l){ return '<div style="padding:3pt 5pt;border-bottom:1pt dotted #ccc;font-size:9pt">&#9745; ' + l + '</div>'; }).join('')
+                  + '</td>'
+                  + '<td style="width:33%;border-right:1pt solid #000;vertical-align:top">'
+                    + col2.map(function(l){ return '<div style="padding:3pt 5pt;border-bottom:1pt dotted #ccc;font-size:9pt">&#9745; ' + l + '</div>'; }).join('')
+                  + '</td>'
+                  + '<td style="width:34%;vertical-align:top">'
+                    + (hasGases ? '<div style="padding:3pt 5pt;font-size:9pt;border-bottom:1pt solid #000;font-weight:bold">&#9745; GASES ARTERIALES</div>' : '')
+                    + (hasOtros ? '<div style="padding:4pt 5pt;font-size:9pt"><b>OTROS:</b> ' + otrosLabs.join(', ') + '</div>' : '')
+                  + '</td>'
+                + '</tr>'
+              + '</table>';
+            })()
 
           // ── PIE ──
           + '<div style="margin-top:10pt;display:flex;justify-content:space-between;align-items:flex-end">'
@@ -28855,14 +29448,8 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
               + '<div style="font-size:8.5pt;margin-top:3pt">Firma del M&#233;dico / Sello</div>'
             + '</div>'
           + '</div>'
-
-          // Botones (no imprimir)
-          + '<div class="no-print" style="margin-top:20pt;display:flex;gap:12px">'
-            + '<button onclick="encPrintDoc()" style="background:#000;color:#fff;border:none;padding:10px 24px;border-radius:4px;cursor:pointer;font-size:13px;font-weight:bold;font-family:Arial,sans-serif">&#128424; Imprimir / PDF</button>'
-            + '<button onclick="document.getElementById(\'enc_pdfOverlay\').classList.remove(\'active\')" style="background:#fff;border:1px solid #000;padding:10px 20px;border-radius:4px;cursor:pointer;font-size:13px;font-family:Arial,sans-serif">Cerrar</button>'
           + '</div>'
-        + '</div>';
-        
+
                 c.innerHTML=h;
         var ov=G('enc_pdfOverlay');if(ov)ov.classList.add('active');
       }
@@ -29279,6 +29866,134 @@ function _encQADoSave(){var sel=document.getElementById('encQACatalogo'),inp=doc
 function encQAGuardar(){var r=_encQADoSave();if(!r)return;if(typeof showToast==='function')showToast('✅ "'+r.val+'" agregado a '+r.label);encQuickAddClose();}
 function encQAGuardarYOtro(){var r=_encQADoSave();if(!r)return;var t=document.getElementById('encQAToast');if(t){t.textContent='✅ "'+r.val+'" guardado en '+r.label;t.style.display='block';setTimeout(function(){t.style.display='none';},2500);}var inp=document.getElementById('encQAValor');if(inp){inp.value='';inp.focus();}encQACatalogoChange();}
 </script>
+<div id="encQuickRemoveOverlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:var(--surface,#1e2535);border:1.5px solid rgba(239,68,68,.25);border-radius:18px;padding:28px 28px 24px;width:92%;max-width:560px;box-shadow:0 24px 64px rgba(0,0,0,.5);position:relative;animation:qaSlideIn .22s ease">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+      <div style="width:44px;height:44px;background:linear-gradient(135deg,#ef4444,#b91c1c);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">➖</div>
+      <div style="flex:1;">
+        <div style="font-size:16px;font-weight:800;color:var(--white,#fff);">Quitar del Catálogo</div>
+        <div style="font-size:11px;color:var(--muted,#94a3b8);">Selecciona el catálogo y el elemento a eliminar</div>
+      </div>
+      <button onclick="encQuickRemoveClose()" style="width:32px;height:32px;border-radius:8px;border:1px solid var(--border,rgba(255,255,255,.1));background:var(--surface2,#2a3347);color:var(--muted,#94a3b8);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='#ef4444';this.style.color='#fff'" onmouseout="this.style.background='var(--surface2,#2a3347)';this.style.color='var(--muted,#94a3b8)'">×</button>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted,#94a3b8);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">📂 Catálogo</label>
+      <select id="encQRCatalogo" style="width:100%;background:var(--surface2,#2a3347);border:1.5px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:10px 14px;color:var(--text,#e2e8f0);font-size:13px;font-weight:600;cursor:pointer;" onchange="encQRCatalogoChange()">
+        <option value="">— Elige el catálogo —</option>
+        <option value="mgral">👨‍⚕️ Médicos Generales</option>
+        <option value="mesp">🩺 Especialistas</option>
+        <option value="labs">🧪 Laboratorios</option>
+        <option value="meds">💊 Medicamentos</option>
+        <option value="est">🩻 Estudios de Imagen</option>
+        <option value="ars">🏥 Seguros / ARS</option>
+        <option value="cie10">📋 Diagnósticos CIE-10</option>
+        <option value="vias">💉 Vías de Administración</option>
+        <option value="unidades">⚖️ Unidades de Dosis</option>
+        <option value="lados">↔️ Lateralidad</option>
+        <option value="proyecciones">📐 Proyecciones</option>
+        <option value="alta">🚪 Tipos de Disposición/Alta</option>
+        <option value="camasC">🚨 Camas Área Crítica</option>
+        <option value="camasS">🛏️ Camas Sala Emergencias</option>
+      </select>
+    </div>
+    <div id="encQRSearch" style="display:none;margin-bottom:10px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted,#94a3b8);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:6px;">🔍 Buscar elemento</label>
+      <input id="encQRBuscar" type="text" placeholder="Filtra la lista..." style="width:100%;background:var(--surface2,#2a3347);border:1.5px solid var(--border,rgba(255,255,255,.1));border-radius:10px;padding:9px 14px;color:var(--text,#e2e8f0);font-size:13px;box-sizing:border-box;" oninput="encQRFiltrar()" onfocus="this.style.borderColor='#ef4444'" onblur="this.style.borderColor='var(--border,rgba(255,255,255,.1))'"/>
+    </div>
+    <div id="encQRListaWrap" style="display:none;max-height:240px;overflow-y:auto;border:1.5px solid rgba(239,68,68,.2);border-radius:10px;background:var(--surface2,#2a3347);">
+      <div id="encQRLista" style="padding:4px;"></div>
+    </div>
+    <div id="encQREmpty" style="display:none;text-align:center;padding:22px;color:var(--muted,#94a3b8);font-size:13px;">Sin elementos en este catálogo</div>
+    <div id="encQRError" style="font-size:12px;color:#f87171;margin-top:8px;display:none;"></div>
+  </div>
+</div>
+<script>
+function encQuickRemoveOpen(){
+  var o=document.getElementById('encQuickRemoveOverlay');
+  if(!o)return;
+  o.style.display='flex';
+  var s=document.getElementById('encQRCatalogo');
+  if(s&&window._encCfgActive)s.value=window._encCfgActive;
+  encQRCatalogoChange();
+}
+function encQuickRemoveClose(){
+  var o=document.getElementById('encQuickRemoveOverlay');
+  if(o)o.style.display='none';
+  var b=document.getElementById('encQRBuscar');if(b)b.value='';
+}
+document.getElementById('encQuickRemoveOverlay').addEventListener('click',function(e){if(e.target===this)encQuickRemoveClose();});
+
+function encQRCatalogoChange(){
+  var sel=document.getElementById('encQRCatalogo');
+  var srch=document.getElementById('encQRSearch');
+  var wrap=document.getElementById('encQRListaWrap');
+  var empty=document.getElementById('encQREmpty');
+  var err=document.getElementById('encQRError');
+  var b=document.getElementById('encQRBuscar');
+  if(err){err.style.display='none';err.textContent='';}
+  if(!sel||!sel.value){
+    if(srch)srch.style.display='none';
+    if(wrap)wrap.style.display='none';
+    if(empty)empty.style.display='none';
+    return;
+  }
+  if(b)b.value='';
+  encQRRenderList('');
+}
+
+function encQRFiltrar(){
+  var b=document.getElementById('encQRBuscar');
+  encQRRenderList(b?b.value.trim():'');
+}
+
+function encQRRenderList(filtro){
+  var sel=document.getElementById('encQRCatalogo');
+  var lista=document.getElementById('encQRLista');
+  var wrap=document.getElementById('encQRListaWrap');
+  var empty=document.getElementById('encQREmpty');
+  var srch=document.getElementById('encQRSearch');
+  if(!sel||!sel.value||!lista)return;
+  var cfg=window._encCfgMap&&window._encCfgMap[sel.value];
+  if(!cfg){return;}
+  var arr=window._encLoadCatalog?window._encLoadCatalog(cfg.key):[];
+  var filtered=filtro?arr.filter(function(x){return x.toLowerCase().indexOf(filtro.toLowerCase())>=0;}):arr;
+  if(srch)srch.style.display='block';
+  if(!arr.length){
+    if(wrap)wrap.style.display='none';
+    if(empty)empty.style.display='block';
+    return;
+  }
+  if(wrap)wrap.style.display='block';
+  if(empty)empty.style.display='none';
+  lista.innerHTML=filtered.length?filtered.map(function(item){
+    var safe=item.replace(/'/g,"\\'");
+    return '<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:8px;border-bottom:1px solid rgba(255,255,255,.05);">' +
+      '<span style="font-size:13px;color:var(--text,#e2e8f0);flex:1;">' + item + '</span>' +
+      '<button onclick="encQREliminar(\''+safe+'\')" style="background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);border-radius:7px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;" onmouseover="this.style.background=\'rgba(239,68,68,.3)\'" onmouseout="this.style.background=\'rgba(239,68,68,.12)\'">🗑️ Quitar</button>' +
+      '</div>';
+  }).join(''):'<div style="padding:14px;text-align:center;color:var(--muted,#94a3b8);font-size:13px;">Sin resultados para "'+filtro+'"</div>';
+}
+
+function encQREliminar(item){
+  var sel=document.getElementById('encQRCatalogo');
+  var err=document.getElementById('encQRError');
+  if(!sel||!sel.value||!item){return;}
+  var cfg=window._encCfgMap&&window._encCfgMap[sel.value];
+  if(!cfg){return;}
+  if(!confirm('¿Quitar "'+item+'" de '+cfg.label+'?'))return;
+  var arr=window._encLoadCatalog(cfg.key);
+  var idx=arr.indexOf(item);
+  if(idx<0){if(err){err.textContent='No encontrado.';err.style.display='block';}return;}
+  arr.splice(idx,1);
+  window._encSaveCatalog(cfg.key,arr);
+  cfg.ref(arr);
+  if(window._encCfgActive===sel.value&&window.encCfgRender)window.encCfgRender();
+  showToast('🗑️ "'+item+'" eliminado de '+cfg.label,'red');
+  var b=document.getElementById('encQRBuscar');
+  encQRRenderList(b?b.value.trim():'');
+}
+</script>
+
 
 <script>
 /* ══ SIDEBAR TOGGLE ══ */
@@ -29286,28 +30001,88 @@ function encQAGuardarYOtro(){var r=_encQADoSave();if(!r)return;var t=document.ge
   var sidebar = document.querySelector('.sidebar');
   var btn = document.getElementById('sb-toggle-btn');
   var body = document.body;
-  
-  // Load saved state
+
+  // Crear zona de hover en el borde izquierdo
+  var hoverZone = document.createElement('div');
+  hoverZone.id = 'sb-hover-zone';
+  document.body.appendChild(hoverZone);
+
+  // Estado
   var collapsed = localStorage.getItem('cmm_sb_collapsed') === '1';
-  if (collapsed) {
-    sidebar && sidebar.classList.add('collapsed');
-    body.classList.add('sb-collapsed');
-    if (btn) btn.innerHTML = '▶';
+  var autoHidden = false;
+  var _peekTimeout = null;
+
+  function applyState() {
+    if (autoHidden) {
+      sidebar && sidebar.classList.add('auto-hidden');
+      sidebar && sidebar.classList.remove('collapsed');
+      body.classList.add('sb-auto-hidden');
+      body.classList.remove('sb-collapsed');
+      if (btn) btn.innerHTML = '▶';
+      hoverZone.style.display = 'block';
+    } else if (collapsed) {
+      sidebar && sidebar.classList.add('collapsed');
+      sidebar && sidebar.classList.remove('auto-hidden');
+      body.classList.add('sb-collapsed');
+      body.classList.remove('sb-auto-hidden');
+      if (btn) btn.innerHTML = '▶';
+      hoverZone.style.display = 'none';
+    } else {
+      sidebar && sidebar.classList.remove('collapsed', 'auto-hidden');
+      body.classList.remove('sb-collapsed', 'sb-auto-hidden');
+      if (btn) btn.innerHTML = '◀';
+      hoverZone.style.display = 'none';
+    }
   }
 
-  window.toggleSidebar = function() {
-    collapsed = !collapsed;
-    if (collapsed) {
-      sidebar && sidebar.classList.add('collapsed');
-      body.classList.add('sb-collapsed');
-      if (btn) btn.innerHTML = '▶';
-    } else {
-      sidebar && sidebar.classList.remove('collapsed');
-      body.classList.remove('sb-collapsed');
-      if (btn) btn.innerHTML = '◀';
+  // Cargar estado guardado
+  if (collapsed) applyState();
+
+  // Hover zone: mostrar sidebar al pasar el mouse por el borde
+  hoverZone.addEventListener('mouseenter', function() {
+    if (autoHidden && sidebar) {
+      sidebar.style.transform = 'translateX(0)';
+      sidebar.style.boxShadow = '8px 0 40px rgba(0,0,0,0.6)';
     }
+  });
+
+  // Ocultar al salir del sidebar
+  sidebar && sidebar.addEventListener('mouseleave', function() {
+    if (autoHidden) {
+      sidebar.style.transform = '';
+      sidebar.style.boxShadow = '';
+    }
+  });
+
+  // Toggle manual (botón)
+  window.toggleSidebar = function() {
+    autoHidden = false;
+    collapsed = !collapsed;
+    applyState();
     localStorage.setItem('cmm_sb_collapsed', collapsed ? '1' : '0');
   };
+
+  // AUTO-HIDE: colapsar automáticamente al abrir un módulo
+  window._sbAutoHide = function() {
+    if (!autoHidden && !collapsed) {
+      autoHidden = true;
+      applyState();
+    }
+  };
+
+  // Restaurar sidebar al hacer click en el toggle
+  var origToggle = window.toggleSidebar;
+  window.toggleSidebar = function() {
+    if (autoHidden) {
+      autoHidden = false;
+      collapsed = false;
+      applyState();
+      localStorage.setItem('cmm_sb_collapsed', '0');
+    } else {
+      origToggle();
+    }
+  };
+
 })();
 </script>
 
@@ -29611,7 +30386,7 @@ function encQAGuardarYOtro(){var r=_encQADoSave();if(!r)return;var t=document.ge
     const cargos = getCargos().filter(c => c.id !== id);
     saveCargos(cargos);
     renderCargos();
-    if (typeof showToast === 'function') showToast('🗑️ Cargo eliminado');
+    if (typeof showToast === 'function') showToast('🗑️ Cargo eliminado', 'red');
   };
 
   // ── Exportar PDF básico
@@ -30272,6 +31047,93 @@ function encQAGuardarYOtro(){var r=_encQADoSave();if(!r)return;var t=document.ge
     }
   });
 
+})();
+</script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   MOBILE NAVIGATION — Drawer + Bottom Nav
+   ═══════════════════════════════════════════════════════ */
+(function() {
+  // Open / close drawer
+  window.mbOpenDrawer = function() {
+    document.getElementById('mobile-drawer').classList.add('open');
+    document.getElementById('mobile-drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  };
+  window.mbCloseDrawer = function() {
+    document.getElementById('mobile-drawer').classList.remove('open');
+    document.getElementById('mobile-drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  };
+
+  // Sync active state on bottom nav
+  window.mbSetActive = function(page) {
+    document.querySelectorAll('.mb-nav-btn').forEach(function(btn) {
+      btn.classList.remove('active');
+    });
+    var btn = document.getElementById('mb-btn-' + page);
+    if (btn) btn.classList.add('active');
+  };
+
+  // Swipe right from left edge to open drawer
+  var touchStartX = 0;
+  var touchStartY = 0;
+  document.addEventListener('touchstart', function(e) {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  document.addEventListener('touchend', function(e) {
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    var dy = e.changedTouches[0].clientY - touchStartY;
+    if (touchStartX < 24 && dx > 60 && Math.abs(dy) < 80) {
+      window.mbOpenDrawer();
+    }
+  }, { passive: true });
+
+  // Swipe left inside drawer to close
+  var drawer = document.getElementById('mobile-drawer');
+  if (drawer) {
+    var dTouchX = 0;
+    drawer.addEventListener('touchstart', function(e) { dTouchX = e.touches[0].clientX; }, { passive: true });
+    drawer.addEventListener('touchend', function(e) {
+      var dx = e.changedTouches[0].clientX - dTouchX;
+      if (dx < -60) window.mbCloseDrawer();
+    }, { passive: true });
+  }
+
+  // Responsive: hide sidebar on resize to mobile
+  function onResize() {
+    var isMobile = window.innerWidth <= 768;
+    var sidebar = document.querySelector('.sidebar');
+    if (isMobile && sidebar) {
+      sidebar.style.display = 'none';
+    } else if (!isMobile && sidebar) {
+      sidebar.style.display = '';
+    }
+  }
+  window.addEventListener('resize', onResize);
+  onResize();
+
+  // Hook into showPage to sync bottom nav active state
+  var _realShowPage = window.showPage;
+  if (typeof _realShowPage === 'function') {
+    window.showPage = function(page) {
+      _realShowPage(page);
+      window.mbSetActive(page);
+    };
+  } else {
+    // showPage may not be defined yet - hook after DOMContentLoaded
+    document.addEventListener('DOMContentLoaded', function() {
+      var orig = window.showPage;
+      if (typeof orig === 'function') {
+        window.showPage = function(page) {
+          orig(page);
+          window.mbSetActive(page);
+        };
+      }
+    });
+  }
 })();
 </script>
 </body>

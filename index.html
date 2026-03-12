@@ -8372,11 +8372,16 @@ window.showPage = function(id) {
           <!-- PESTAÑA: ROL -->
           <div id="usr-panel-rol" class="usr-panel" style="padding:20px;display:none;">
             <div style="font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.5;">El <strong style="color:var(--text);">rol base</strong> define el comportamiento por defecto. Los módulos y acciones específicos se personalizan en las otras pestañas.<br><span style="color:#f59e0b;">⚠️ Si el rol es <strong>Administrador</strong>, los permisos por módulo y acciones se ignoran.</span></div>
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;">
               <div class="rol-card" data-rol="admin" onclick="selectRol(this)" style="padding:20px 12px;text-align:center;">
                 <div style="font-size:30px;">👑</div>
                 <div style="font-weight:700;font-size:13px;margin-top:8px;color:var(--white);">Administrador</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4;">Acceso completo a todo el sistema sin restricciones</div>
+              </div>
+              <div class="rol-card" data-rol="supervisor" onclick="selectRol(this)" style="padding:20px 12px;text-align:center;">
+                <div style="font-size:30px;">🛡️</div>
+                <div style="font-weight:700;font-size:13px;margin-top:8px;color:var(--white);">Supervisor</div>
+                <div style="font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4;">Autoriza altas, reaperturas y eliminaciones protegidas</div>
               </div>
               <div class="rol-card selected" data-rol="editor" onclick="selectRol(this)" style="padding:20px 12px;text-align:center;">
                 <div style="font-size:30px;">✏️</div>
@@ -12787,6 +12792,7 @@ function canDo(action) {
     return sysSession.acciones.includes(action);
   }
   // Fallback por rol
+  if (rol === 'supervisor') return ['edit','create','print','approve'].includes(action);
   if (rol === 'editor') return ['edit','create','print'].includes(action);
   if (rol === 'viewer') return action === 'print';
   return false;
@@ -12812,6 +12818,7 @@ function canAccessModule(pageId) {
     'atencion-emergencia',
     'presupuestos','catalogo','documentos'
   ];
+  if (sysSession.rol === 'supervisor') return editorMods.includes(pageId) || ['usuarios','cargo-suministros','cargo-laboratorio','cargo-admision'].includes(pageId);
   if (sysSession.rol === 'editor') return editorMods.includes(pageId);
   return viewerMods.includes(pageId);
 }
@@ -13266,7 +13273,7 @@ window.saveSysAudit=function(){
 // ═══════════════════════════════════════════════════════════════════
 //  NUEVO SISTEMA DE LOGIN CON SELECTOR DE USUARIOS
 // ═══════════════════════════════════════════════════════════════════
-const ROL_COLORS = { admin:['#ef4444','rgba(239,68,68,0.2)'], editor:['#f59e0b','rgba(245,158,11,0.2)'], viewer:['#22c55e','rgba(34,197,94,0.2)'] };
+const ROL_COLORS = { admin:['#ef4444','rgba(239,68,68,0.2)'], supervisor:['#8b5cf6','rgba(139,92,246,0.2)'], editor:['#f59e0b','rgba(245,158,11,0.2)'], viewer:['#22c55e','rgba(34,197,94,0.2)'] };
 
 let _loginSelUser = null; // usuario seleccionado en el picker
 
@@ -13317,7 +13324,7 @@ function loginRenderGrid() {
       onmouseout="this.style.borderColor='var(--border)';this.style.background='rgba(255,255,255,0.03)'">
       <div style="width:52px;height:52px;border-radius:50%;background:${bg};color:${clr};display:flex;align-items:center;justify-content:center;font-weight:700;font-size:22px;margin:0 auto 8px;">${u.nombre[0].toUpperCase()}</div>
       <div style="font-size:12px;font-weight:600;color:var(--white);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;">${u.nombre.split(' ')[0]}</div>
-      <div style="font-size:10px;color:${clr};margin-top:3px;font-weight:600;">${u.rol==='admin'?'👑 Admin':u.rol==='editor'?'✏️ Editor':'👁️ Viewer'}</div>
+      <div style="font-size:10px;color:${clr};margin-top:3px;font-weight:600;">${u.rol==='admin'?'👑 Admin':u.rol==='supervisor'?'🛡️ Supervisor':u.rol==='editor'?'✏️ Editor':'👁️ Viewer'}</div>
       ${u.sinPass?'<div style="font-size:9px;color:#4ade80;margin-top:2px;">🚀 Sin pass</div>':''}
     </div>`;
   }).join('');
@@ -13504,9 +13511,9 @@ function renderUsuarios() {
   if (!sysUsuarios.length) {
     el.innerHTML = '<div class="empty-state"><div class="empty-icon">👥</div><p>Sin usuarios registrados.</p></div>'; return;
   }
-  const rolLabel = { admin:'👑 Admin', editor:'✏️ Editor', viewer:'👁️ Viewer' };
-  const rolBg    = { admin:'rgba(239,68,68,0.15)', editor:'rgba(245,158,11,0.15)', viewer:'rgba(34,197,94,0.15)' };
-  const rolClr   = { admin:'#ef4444', editor:'#f59e0b', viewer:'#22c55e' };
+  const rolLabel = { admin:'👑 Admin', supervisor:'🛡️ Supervisor', editor:'✏️ Editor', viewer:'👁️ Viewer' };
+  const rolBg    = { admin:'rgba(239,68,68,0.15)', supervisor:'rgba(139,92,246,0.15)', editor:'rgba(245,158,11,0.15)', viewer:'rgba(34,197,94,0.15)' };
+  const rolClr   = { admin:'#ef4444', supervisor:'#8b5cf6', editor:'#f59e0b', viewer:'#22c55e' };
   el.innerHTML = sysUsuarios.map(u => {
     const modCount = u.modulos ? u.modulos.length : '—';
     const actCount = u.acciones ? u.acciones.length : '—';
@@ -14409,7 +14416,7 @@ function renderAnnForm(a) {
       <span style="font-size:10px;color:var(--muted);">@${u.username}</span>
     </label>`).join('');
 
-  const roles = ['admin','editor','viewer'];
+  const roles = ['admin','supervisor','editor','viewer'];
   const rolesHtml = roles.map(r => `
     <label class="ann-user-check">
       <input type="checkbox" name="ann-rol" value="${r}" ${a && (a.roles||[]).includes(r) ? 'checked' : ''}>

@@ -3052,13 +3052,12 @@ button[style*="background:#2563eb"] {
 
 </script>
 <script>
-// Firebase SDK ya cargado localmente — inicializar sync
-(function() {
+// ═══════════════════════════════════════════════════════════════════════
+// SYNC MODULE v3 — Firebase-ONLY · Sin internet = sin acceso
+// ═══════════════════════════════════════════════════════════════════════
+(function () {
 "use strict";
 
-function _initFirebase() {
-
-// ── CONFIG ───────────────────────────────────────────────────────────
 var FB_CFG = {
   apiKey:            "AIzaSyDm41cdnTadTBWRryv4rElYNrJAiDDo1tk",
   authDomain:        "eecdata-a7578.firebaseapp.com",
@@ -3068,355 +3067,413 @@ var FB_CFG = {
   messagingSenderId: "296076573920",
   appId:             "1:296076573920:web:56b65839e93287f2272485"
 };
+
 var FB_ROOT = "millenium_cmm/kv";
 
-// Claves privadas — nunca van a la nube
+// Claves que NUNCA van a Firebase ni se leen desde allí
 var FB_SKIP = {
   "cmm_ai_key":1,"cmm_session_v1":1,"cmm_master_key":1,
   "cmm_db_config":1,"cmm_ann_dismissed":1,"cmm_gemini_key":1,
   "cmm_gemini_model":1,"cmm_sb_collapsed":1,"cmm_struct_ver":1,
   "cmm_db_filepath":1,"cmm_session_timeout":1,"docmed_gemini_key":1,
-  "docmed_gemini_model":1,"cmm_ts_v1":1,"cmm_lww_migrated_v1":1
+  "docmed_gemini_model":1,"cmm_ts_v1":1,"cmm_lww_migrated_v1":1,
+  "cmm_lww_v2":1
 };
 
-// ── INIT ─────────────────────────────────────────────────────────────
+// ── Estado de conexión ────────────────────────────────────────────────
+var _connected  = false;
 var _app, _db;
-try {
-  _app = firebase.app();  // reusar si ya existe
-} catch(e) {
-  _app = firebase.initializeApp(FB_CFG);
-}
-_db = firebase.database(_app);
-console.log("[CMM] ✅ Firebase Compat conectado");
+var _realtimeOn = false;
 
-// ── HELPERS ──────────────────────────────────────────────────────────
-function safeKey(k) { return k.replace(/[.#$\/\[\]]/g,"_"); }
-function now()      { return Date.now(); }
+// ── Overlay de bloqueo ────────────────────────────────────────────────
+var _overlay = document.createElement("div");
+_overlay.id  = "cmm-sync-overlay";
+_overlay.style.cssText = "position:fixed;inset:0;background:rgba(10,15,30,0.98);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-family:Nunito,sans-serif;";
+_overlay.innerHTML =
+  '<div style="position:relative;width:72px;height:72px;">' +
+    '<div style="position:absolute;inset:0;border:3px solid rgba(59,130,246,0.15);border-radius:50%;"></div>' +
+    '<div id="cmm-ol-spinner" style="position:absolute;inset:0;border:3px solid transparent;border-top-color:#3b82f6;border-radius:50%;animation:cmmSpin .7s linear infinite;"></div>' +
+    '<div style="position:absolute;inset:10px;border:2px solid transparent;border-top-color:#60a5fa;border-radius:50%;animation:cmmSpin 1.1s linear infinite reverse;"></div>' +
+  '</div>' +
+  '<div style="text-align:center;">' +
+    '<div id="cmm-ol-title" style="color:#f1f5f9;font-size:17px;font-weight:700;margin-bottom:8px;">&#x2601;&#xFE0F; Conectando con Firebase...</div>' +
+    '<div id="cmm-ol-sub"   style="color:#475569;font-size:13px;">Verificando conexión a internet</div>' +
+  '</div>' +
+  '<div id="cmm-ol-retry" style="display:none;margin-top:8px;">' +
+    '<button onclick="location.reload()" style="background:#3b82f6;color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:700;cursor:pointer;">&#x1F504; Reintentar</button>' +
+  '</div>' +
+  '<style>@keyframes cmmSpin{to{transform:rotate(360deg)}}</style>';
+
+document.body.appendChild(_overlay);
+
+function _setMsg(t, s, showRetry) {
+  var a = document.getElementById("cmm-ol-title");
+  var b = document.getElementById("cmm-ol-sub");
+  var r = document.getElementById("cmm-ol-retry");
+  var sp = document.getElementById("cmm-ol-spinner");
+  if (a) a.textContent = t;
+  if (b) b.textContent = s || "";
+  if (r) r.style.display = showRetry ? "block" : "none";
+  if (sp) sp.style.borderTopColor = showRetry ? "#ef4444" : "#3b82f6";
+}
+
+function _hideOverlay() {
+  if (!_overlay.parentNode) return;
+  _overlay.style.opacity = "0";
+  _overlay.style.transition = "opacity 0.4s";
+  setTimeout(function () { if (_overlay.parentNode) _overlay.parentNode.removeChild(_overlay); }, 420);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function safeKey(k) { return k.replace(/[.#$\/\[\]]/g, "_"); }
 function dbRef(k)   { return _db.ref(FB_ROOT + "/" + safeKey(k)); }
 
 function syncDot(color, resetMs) {
   var d = document.getElementById("cmm-sync-dot");
   if (!d) return;
   d.style.background = color;
-  d.title = color==="#22c55e" ? "✅ Sincronizado · "+new Date().toLocaleTimeString("es-DO")
-          : color==="#f59e0b" ? "⏳ Sincronizando..."
-          : color==="#ef4444" ? "❌ Sin conexión"
+  d.title = color === "#22c55e" ? "✅ Sincronizado · " + new Date().toLocaleTimeString("es-DO")
+          : color === "#f59e0b" ? "⏳ Sincronizando..."
+          : color === "#ef4444" ? "❌ Sin conexión"
           : "☁️ En línea";
-  if (resetMs) setTimeout(function(){ if(d){ d.style.background="#3b82f6"; d.title="☁️ En línea"; }}, resetMs);
+  if (resetMs) setTimeout(function () { if (d) { d.style.background = "#3b82f6"; d.title = "☁️ En línea"; } }, resetMs);
 }
 
-// ── TIMESTAMPS LOCALES ───────────────────────────────────────────────
-var TS_KEY = "cmm_ts_v1";
-function _rawSet(k,v){ try{ Storage.prototype._cmmRawSet.call(localStorage,k,v); }catch(e){ try{Object.getOwnPropertyDescriptor(Storage.prototype,'setItem').value.call(localStorage,k,v);}catch(e2){} } }
-function getTs(k){ try{ return (JSON.parse(localStorage.getItem(TS_KEY)||"{}"))[k]||0; }catch(e){ return 0; } }
-function setTs(k,t){ try{ var m=JSON.parse(localStorage.getItem(TS_KEY)||"{}"); m[k]=t; _rawSet(TS_KEY,JSON.stringify(m)); }catch(e){} }
-
-// ── RECARGAR VARIABLES EN MEMORIA ────────────────────────────────────
-function reloadKey(k) {
-  try {
-    var v = localStorage.getItem(k);
-    if (v===null) return;
-    if (k==='cmm_usuarios_v1'   ) { window.sysUsuarios  = JSON.parse(v); }
-    if (k==='cmm_audit_v1'      ) { window.sysAuditLog  = JSON.parse(v); }
-    if (k==='ingresos_v1'       ) { window.ingresos     = JSON.parse(v); }
-    if (k==='cmm_anuncios_v1'   ) { window.annStore     = JSON.parse(v); }
-    if (k==='custom_docs_v1'    ) { window.customDocs   = JSON.parse(v); }
-    if (k==='cmm_extensiones_v2') { window.extensiones  = JSON.parse(v); }
-    if (k==='cat_studies'       ) { window.catStudies   = JSON.parse(v); }
-    if (k==='cmm_identidad_v1'  ) { window.cfgIdentidad = JSON.parse(v); try{if(typeof aplicarIdentidad==='function') aplicarIdentidad();}catch(e){} }
-    if (k==='medmanager_v1'     ) { try{if(typeof loadStore==='function') loadStore();}catch(e){} }
-    if (k==='mtn_v1'            ) { try{if(typeof loadMtnState==='function') window.mtn=loadMtnState();}catch(e){} }
-    if (k==='cmm_camas_state_v1') { try{if(typeof loadCamasState==='function') loadCamasState();}catch(e){} }
-    if (k==='eecdatos_enc_pacientes') { try{if(typeof window.encRefreshLista==='function'){encRefreshLista(); if(typeof encRefreshAlertas==='function') encRefreshAlertas();}}catch(e){} }
-  } catch(e){}
+// ── Escribir en localStorage SIN activar el interceptor ──────────────
+function _rawSet(k, v) {
+  try { Storage.prototype._cmmRawSet.call(localStorage, k, v); } catch (e) {
+    try { Object.getOwnPropertyDescriptor(Storage.prototype, "setItem").value.call(localStorage, k, v); } catch (e2) {}
+  }
 }
 
-// ── INTERCEPTAR localStorage — EL CORAZÓN DEL SISTEMA ────────────────
-// Guardamos referencia cruda ANTES de parchear
-Storage.prototype._cmmRawSet    = Storage.prototype.setItem;
-Storage.prototype._cmmRawRemove = Storage.prototype.removeItem;
-
-Storage.prototype.setItem = function(key, value) {
-  // Siempre guardar local primero (instantáneo)
-  Storage.prototype._cmmRawSet.call(this, key, value);
-  // Solo sincronizar localStorage (no sessionStorage) y no claves privadas
-  if (this !== localStorage || FB_SKIP[key]) return;
-  var t = now();
-  setTs(key, t);
-  // Subir a Firebase con timestamp
-  dbRef(key).set({ v: value, t: t })
-    .then(function(){ syncDot("#22c55e", 2500); })
-    .catch(function(e){ console.warn("[CMM] Firebase write falló:", key, e.message||e); });
-};
-
-Storage.prototype.removeItem = function(key) {
-  Storage.prototype._cmmRawRemove.call(this, key);
-  if (this !== localStorage || FB_SKIP[key]) return;
-  setTs(key, 0);
-  dbRef(key).remove().catch(function(){});
-};
-
-// Exponer para uso directo desde la app
-window._origSetItem    = Storage.prototype._cmmRawSet;
-window._origRemoveItem = Storage.prototype._cmmRawRemove;
-window._fbPush  = function(key, value) {
-  Storage.prototype._cmmRawSet.call(localStorage, key, value);
-  if (FB_SKIP[key]) return;
-  var t = now(); setTs(key, t);
-  dbRef(key).set({ v: value, t: t })
-    .then(function(){ syncDot("#22c55e", 2500); })
-    .catch(function(e){ console.warn("[CMM] _fbPush falló:", key, e.message||e); });
-};
-window._fbDelete = function(key) {
-  Storage.prototype._cmmRawRemove.call(localStorage, key);
-  if (!FB_SKIP[key]) dbRef(key).remove().catch(function(){});
-};
-window._sbPush   = window._fbPush;
-window._sbDelete = window._fbDelete;
-
-// ── APLICAR SNAPSHOT: LAST-WRITE-WINS ────────────────────────────────
+// ── Aplicar snapshot de Firebase → localStorage + memoria ────────────
 function applySnapshot(data) {
   if (!data || typeof data !== "object") return 0;
   var changed = 0;
-  Object.keys(data).forEach(function(k) {
+  Object.keys(data).forEach(function (k) {
+    if (FB_SKIP[k]) return;
     var entry = data[k];
     if (entry === null || entry === undefined) return;
-    var fbVal, fbTs;
-    if (entry && typeof entry === "object" && "v" in entry) {
-      fbVal = entry.v;  fbTs = entry.t || 1;
-    } else {
-      fbVal = String(entry);  fbTs = 1; // legacy sin timestamp
-    }
-    var localTs  = getTs(k);
+    var fbVal = (entry && typeof entry === "object" && "v" in entry) ? entry.v : String(entry);
     var localVal = localStorage.getItem(k);
-    // Solo aplicar si Firebase es más reciente o no tenemos el dato
-    if (fbTs >= localTs || localVal === null) {
-      if (localVal !== fbVal) {
-        _rawSet(k, fbVal);
-        setTs(k, fbTs);
-        reloadKey(k);
-        changed++;
-      }
+    if (localVal !== fbVal) {
+      _rawSet(k, fbVal);
+      reloadKey(k);
+      changed++;
     }
   });
   return changed;
 }
 
-// ── PULL: descargar todo al abrir ────────────────────────────────────
+// ── Recargar variable en memoria cuando Firebase actualiza una clave ──
+function reloadKey(k) {
+  try {
+    var v = localStorage.getItem(k);
+    if (v === null) return;
+    if (k === "cmm_usuarios_v1")    { window.sysUsuarios  = JSON.parse(v); }
+    if (k === "cmm_audit_v1")       { window.sysAuditLog  = JSON.parse(v); }
+    if (k === "ingresos_v1")        { window.ingresos     = JSON.parse(v); }
+    if (k === "cmm_anuncios_v1")    { window.annStore     = JSON.parse(v); }
+    if (k === "custom_docs_v1")     { window.customDocs   = JSON.parse(v); }
+    if (k === "cmm_extensiones_v2") { window.extensiones  = JSON.parse(v); }
+    if (k === "cat_studies")        { window.catStudies   = JSON.parse(v); }
+    if (k === "cmm_identidad_v1")   { window.cfgIdentidad = JSON.parse(v); try { if (typeof aplicarIdentidad === "function") aplicarIdentidad(); } catch (e) {} }
+    if (k === "medmanager_v1")      { try { if (typeof loadStore === "function") loadStore(); } catch (e) {} }
+    if (k === "mtn_v1")             { try { if (typeof loadMtnState === "function") window.mtn = loadMtnState(); } catch (e) {} }
+    if (k === "cmm_camas_state_v1") { try { if (typeof loadCamasState === "function") loadCamasState(); } catch (e) {} }
+    if (k === "eecdatos_enc_pacientes") { try { if (typeof window.encRefreshLista === "function") { encRefreshLista(); if (typeof encRefreshAlertas === "function") encRefreshAlertas(); } } catch (e) {} }
+  } catch (e) {}
+}
+
+// ── Refrescar UI de la página activa ─────────────────────────────────
+function refreshUI() {
+  try {
+    var p = window._currentPage || "";
+    if (p === "doctores"            && typeof renderDoctors           === "function") renderDoctors();
+    if (p === "ars"                 && typeof renderARS               === "function") renderARS();
+    if (p === "dashboard"           && typeof renderDashboard         === "function") renderDashboard();
+    if (p === "extensiones"         && typeof renderExtensiones       === "function") renderExtensiones();
+    if (p === "catalogo"            && typeof renderCatalog           === "function") { renderCatalog(); if (typeof updateCatStats === "function") updateCatStats(); }
+    if (p === "presupuestos"        && typeof renderBudgetList        === "function") { renderBudgetList(); if (typeof updateBudgetDoctorARS === "function") updateBudgetDoctorARS(); }
+    if (p === "ingreso"             && typeof renderIngresos          === "function") { renderIngresos(); if (typeof initIngresoDoctorSelect === "function") initIngresoDoctorSelect(); }
+    if (p === "usuarios"            && typeof renderUsuarios          === "function") { renderUsuarios(); if (typeof renderContactPreview === "function") renderContactPreview(); }
+    if (p === "enlace"              && typeof renderLinks             === "function") renderLinks();
+    if (p === "modulos"             && typeof renderClonedModulesList === "function") renderClonedModulesList();
+    if (p === "auditoria"           && typeof renderAuditoria         === "function") renderAuditoria();
+    if (p === "oxigeno"             && typeof renderOxyHistory        === "function") renderOxyHistory();
+    if (p === "escaneo"             && typeof renderScanHistory       === "function") renderScanHistory();
+    if (p === "documentos"          && typeof renderCustomDocMenu     === "function") renderCustomDocMenu();
+    if (p === "configuracion"       && typeof initConfiguracion       === "function") initConfiguracion();
+    if (p === "turno-nocturno"      && typeof mtnRenderCalendar       === "function") { mtnRenderCalendar(); if (typeof mtnUpdateBanner === "function") mtnUpdateBanner(); }
+    if (p === "medico-llamada"      && typeof mllInit                 === "function") mllInit();
+    if (p === "med-especialista"    && typeof melInit                 === "function") melInit();
+    if (p === "atencion-emergencia" && typeof window.encRefreshLista  === "function") { encRefreshLista(); if (typeof encRefreshAlertas === "function") encRefreshAlertas(); }
+    if ((p === "cargo-suministros" || p === "cargo-laboratorio" || p === "cargo-admision" || p === "cargos") && typeof renderCargos === "function") renderCargos();
+    if (p === "cargo-suministros"   && typeof cargoSumRefresh         === "function") cargoSumRefresh();
+    if (p === "cargo-laboratorio"   && typeof cargoLabRefresh         === "function") cargoLabRefresh();
+    if (typeof window.encActualizarBadge === "function") try { window.encActualizarBadge(); } catch (ex) {}
+    if (typeof window.encRefreshAlertas  === "function") try { window.encRefreshAlertas(); } catch (ex) {}
+  } catch (ex) { console.warn("[CMM] UI refresh error:", ex); }
+}
+
+// ── INTERCEPTAR localStorage ──────────────────────────────────────────
+// Escrituras → Firebase. Si no hay conexión: solo caché local (sesión).
+Storage.prototype._cmmRawSet    = Storage.prototype.setItem;
+Storage.prototype._cmmRawRemove = Storage.prototype.removeItem;
+
+Storage.prototype.setItem = function (key, value) {
+  Storage.prototype._cmmRawSet.call(this, key, value);
+  if (this !== localStorage || FB_SKIP[key]) return;
+  if (!_connected || !_db) return;
+  syncDot("#f59e0b");
+  dbRef(key).set({ v: value, t: Date.now() })
+    .then(function () { syncDot("#22c55e", 2500); })
+    .catch(function (e) { console.warn("[CMM] Firebase write falló:", key, e.message || e); });
+};
+
+Storage.prototype.removeItem = function (key) {
+  Storage.prototype._cmmRawRemove.call(this, key);
+  if (this !== localStorage || FB_SKIP[key]) return;
+  if (!_connected || !_db) return;
+  dbRef(key).remove().catch(function () {});
+};
+
+window._origSetItem    = Storage.prototype._cmmRawSet;
+window._origRemoveItem = Storage.prototype._cmmRawRemove;
+
+window._fbPush = function (key, value) {
+  Storage.prototype._cmmRawSet.call(localStorage, key, value);
+  if (FB_SKIP[key] || !_connected || !_db) return;
+  syncDot("#f59e0b");
+  dbRef(key).set({ v: value, t: Date.now() })
+    .then(function () { syncDot("#22c55e", 2500); })
+    .catch(function (e) { console.warn("[CMM] _fbPush falló:", key, e.message || e); });
+};
+window._fbDelete = function (key) {
+  Storage.prototype._cmmRawRemove.call(localStorage, key);
+  if (!FB_SKIP[key] && _connected && _db) dbRef(key).remove().catch(function () {});
+};
+window._sbPush   = window._fbPush;
+window._sbDelete = window._fbDelete;
+
+// ── Pull completo desde Firebase ──────────────────────────────────────
 function fbPullAll(cb) {
-  var done = false;
-  function finish(){ if(!done){ done=true; if(cb) cb(); } }
-  var timeout = setTimeout(function(){ console.warn("[CMM] Firebase >12s — usando datos locales"); finish(); }, 12000);
+  if (!_connected || !_db) { if (cb) cb(false); return; }
   _db.ref(FB_ROOT).once("value")
-    .then(function(snap) {
-      clearTimeout(timeout);
+    .then(function (snap) {
       var data = snap.val();
       if (data && typeof data === "object") {
         var n = applySnapshot(data);
-        console.log("[CMM] ✅ Pull: " + Object.keys(data).length + " claves, " + n + " actualizadas");
-      } else {
-        console.log("[CMM] Firebase vacío — sin cambios");
+        console.log("[CMM] Pull: " + Object.keys(data).length + " claves, " + n + " actualizadas");
       }
-      finish();
+      if (cb) cb(true);
     })
-    .catch(function(e){ clearTimeout(timeout); console.warn("[CMM] Pull error:", e.message||e); finish(); });
+    .catch(function (e) { console.warn("[CMM] Pull error:", e.message || e); if (cb) cb(false); });
 }
+window._sbPullAll = fbPullAll;
 
-// ── REALTIME: recibir cambios de otros dispositivos ──────────────────
-var _realtimeOn = false;
+// ── Realtime: recibir cambios de otros dispositivos ───────────────────
 function fbStartRealtime() {
-  if (_realtimeOn) return;
+  if (_realtimeOn || !_db) return;
   _realtimeOn = true;
-  _db.ref(FB_ROOT).on("value", function(snap) {
+  _db.ref(FB_ROOT).on("value", function (snap) {
     var data = snap.val() || {};
     var changed = applySnapshot(data);
     if (changed > 0) {
       syncDot("#22c55e", 3000);
-      console.log("[CMM] 🔄 Realtime: " + changed + " cambio(s) de otro dispositivo");
-      // Notificar nuevo paciente
+      console.log("[CMM] Realtime: " + changed + " cambio(s)");
       if (data["eecdatos_enc_pacientes"]) {
         try {
-          var e2 = data["eecdatos_enc_pacientes"];
-          var raw = (e2 && typeof e2==="object" && "v" in e2) ? e2.v : e2;
+          var e2   = data["eecdatos_enc_pacientes"];
+          var raw  = (e2 && typeof e2 === "object" && "v" in e2) ? e2.v : e2;
           var pacs = JSON.parse(raw);
           var prev = window._cmm_last_pac_count || 0, curr = pacs.length;
           if (prev > 0 && curr > prev) {
-            var u = pacs[pacs.length-1];
-            if (typeof showToast==="function")
-              showToast("🏥 " + (curr-prev>1?(curr-prev)+" pacientes nuevos":((u&&u.nombre)||"Paciente")+" — nuevo ingreso"));
+            var u = pacs[pacs.length - 1];
+            if (typeof showToast === "function")
+              showToast("🏥 " + (curr - prev > 1 ? (curr - prev) + " pacientes nuevos" : ((u && u.nombre) || "Paciente") + " — nuevo ingreso"));
           }
           window._cmm_last_pac_count = curr;
-        } catch(ex){}
+        } catch (ex) {}
       }
-      // Refrescar login picker si está abierto
-      if (data["cmm_usuarios_v1"] && typeof loginShowPicker==="function") {
+      if (data["cmm_usuarios_v1"] && typeof loginShowPicker === "function") {
         var lm = document.getElementById("modal-login");
-        if (lm && lm.style.display!=="none") try{ loginShowPicker(); }catch(ex){}
+        if (lm && lm.style.display !== "none") try { loginShowPicker(); } catch (ex) {}
       }
-      // Refrescar módulos clonados
-      if (data["cmm_cmod_registry"] && typeof restoreClonedModules==="function")
-        try{ restoreClonedModules(); }catch(ex){}
-      // Refrescar página activa
-      setTimeout(function(){
-        var p = window._currentPage||"";
-        try {
-          if (p==="doctores"            && typeof renderDoctors          ==="function") renderDoctors();
-          if (p==="ars"                 && typeof renderARS              ==="function") renderARS();
-          if (p==="dashboard"           && typeof renderDashboard        ==="function") renderDashboard();
-          if (p==="extensiones"         && typeof renderExtensiones      ==="function") renderExtensiones();
-          if (p==="catalogo"            && typeof renderCatalog          ==="function") { renderCatalog(); if(typeof updateCatStats==="function") updateCatStats(); }
-          if (p==="presupuestos"        && typeof renderBudgetList       ==="function") { renderBudgetList(); if(typeof updateBudgetDoctorARS==="function") updateBudgetDoctorARS(); }
-          if (p==="ingreso"             && typeof renderIngresos         ==="function") { renderIngresos(); if(typeof initIngresoDoctorSelect==="function") initIngresoDoctorSelect(); }
-          if (p==="usuarios"            && typeof renderUsuarios         ==="function") { renderUsuarios(); if(typeof renderContactPreview==="function") renderContactPreview(); }
-          if (p==="enlace"              && typeof renderLinks            ==="function") renderLinks();
-          if (p==="modulos"             && typeof renderClonedModulesList==="function") renderClonedModulesList();
-          if (p==="auditoria"           && typeof renderAuditoria        ==="function") renderAuditoria();
-          if (p==="oxigeno"             && typeof renderOxyHistory       ==="function") renderOxyHistory();
-          if (p==="escaneo"             && typeof renderScanHistory      ==="function") renderScanHistory();
-          if (p==="documentos"         && typeof renderCustomDocMenu     ==="function") renderCustomDocMenu();
-          if (p==="configuracion"       && typeof initConfiguracion      ==="function") initConfiguracion();
-          if (p==="turno-nocturno"      && typeof mtnRenderCalendar      ==="function") { mtnRenderCalendar(); if(typeof mtnUpdateBanner==="function") mtnUpdateBanner(); }
-          if (p==="medico-llamada"      && typeof mllInit                ==="function") mllInit();
-          if (p==="med-especialista"    && typeof melInit                ==="function") melInit();
-          if (p==="atencion-emergencia" && typeof window.encRefreshLista ==="function") { encRefreshLista(); if(typeof encRefreshAlertas==="function") encRefreshAlertas(); }
-          if ((p==="cargo-suministros"||p==="cargo-laboratorio"||p==="cargo-admision"||p==="cargos") && typeof renderCargos==="function") renderCargos();
-          if (p==="cargo-suministros"   && typeof cargoSumRefresh        ==="function") cargoSumRefresh();
-          if (p==="cargo-laboratorio"   && typeof cargoLabRefresh        ==="function") cargoLabRefresh();
-          if (typeof window.encActualizarBadge==="function") try{window.encActualizarBadge();}catch(ex){}
-          if (typeof window.encRefreshAlertas ==="function") try{window.encRefreshAlertas();}catch(ex){}
-        } catch(ex){ console.warn("[CMM] UI refresh error:", ex); }
-      }, 150);
-    } else {
-      syncDot("#3b82f6");
+      if (data["cmm_cmod_registry"] && typeof restoreClonedModules === "function")
+        try { restoreClonedModules(); } catch (ex) {}
+      setTimeout(refreshUI, 150);
     }
   });
 }
 
-// ── SYNC PERIÓDICO: pull cada 60s (respaldo) ─────────────────────────
+// ── Sync periódico (respaldo cada 60 s) ──────────────────────────────
 function startAutoSync() {
   if (window._cmmAutoSyncInterval) clearInterval(window._cmmAutoSyncInterval);
-  window._cmmAutoSyncInterval = setInterval(function() {
-    if (document.hidden) return;
-    fbPullAll(function() {
-      syncDot("#22c55e", 2000);
-      try {
-        var p = window._currentPage||"";
-        if (p==="usuarios"            && typeof renderUsuarios  ==="function") renderUsuarios();
-        if (p==="atencion-emergencia" && typeof window.encRefreshLista==="function") { encRefreshLista(); if(typeof encRefreshAlertas==="function") encRefreshAlertas(); }
-        if (p==="dashboard"           && typeof renderDashboard ==="function") renderDashboard();
-        if (typeof window.encActualizarBadge==="function") window.encActualizarBadge();
-      } catch(ex){}
-    });
+  window._cmmAutoSyncInterval = setInterval(function () {
+    if (document.hidden || !_connected) return;
+    fbPullAll(function (ok) { if (ok) { syncDot("#22c55e", 2000); refreshUI(); } });
   }, 60000);
 }
 
-// ── VOLVER AL TAB ────────────────────────────────────────────────────
-document.addEventListener("visibilitychange", function() {
-  if (!document.hidden) {
+// ── Volver al tab ─────────────────────────────────────────────────────
+document.addEventListener("visibilitychange", function () {
+  if (!document.hidden && _connected) {
     syncDot("#f59e0b");
-    fbPullAll(function() {
-      syncDot("#22c55e", 2000);
-      try{ var p=window._currentPage||""; if(p && typeof window.showPage==="function") window.showPage(p); }catch(ex){}
+    fbPullAll(function (ok) {
+      if (ok) {
+        syncDot("#22c55e", 2000);
+        try { var p = window._currentPage || ""; if (p && typeof window.showPage === "function") window.showPage(p); } catch (ex) {}
+      }
     });
   }
 });
 
-// ── RECONECTAR INTERNET ──────────────────────────────────────────────
-window.addEventListener("online", function() {
-  syncDot("#f59e0b");
-  // Subir todo lo que estaba en local mientras estábamos offline
-  try {
-    var ts = JSON.parse(localStorage.getItem(TS_KEY)||"{}");
-    Object.keys(ts).forEach(function(k) {
-      if (FB_SKIP[k]) return;
-      var v = localStorage.getItem(k);
-      if (v!==null) dbRef(k).set({ v:v, t:ts[k] }).catch(function(){});
-    });
-  } catch(ex){}
-  fbPullAll(function() {
-    syncDot("#22c55e", 3000);
-    if (typeof showToast==="function") showToast("☁️ Reconectado — datos sincronizados");
+// ── Online / Offline ──────────────────────────────────────────────────
+window.addEventListener("offline", function () {
+  _connected = false;
+  syncDot("#ef4444");
+  _setMsg("❌ Sin conexión a internet", "La aplicación requiere internet para funcionar", true);
+  if (!_overlay.parentNode) document.body.appendChild(_overlay);
+  _overlay.style.opacity = "1";
+  _overlay.style.transition = "";
+  if (typeof showToast === "function") showToast("⚠️ Sin internet — la app requiere conexión");
+});
+
+window.addEventListener("online", function () {
+  _setMsg("☁️ Reconectando...", "Verificando Firebase...");
+  _overlay.style.opacity = "1";
+  var r = document.getElementById("cmm-ol-retry");
+  if (r) r.style.display = "none";
+  if (!_overlay.parentNode) document.body.appendChild(_overlay);
+  _initConnection(function (ok) {
+    if (ok) {
+      _connected = true;
+      fbPullAll(function () {
+        syncDot("#22c55e", 3000);
+        if (typeof showToast === "function") showToast("☁️ Reconectado — datos sincronizados");
+        _hideOverlay();
+        fbStartRealtime();
+        refreshUI();
+      });
+    } else {
+      _setMsg("❌ No se pudo conectar con Firebase", "Revisa tu conexión e intenta de nuevo", true);
+    }
   });
 });
 
-window.addEventListener("offline", function() {
-  var d = document.getElementById("cmm-sync-dot");
-  if (d){ d.style.background="#ef4444"; d.title="❌ Sin conexión"; }
-  if (typeof showToast==="function") showToast("⚠️ Sin internet — los cambios se sincronizarán al reconectar");
-});
+// ── Limpiar Firebase ─────────────────────────────────────────────────
+window.__fbRemoveRoot = function () { try { _db && _db.ref(FB_ROOT).remove(); } catch (ex) {} };
 
-// ── MIGRACIÓN ONE-TIME: subir datos existentes con timestamp ─────────
-function runMigration() {
-  if (localStorage.getItem("cmm_lww_v2")) return;
-  var t = now();
-  for (var i=0; i<localStorage.length; i++) {
+// ── Sync manual ──────────────────────────────────────────────────────
+window.cmmSyncManual = function () {
+  if (!_connected || !_db) {
+    if (typeof showToast === "function") showToast("❌ Sin conexión a internet");
+    return;
+  }
+  syncDot("#f59e0b");
+  var status = document.getElementById("sb-sync-status");
+  if (status) status.textContent = "⏳ Sincronizando con Firebase...";
+  fbPullAll(function (ok) {
+    if (ok) {
+      syncDot("#22c55e", 3000);
+      if (status) status.textContent = "✅ Sincronizado · " + new Date().toLocaleTimeString("es-DO");
+      if (typeof showToast === "function") showToast("✅ Datos actualizados desde Firebase");
+      refreshUI();
+    } else {
+      if (status) status.textContent = "❌ Error al sincronizar";
+      if (typeof showToast === "function") showToast("❌ Error al sincronizar con Firebase");
+    }
+  });
+};
+
+window.sbSubirTodo = async function () {
+  var status = document.getElementById("sb-sync-status");
+  if (!_connected || !_db) {
+    if (status) status.textContent = "❌ Firebase no disponible";
+    if (typeof showToast === "function") showToast("❌ Firebase no disponible");
+    return;
+  }
+  if (status) status.textContent = "⏳ Subiendo datos a Firebase...";
+  var ok = 0;
+  for (var i = 0; i < localStorage.length; i++) {
     var k = localStorage.key(i);
-    if (!k || FB_SKIP[k] || k===TS_KEY) continue;
+    if (!k || FB_SKIP[k]) continue;
     var v = localStorage.getItem(k);
     if (!v) continue;
-    // Solo subir si no tiene timestamp propio aún
-    if (!getTs(k)) {
-      setTs(k, t);
-      try { dbRef(k).transaction(function(current) {
-        // Solo escribir si Firebase no tiene nada o tiene dato legacy
-        if (!current || typeof current !== "object" || !("t" in current)) {
-          return { v: v, t: t };
-        }
-        return; // si ya tiene timestamp, no tocar
-      }).catch(function(){}); } catch(ex){}
-    }
+    try { await dbRef(k).set({ v: v, t: Date.now() }); ok++; } catch (e) {}
   }
-  _rawSet("cmm_lww_v2", "1");
-  console.log("[CMM] Migración completada");
+  if (status) status.textContent = "✅ " + ok + " claves subidas · " + new Date().toLocaleTimeString("es-DO");
+  if (typeof showToast === "function") showToast("✅ " + ok + " claves subidas a Firebase");
+};
+
+window.sbBajarTodo = async function () {
+  var status = document.getElementById("sb-sync-status");
+  if (!_connected || !_db) {
+    if (status) status.textContent = "❌ Firebase no disponible";
+    if (typeof showToast === "function") showToast("❌ Firebase no disponible");
+    return;
+  }
+  if (status) status.textContent = "⏳ Descargando desde Firebase...";
+  fbPullAll(function (ok) {
+    if (ok) {
+      if (status) status.textContent = "✅ Datos descargados";
+      if (typeof showToast === "function") showToast("✅ Datos descargados desde Firebase. Recargando...");
+      setTimeout(function () { location.reload(); }, 1200);
+    } else {
+      if (status) status.textContent = "❌ Error al descargar";
+    }
+  });
+};
+
+// ── INIT: verificar conexión antes de mostrar la app ─────────────────
+function _initConnection(cb) {
+  try {
+    try { _app = firebase.app(); } catch (e) { _app = firebase.initializeApp(FB_CFG); }
+    _db = firebase.database(_app);
+    var done = false;
+    var timer = setTimeout(function () {
+      if (!done) { done = true; _db = null; cb(false); }
+    }, 10000);
+    _db.ref(".info/connected").once("value")
+      .then(function (snap) {
+        if (done) return; done = true; clearTimeout(timer);
+        if (snap.val() === true) {
+          console.log("[CMM] Firebase conectado");
+          cb(true);
+        } else {
+          _db.ref(FB_ROOT).once("value").then(function () { cb(true); }).catch(function () { cb(false); });
+        }
+      })
+      .catch(function (e) { if (done) return; done = true; clearTimeout(timer); cb(false); });
+  } catch (e) { cb(false); }
 }
 
-// ── LIMPIAR FIREBASE (usado por cfgLimpiarTodo) ───────────────────────
-window.__fbRemoveRoot = function() { try{ _db.ref(FB_ROOT).remove(); }catch(ex){} };
-window._sbPullAll     = fbPullAll;
+// ── ARRANQUE ─────────────────────────────────────────────────────────
+_setMsg("☁️ Conectando con Firebase...", "Verificando acceso a internet");
 
-// ══════════════════════════════════════════════════════════════════════
-//  PANTALLA DE CARGA — siempre esperar Firebase antes de mostrar la app
-// ══════════════════════════════════════════════════════════════════════
-var _overlay = document.createElement("div");
-_overlay.id = "cmm-sync-overlay";
-_overlay.style.cssText = "position:fixed;inset:0;background:rgba(10,15,30,0.98);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;font-family:Nunito,sans-serif;";
-_overlay.innerHTML =
-  '<div style="position:relative;width:72px;height:72px;">' +
-    '<div style="position:absolute;inset:0;border:3px solid rgba(59,130,246,0.15);border-radius:50%;"></div>' +
-    '<div style="position:absolute;inset:0;border:3px solid transparent;border-top-color:#3b82f6;border-radius:50%;animation:cmmSpin .7s linear infinite;"></div>' +
-    '<div style="position:absolute;inset:10px;border:2px solid transparent;border-top-color:#60a5fa;border-radius:50%;animation:cmmSpin 1.1s linear infinite reverse;"></div>' +
-  '</div>' +
-  '<div style="text-align:center;">' +
-    '<div id="cmm-ol-title" style="color:#f1f5f9;font-size:17px;font-weight:700;margin-bottom:8px;">☁️ Cargando datos actualizados...</div>' +
-    '<div id="cmm-ol-sub"   style="color:#475569;font-size:13px;">Conectando con la nube</div>' +
-  '</div>' +
-  '<style>@keyframes cmmSpin{to{transform:rotate(360deg)}}</style>';
+_initConnection(function (ok) {
+  if (!ok) {
+    _setMsg("❌ Sin conexión a internet", "Esta aplicación requiere internet para funcionar.", true);
+    syncDot("#ef4444");
+    return; // app bloqueada
+  }
 
-function _setMsg(t,s){ var a=document.getElementById("cmm-ol-title"),b=document.getElementById("cmm-ol-sub"); if(a)a.textContent=t; if(b)b.textContent=s||""; }
-function _hideOl(){ if(!_overlay.parentNode) return; _overlay.style.opacity="0"; _overlay.style.transition="opacity 0.4s"; setTimeout(function(){ if(_overlay.parentNode) _overlay.parentNode.removeChild(_overlay); },420); }
-function _launch(){ _hideOl(); document.dispatchEvent(new Event("cmmSyncReady")); fbStartRealtime(); startAutoSync(); }
+  _connected = true;
+  _setMsg("☁️ Descargando datos...", "Cargando los últimos cambios de todos los dispositivos");
 
-document.body.appendChild(_overlay);
-_setMsg("☁️ Sincronizando...", "Cargando los últimos cambios de todos los dispositivos");
-
-var _fbTimer = setTimeout(function() {
-  _setMsg("⚠️ Conexión lenta...", "Continuando con los datos disponibles");
-  setTimeout(_launch, 800);
-}, 12000);
-
-fbPullAll(function() {
-  clearTimeout(_fbTimer);
-  runMigration();
-  _setMsg("✅ Todo actualizado", "Datos sincronizados en tiempo real");
-  setTimeout(_launch, 350);
+  fbPullAll(function () {
+    _setMsg("✅ Todo actualizado", "Datos sincronizados en tiempo real");
+    setTimeout(function () {
+      _hideOverlay();
+      document.dispatchEvent(new Event("cmmSyncReady"));
+      fbStartRealtime();
+      startAutoSync();
+    }, 350);
+  });
 });
 
-} // fin _initFirebase
-
-// ── SDK ya embebido — inicializar directamente ──────────────────────
-_initFirebase();
-
-})(); // fin IIFE
+})(); // fin IIFE sync module
 </script>
 
 

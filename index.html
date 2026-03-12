@@ -12619,7 +12619,8 @@ function saveSysSession()  { localStorage.setItem('cmm_session_v1',  JSON.string
 
 // ---- ENSURE DEFAULT ADMIN ----
 function ensureDefaultAdmin() {
-  if (!sysUsuarios.length) {
+  var exists = sysUsuarios.some(function(u) { return u.id === 'usr_admin_default'; });
+  if (!exists) {
     sysUsuarios.push({
       id: 'usr_admin_default',
       nombre: 'Administrador',

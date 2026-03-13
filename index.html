@@ -12679,56 +12679,115 @@ function abAlta(c){
   var m=G('enc_altaOverlay');if(m)m.classList.add('active');
 }
 function cAlta(){ES.calta=null;ES._altaSel='';var m=G('enc_altaOverlay');if(m)m.classList.remove('active');}
+// ── MODAL DE PENDIENTES AL DAR DE ALTA ──────────────────────────────────────
+function _encAltaConPendientes(tipo, pendientes, pacNombre, onEliminar, onMantener) {
+  var existing = document.getElementById('encAltaPendModal');
+  if (existing) existing.remove();
+
+  var listaHTML = pendientes.map(function(p) {
+    return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:rgba(239,68,68,0.07);border:1px solid rgba(239,68,68,0.2);border-radius:8px;margin-bottom:6px;">' +
+      '<span style="font-size:16px;flex-shrink:0;">' + p.icon + '</span>' +
+      '<div>' +
+        '<div style="font-size:12px;font-weight:700;color:#f87171;">' + p.titulo + '</div>' +
+        '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">' + p.detalle + '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  var overlay = document.createElement('div');
+  overlay.id = 'encAltaPendModal';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(10,15,30,0.92);display:flex;align-items:center;justify-content:center;padding:20px;';
+  overlay.innerHTML =
+    '<div style="background:#0f172a;border:1.5px solid rgba(251,191,36,0.4);border-radius:18px;padding:28px 30px;max-width:480px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.7);">' +
+      '<div style="display:flex;align-items:center;gap:12px;margin-bottom:6px;">' +
+        '<span style="font-size:36px;">⚠️</span>' +
+        '<div>' +
+          '<div style="font-size:17px;font-weight:800;color:#fbbf24;">Pendientes sin resolver</div>' +
+          '<div style="font-size:12px;color:#64748b;margin-top:2px;">Paciente: <strong style="color:#e2e8f0;">' + pacNombre + '</strong> · Alta: <strong style="color:#e2e8f0;">' + tipo + '</strong></div>' +
+        '</div>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#94a3b8;margin-bottom:14px;">Este paciente tiene órdenes pendientes. ¿Qué deseas hacer con ellas?</div>' +
+      '<div style="margin-bottom:18px;">' + listaHTML + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:8px;">' +
+        '<button id="encAltaPendBtnElim" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">' +
+          '<span style="font-size:18px;">🗑️</span>' +
+          '<div><div style="font-weight:800;">Eliminar pendientes y dar de alta</div><div style="font-size:11px;font-weight:400;opacity:.8;margin-top:1px;">Se borrarán los labs, imágenes y medicamentos del registro</div></div>' +
+        '</button>' +
+        '<button id="encAltaPendBtnMant" style="background:linear-gradient(135deg,#d97706,#92400e);color:#fff;border:none;padding:12px 20px;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;">' +
+          '<span style="font-size:18px;">📋</span>' +
+          '<div><div style="font-weight:800;">Mantener pendientes y dar de alta</div><div style="font-size:11px;font-weight:400;opacity:.8;margin-top:1px;">El historial quedará con las órdenes registradas</div></div>' +
+        '</button>' +
+        '<button id="encAltaPendBtnCancel" style="background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">Cancelar — No dar de alta</button>' +
+      '</div>' +
+    '</div>';
+
+  document.body.appendChild(overlay);
+  document.getElementById('encAltaPendBtnElim').onclick   = function() { overlay.remove(); onEliminar(); };
+  document.getElementById('encAltaPendBtnMant').onclick   = function() { overlay.remove(); onMantener(); };
+  document.getElementById('encAltaPendBtnCancel').onclick = function() { overlay.remove(); };
+}
+
+function _encProcesarAlta(tipo, eliminarPendientes) {
+  var bed = ES.bm[ES.calta];
+  if (bed) { bed.dataset.estado='vacia'; bed.innerHTML='<h3>'+ES.calta+'</h3><p style="font-size:20px;margin:2px 0">🛏️</p><p class="enc-bed-lbl">Vacía</p>'; }
+  if (ES.pacMap && ES.calta) {
+    var pac = ES.pacMap[ES.calta];
+    if (pac) {
+      pac.disposicion = tipo;
+      pac.horaAlta    = new Date().toLocaleTimeString();
+      if (!pac.horaAltaOriginal) pac.horaAltaOriginal = pac.horaAlta;
+      try {
+        var lista = JSON.parse(localStorage.getItem('eecdatos_enc_pacientes') || '[]');
+        var idx = lista.findIndex(function(p){ return p.cama === ES.calta && p.nombre === pac.n; });
+        if (idx >= 0) {
+          lista[idx].disposicion    = tipo;
+          lista[idx].horaAlta       = pac.horaAlta;
+          if (!lista[idx].horaAltaOriginal) lista[idx].horaAltaOriginal = pac.horaAlta;
+          lista[idx].dado_alta      = true;
+          if (eliminarPendientes) {
+            lista[idx].labs = []; lista[idx].la = [];
+            lista[idx].imgs = [];
+            lista[idx].meds = [];
+          }
+          localStorage.setItem('eecdatos_enc_pacientes', JSON.stringify(lista));
+          try { if (typeof showToast==='function') showToast('🚪 Alta registrada · '+(lista[idx].nombre||pac.n||'')+(ES.calta?' · Cama '+ES.calta:'')+(tipo?' · '+tipo:'')+(eliminarPendientes?' · Pendientes eliminados':'')); } catch(e){}
+          try { if (typeof encRefreshLista==='function') encRefreshLista(); } catch(e){}
+          try { if (typeof encActualizarBadge==='function') encActualizarBadge(); } catch(e){}
+          try { if (typeof encRefreshAlertas==='function') encRefreshAlertas(); } catch(e){}
+        }
+      } catch(e) {}
+    }
+    delete ES.pacMap[ES.calta];
+  }
+  if (ES.pac && ES.pac.cama === ES.calta) ES.pac = null;
+  cAlta(); stats(); saveCamasState();
+}
+
 function confAlta(){
   if (typeof canDo==='function' && !canDo('enc.alta')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: dar de alta paciente','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: dar de alta paciente','error'); return; }
   var tipo=ES._altaSel||'';
   if(tipo==='Otro'){tipo=G('enc_altaOtroTexto')?G('enc_altaOtroTexto').value.trim():'';}
   if(!tipo||!ES.calta){alert('Por favor selecciona el tipo de disposición.');return;}
-  // ── Verificar pendientes antes de dar alta ──
+  // ── Verificar pendientes ────────────────────────────────────────────────────
   var _pac = (ES.pacMap && ES.pacMap[ES.calta]) || ES.pac || {};
   var _labs = _pac.labs || _pac.la || [];
   var _imgs = _pac.imgs || [];
   var _meds = _pac.meds || [];
+  var _pacNombre = _pac.nombre || _pac.n || 'Paciente';
   var _pendientes = [];
-  if (_labs.length) _pendientes.push('🧪 Laboratorios: ' + _labs.join(', '));
-  if (_imgs.length) _pendientes.push('🩻 Estudios de imagen: ' + _imgs.map(function(i){ return i.est||(typeof i==='string'?i:''); }).filter(Boolean).join(', '));
-  if (_meds.length) _pendientes.push('💊 Órdenes médicas: ' + _meds.map(function(m){ return m.m||(typeof m==='string'?m:''); }).filter(Boolean).join(', '));
+  if (_labs.length) _pendientes.push({ icon:'🧪', titulo:'Laboratorios ('+_labs.length+')', detalle: _labs.slice(0,4).join(', ') + (_labs.length>4?' y más...':'') });
+  if (_imgs.length) _pendientes.push({ icon:'🩻', titulo:'Imágenes diagnósticas ('+_imgs.length+')', detalle: _imgs.slice(0,3).map(function(i){ return i.est||(typeof i==='string'?i:''); }).filter(Boolean).join(', ') + (_imgs.length>3?' y más...':'') });
+  if (_meds.length) _pendientes.push({ icon:'💊', titulo:'Medicamentos ordenados ('+_meds.length+')', detalle: _meds.slice(0,3).map(function(m){ return m.m||(typeof m==='string'?m:''); }).filter(Boolean).join(', ') + (_meds.length>3?' y más...':'') });
+
   if (_pendientes.length) {
-    var _msg = '\u26a0\ufe0f ADVERTENCIA \u2014 Este paciente tiene pendiente:\n\n' + _pendientes.join('\n') + '\n\n\u00bfEst\u00e1 seguro que desea dar de alta de todas formas?';
-    if (!confirm(_msg)) return;
+    _encAltaConPendientes(tipo, _pendientes, _pacNombre,
+      function(){ _encProcesarAlta(tipo, true);  },   // Eliminar pendientes
+      function(){ _encProcesarAlta(tipo, false); }    // Mantener pendientes
+    );
+    return;
   }
-  var bed=ES.bm[ES.calta];
-  if(bed){bed.dataset.estado='vacia';bed.innerHTML='<h3>'+ES.calta+'</h3><p style="font-size:20px;margin:2px 0">🛏️</p><p class="enc-bed-lbl">Vacía</p>';}
-  // Guardar disposición en el registro del paciente
-  if(ES.pacMap&&ES.calta){
-    var pac=ES.pacMap[ES.calta];
-    if(pac){
-      pac.disposicion=tipo;
-      pac.horaAlta=new Date().toLocaleTimeString();
-      if(!pac.horaAltaOriginal) pac.horaAltaOriginal=pac.horaAlta;
-      // Actualizar en localStorage
-      try{
-        var lista=JSON.parse(localStorage.getItem('eecdatos_enc_pacientes')||'[]');
-        var idx=lista.findIndex(function(p){return p.cama===ES.calta&&p.nombre===pac.n;});
-        if(idx>=0){
-          lista[idx].disposicion=tipo;
-          lista[idx].horaAlta=pac.horaAlta;
-          if(!lista[idx].horaAltaOriginal) lista[idx].horaAltaOriginal=pac.horaAlta;
-          lista[idx].dado_alta=true;
-          localStorage.setItem('eecdatos_enc_pacientes',JSON.stringify(lista));
-          // Mostrar toast con aviso
-          try{if(typeof showToast==='function') showToast('🚪 Alta registrada · '+(lista[idx].nombre||pac.n||'')+(ES.calta?' · Cama '+ES.calta:'')+(tipo?' · '+tipo:''));}catch(e){}
-          // Refrescar lista y alertas
-          try{if(typeof encRefreshLista==='function') encRefreshLista();}catch(e){}
-          try{if(typeof encActualizarBadge==='function') encActualizarBadge();}catch(e){}
-          try{if(typeof encRefreshAlertas==='function') encRefreshAlertas();}catch(e){}
-        }
-      }catch(e){}
-    }
-    delete ES.pacMap[ES.calta];
-  }
-  if(ES.pac&&ES.pac.cama===ES.calta)ES.pac=null;
-  cAlta();stats();saveCamasState();
+  // Sin pendientes → alta directa
+  _encProcesarAlta(tipo, false);
 }
 function vista(){
   var p=ES.pac;
@@ -12777,8 +12836,8 @@ function _encStart(){
   cats();bLabs();bBeds();syncEncPacientesToCamasState();loadCamasState();rMeds();rImgs();ufecha();
   if(ES.iv)clearInterval(ES.iv);ES.iv=setInterval(ufecha,1000);stats();
   B('enc_btnAsignarCama',asig);
-  B('enc_btnAsignarLabs',function(){if(!ES.sl.length){if(typeof showToast==='function')showToast('⚠️ Selecciona al menos un laboratorio antes de confirmar','error');return;}ES.la=ES.sl.slice();var ll=G('enc_listaLabs');if(ll)ll.textContent=ES.la.length?ES.la.join(', '):'Sin labs.';if(typeof showToast==='function')showToast('✅ '+ES.la.length+' laboratorio(s) confirmado(s)','success');});
-  B('enc_btnLimpiarLabs',function(){ES.sl=[];ES.la=[];document.querySelectorAll('#page-atencion-emergencia .enc-lab').forEach(function(el){el.classList.remove('selected');});var ll=G('enc_listaLabs');if(ll)ll.textContent='';});
+  B('enc_btnAsignarLabs',function(){ES.la=ES.sl.slice();var ll=G('enc_listaLabs');if(ll)ll.textContent=ES.la.length?ES.la.join(', '):'Sin laboratorios.';if(typeof showToast==='function')showToast(ES.la.length?'✅ '+ES.la.length+' laboratorio(s) confirmado(s)':'🗑️ Laboratorios eliminados','success');if(typeof encRefreshAlertas==='function')encRefreshAlertas();});
+  B('enc_btnLimpiarLabs',function(){ES.sl=[];ES.la=[];document.querySelectorAll('#page-atencion-emergencia .enc-lab').forEach(function(el){el.classList.remove('selected');});var ll=G('enc_listaLabs');if(ll)ll.textContent='Sin laboratorios.';if(typeof showToast==='function')showToast('🗑️ Laboratorios eliminados','success');if(typeof encRefreshAlertas==='function')encRefreshAlertas();});
   B('enc_btnAgregarMedicamento',function(){var campos=[{id:'enc_medicamentoOrden',label:'💊 Medicamento'},{id:'enc_presentacionMedicamento',label:'💉 Presentación'},{id:'enc_dosisMedicamento',label:'⚖️ Dosis'},{id:'enc_unidadDosis',label:'📏 Unidad'},{id:'enc_viaAdministracion',label:'🩹 Vía'},{id:'enc_motivoMedicacion',label:'📝 Motivo'}];var faltantes=[];campos.forEach(function(c){var el=G(c.id);if(!el)return;if(!el.value.trim()){el.classList.add('enc-field-err');faltantes.push(c.label);}else el.classList.remove('enc-field-err');});if(faltantes.length){if(typeof showToast==='function')showToast('⚠️ Faltan: '+faltantes.join(', '),'error');return;}ES.meds.push({m:V('enc_medicamentoOrden'),p:V('enc_presentacionMedicamento'),d:V('enc_dosisMedicamento'),u:V('enc_unidadDosis'),v:V('enc_viaAdministracion'),mo:V('enc_motivoMedicacion')});campos.forEach(function(c){SV(c.id,'');});pSel('enc_presentacionMedicamento',[],'Presentacion');rMeds();if(typeof showToast==='function')showToast('✅ Medicamento agregado','success');});
   B('enc_btnAgregarImagen',function(){var campos=[{id:'enc_imageSearch',label:'🩻 Estudio'},{id:'enc_lado',label:'↔️ Lateralidad'},{id:'enc_proyeccion',label:'📐 Proyección'},{id:'enc_imagenMotivo',label:'📝 Motivo'}];var faltantes=[];campos.forEach(function(c){var el=G(c.id);if(!el)return;if(!el.value.trim()){el.classList.add('enc-field-err');faltantes.push(c.label);}else el.classList.remove('enc-field-err');});var ei=G('enc_errorImagen');if(faltantes.length){if(typeof showToast==='function')showToast('⚠️ Faltan: '+faltantes.join(', '),'error');if(ei)ei.innerHTML='<div style="padding:8px 12px;background:#fee2e2;border:1.5px solid #fca5a5;border-radius:8px;color:#b91c1c;"><strong>⚠️ Campos requeridos:</strong><ul style="margin:4px 0 0 16px;line-height:1.8;">'+faltantes.map(function(f){return '<li>'+f+'</li>';}).join('')+'</ul></div>';return;}if(ei)ei.innerHTML='';ES.imgs.push({est:V('enc_imageSearch'),lado:V('enc_lado'),proy:V('enc_proyeccion'),mot:V('enc_imagenMotivo')});campos.forEach(function(c){SV(c.id,'');});rImgs();if(typeof showToast==='function')showToast('✅ Imagen agregada','success');});
   B('enc_btnVistaPrevia',vista);B('enc_btnNuevoRegistro',limpiar);B('enc_btnConfirmarAlta',confAlta);B('enc_btnCancelarAlta',cAlta);
@@ -15349,7 +15408,7 @@ window.encRefreshLista = function() {
           : '<span style="background:#f0fdf4;color:#15803d;border:1px solid #86efac;padding:5px 10px;border-radius:6px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;gap:4px;">✅ Dado de Alta</span>' +
             '<button onclick="encReabrirPaciente(\'' + p.id + '\',\'' + (p.nombre||'').replace(/'/g,'\\') + '\')" style="background:#f59e0b;color:#fff;border:none;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;" title="Requiere autorización de supervisor">📂 Abrir</button>'
         ) +
-        '<button onclick="encEliminarPac(\'' + p.id + '\')" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px" title="Eliminar (requiere supervisor si tiene órdenes)">✕</button>' +
+        '<button onclick="encEliminarPac(\'' + p.id + '\')" style="background:#fee2e2;color:#dc2626;border:1px solid #fecaca;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:12px" title="' + (p.dado_alta ? 'Eliminar registro del historial' : 'Eliminar registro activo') + '">🗑️</button>' +
         '</div></td>';
     tbody.appendChild(tr);
   });
@@ -16169,12 +16228,83 @@ window.encEliminarPac = function(id) {
   var tieneCargos = encPacienteTieneCargos(pac.nombre || '');
   var esDadoAlta  = !!pac.dado_alta;
 
-  if (tieneCargos || esDadoAlta) {
-    // Requiere supervisor
-    var motivo = esDadoAlta
-      ? 'eliminar un paciente Dado de Alta'
-      : 'eliminar un paciente con órdenes/cargos registrados';
-    encSupervisorAuth(motivo, function() {
+  if (esDadoAlta) {
+    // ── Modal de confirmación para paciente dado de alta ──────────────────
+    var existing = document.getElementById('encElimAltaModal');
+    if (existing) existing.remove();
+
+    var labsCount = (pac.labs || pac.la || []).length;
+    var mdsCount  = (pac.meds || []).length;
+    var imgCount  = (pac.imgs || []).length;
+    var ordResumen = '';
+    if (labsCount || mdsCount || imgCount) {
+      var partes = [];
+      if (labsCount) partes.push('🧪 ' + labsCount + ' lab' + (labsCount > 1 ? 's' : ''));
+      if (imgCount)  partes.push('🩻 ' + imgCount  + ' imagen' + (imgCount > 1 ? 'es' : ''));
+      if (mdsCount)  partes.push('💊 ' + mdsCount  + ' med' + (mdsCount > 1 ? 's' : ''));
+      ordResumen = '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">' +
+        partes.map(function(p){ return '<span style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);color:#fca5a5;border-radius:8px;font-size:10px;font-weight:700;padding:2px 8px;">'+p+'</span>'; }).join('') +
+        '</div>';
+    }
+
+    var overlay = document.createElement('div');
+    overlay.id = 'encElimAltaModal';
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(10,15,30,0.92);display:flex;align-items:center;justify-content:center;padding:20px;';
+    overlay.innerHTML =
+      '<div style="background:#0f172a;border:1.5px solid rgba(239,68,68,0.4);border-radius:18px;padding:28px 30px;max-width:460px;width:100%;box-shadow:0 24px 80px rgba(0,0,0,.7);">' +
+        '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">' +
+          '<span style="font-size:38px;">🗑️</span>' +
+          '<div>' +
+            '<div style="font-size:17px;font-weight:800;color:#f87171;">Eliminar paciente dado de alta</div>' +
+            '<div style="font-size:11px;color:#64748b;margin-top:2px;">Esta acción es permanente y no se puede deshacer</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px 16px;margin-bottom:18px;">' +
+          '<div style="font-size:14px;font-weight:800;color:#e2e8f0;">👤 ' + (pac.nombre || '—') + '</div>' +
+          '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">' +
+            (pac.edad ? pac.edad + ' años' : '') +
+            (pac.sexo ? ' · ' + pac.sexo : '') +
+            (pac.cama ? ' · Cama <strong style="color:#e2e8f0;">' + pac.cama + '</strong>' : '') +
+          '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:3px;">📋 ' + (pac.dx || '—') + '</div>' +
+          '<div style="font-size:11px;color:#64748b;margin-top:2px;">🕐 Atendido: ' + (pac.fecha || '') + (pac.hora ? ' · ' + pac.hora : '') + '</div>' +
+          '<div style="margin-top:6px;display:flex;align-items:center;gap:6px;">' +
+            '<span style="background:#f0fdf4;border:1px solid #86efac;color:#15803d;border-radius:8px;font-size:10px;font-weight:700;padding:2px 8px;">✅ Alta' + (pac.horaAlta ? ' · ' + pac.horaAlta : '') + '</span>' +
+            (pac.disposicion ? '<span style="font-size:11px;color:#64748b;">📋 ' + pac.disposicion + '</span>' : '') +
+          '</div>' +
+          ordResumen +
+        '</div>' +
+        '<div style="background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);border-radius:10px;padding:10px 14px;margin-bottom:18px;">' +
+          '<div style="font-size:12px;color:#fca5a5;font-weight:700;">⚠️ Se eliminará todo el historial de este paciente del sistema, incluyendo diagnóstico, laboratorios, medicamentos e imágenes registradas.</div>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;">' +
+          '<button id="encElimAltaBtnConfirm" style="flex:1;background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;padding:12px 16px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">' +
+            '🗑️ Sí, eliminar permanentemente' +
+          '</button>' +
+          '<button id="encElimAltaBtnCancel" style="background:rgba(255,255,255,0.05);color:#94a3b8;border:1px solid rgba(255,255,255,0.1);padding:12px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;">' +
+            'Cancelar' +
+          '</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+    overlay.addEventListener('click', function(e){ if (e.target === overlay) overlay.remove(); });
+    document.getElementById('encElimAltaBtnCancel').onclick = function() { overlay.remove(); };
+    document.getElementById('encElimAltaBtnConfirm').onclick = function() {
+      overlay.remove();
+      var nuevaLista = encGetPacientes().filter(function(p){ return p.id !== id; });
+      encSavePacientes(nuevaLista);
+      encRefreshLista();
+      if (typeof encRefreshAlertas === 'function') encRefreshAlertas();
+      if (typeof logAudit === 'function') logAudit('DELETE', 'Paciente dado de alta eliminado: ' + (pac.nombre || id));
+      if (typeof showToast === 'function') showToast('🗑️ Paciente "' + (pac.nombre || '') + '" eliminado del historial', 'red');
+    };
+    return;
+  }
+
+  if (tieneCargos) {
+    // Requiere supervisor solo si tiene cargos activos (no dado de alta)
+    encSupervisorAuth('eliminar un paciente con órdenes/cargos registrados', function() {
       var nuevaLista = encGetPacientes().filter(function(p){ return p.id !== id; });
       encSavePacientes(nuevaLista);
       encRefreshLista();
@@ -30762,6 +30892,7 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
           }catch(e){}
         })();
         encUpdateMenuStats();
+        if(typeof encRefreshAlertas==='function') setTimeout(encRefreshAlertas, 100);
       }
 
       // ── VISTA PREVIA DE CAMA ────────────────────────────
@@ -31420,8 +31551,8 @@ window._abrirEmergencia = function(editarId, irDirectoNueva) {
       B('enc_btnCancelarAlta', cAlta);
       d.encAltaSel = encAltaSel;
 
-      B('enc_btnAsignarLabs',function(){if(!ES.sl.length){if(typeof showToast==='function')showToast('⚠️ Selecciona al menos un laboratorio antes de confirmar','error');return;}ES.la=ES.sl.slice();var ll=G('enc_listaLabs');if(ll)ll.textContent=ES.la.length?ES.la.join(', '):'Sin labs.';if(typeof showToast==='function')showToast('✅ '+ES.la.length+' laboratorio(s) confirmado(s)','success');});
-      B('enc_btnLimpiarLabs',function(){ES.sl=[];ES.la=[];d.querySelectorAll('.enc-lab').forEach(function(el){el.classList.remove('selected');});var ll=G('enc_listaLabs');if(ll)ll.textContent='';});
+      B('enc_btnAsignarLabs',function(){ES.la=ES.sl.slice();var ll=G('enc_listaLabs');if(ll)ll.textContent=ES.la.length?ES.la.join(', '):'Sin laboratorios.';if(typeof showToast==='function')showToast(ES.la.length?'✅ '+ES.la.length+' laboratorio(s) confirmado(s)':'🗑️ Laboratorios eliminados','success');if(typeof encRefreshAlertas==='function')encRefreshAlertas();});
+      B('enc_btnLimpiarLabs',function(){ES.sl=[];ES.la=[];d.querySelectorAll('.enc-lab').forEach(function(el){el.classList.remove('selected');});var ll=G('enc_listaLabs');if(ll)ll.textContent='Sin laboratorios.';if(typeof showToast==='function')showToast('🗑️ Laboratorios eliminados','success');if(typeof encRefreshAlertas==='function')encRefreshAlertas();});
 
       B('enc_btnAgregarMedicamento',function(){
         var campos=[

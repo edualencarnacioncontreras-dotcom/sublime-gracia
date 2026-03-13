@@ -5661,11 +5661,22 @@ window.showPage = function(id) {
               </div>
             </div>
           </div>
-          <div class="table-card">
-            <div class="table-header"><h3 style="font-size:12px;text-transform:uppercase;letter-spacing:1px;">📌 Mensaje de Restricción</h3></div>
-            <div style="padding:14px;font-size:12px;color:var(--muted);line-height:1.7;">
-              Cuando alguien sin permiso intente una acción, verá los datos del contacto de soporte registrado.
-              <div id="contact-preview" style="margin-top:10px;background:var(--surface2);border-radius:8px;padding:12px;font-size:11px;line-height:1.9;color:var(--text);display:none;"></div>
+          <div class="table-card" style="overflow:visible;">
+            <div style="padding:18px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="font-size:20px;">📌</span>
+                <div>
+                  <div style="font-size:14px;font-weight:700;color:var(--white);">Encargados por Módulo</div>
+                  <div style="font-size:11px;color:var(--muted);">Cuando alguien no tenga permiso, verá el encargado del módulo que intentó usar.</div>
+                </div>
+              </div>
+              <button onclick="cfgAgregarEncargado()" style="padding:8px 16px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">➕ Agregar</button>
+            </div>
+            <div style="padding:16px;display:flex;flex-direction:column;gap:8px;">
+              <div id="cfg-encargados-lista" style="display:flex;flex-direction:column;gap:6px;min-height:40px;"></div>
+              <div style="margin-top:8px;display:flex;gap:8px;justify-content:flex-end;">
+                <button onclick="cfgGuardarEncargados()" style="padding:9px 20px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">💾 Guardar cambios</button>
+              </div>
             </div>
           </div>
         </div>
@@ -8356,11 +8367,13 @@ window.showPage = function(id) {
               <div class="form-group" style="grid-column:1/-1;background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:8px;padding:12px;">
                 <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;">
                   <input type="checkbox" id="usr-is-contact" style="width:16px;height:16px;">
-                  <div>
-                    <div style="font-weight:600;font-size:13px;">📌 Contacto de soporte</div>
-                    <div style="font-size:11px;color:var(--muted);margin-top:2px;">Sus datos aparecerán cuando alguien no tenga permiso.</div>
+                  <div style="flex:1;">
+                    <div style="font-weight:600;font-size:13px;">📌 Encargado / Contacto de soporte</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:2px;">Sus datos aparecerán cuando alguien no tenga permiso. Solo puede haber uno activo.</div>
                   </div>
+                  <div id="usr-contact-badge" style="display:none;background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid rgba(99,102,241,0.3);border-radius:6px;padding:3px 8px;font-size:10px;font-weight:700;white-space:nowrap;">ACTUAL</div>
                 </label>
+                <div id="usr-contact-current" style="display:none;margin-top:8px;padding:6px 10px;background:var(--surface2);border-radius:6px;font-size:11px;color:var(--muted);"></div>
               </div>
               <div class="form-group" style="grid-column:1/-1;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:12px;">
                 <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;">
@@ -9957,10 +9970,10 @@ function editarExtension(id) {
 }
 
 function guardarExtension() {
-  var _extEdit = typeof extensionEditId !== 'undefined' && extensionEditId != null;
+  var _extEdit = editingExtId != null;  // ← fix: usar la variable real, no extensionEditId
   if (typeof canDo==='function') {
-    if (_extEdit && !canDo('ext.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: editar extensión','error'); return; }
-    if (!_extEdit && !canDo('ext.crear')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: crear extensión','error'); return; }
+    if (_extEdit && !canDo('ext.editar')) { showAccessBlocked('Editar extensión'); return; }
+    if (!_extEdit && !canDo('ext.crear')) { showAccessBlocked('Crear extensión'); return; }
   }
   const numero = document.getElementById('ext-num').value.trim();
   const nombre = document.getElementById('ext-nombre').value.trim();
@@ -10135,6 +10148,10 @@ function initConfiguracion() {
   // Load DB config into new panel
   cfgActualizarPanelRed();
 
+  // Cargar selector de encargado
+  sysEncargados = JSON.parse(localStorage.getItem('cmm_encargados_v1') || '[]');
+  cfgCargarSelectorContacto();
+
   // Session timeout
   const savedTimeout = localStorage.getItem('cmm_session_timeout') || '30';
   const sel = document.getElementById('cfg-session-timeout');
@@ -10160,6 +10177,69 @@ function cfgGuardarIdentidad() {
   localStorage.setItem('cmm_identidad_v1', JSON.stringify(cfgIdentidad));
   showToast('✅ Identidad del centro guardada');
 }
+
+// ── ENCARGADOS POR MÓDULO ────────────────────────────────────────────────────
+// Formato: [{modulo:'doctores', userId:'usr_xx'}, ...]
+let sysEncargados = JSON.parse(localStorage.getItem('cmm_encargados_v1') || '[]');
+
+function saveSysEncargados() {
+  localStorage.setItem('cmm_encargados_v1', JSON.stringify(sysEncargados));
+}
+
+function cfgCargarSelectorContacto() {
+  cfgRenderEncargados();
+}
+
+function cfgRenderEncargados() {
+  const lista = document.getElementById('cfg-encargados-lista');
+  if (!lista) return;
+  const usuarios = (typeof sysUsuarios !== 'undefined' ? sysUsuarios : []).filter(u => u.activo !== false);
+  if (!sysEncargados.length) {
+    lista.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:8px 4px;text-align:center;">Sin encargados configurados. Usa ➕ Agregar para añadir uno.</div>';
+    return;
+  }
+  lista.innerHTML = sysEncargados.map((enc, i) => {
+    const usuarioOpts = usuarios.map(u =>
+      `<option value="${u.id}" ${enc.userId === u.id ? 'selected' : ''}>${u.nombre}${u.cargo ? ' · ' + u.cargo : ''}</option>`
+    ).join('');
+    const moduloOpts = (typeof SYS_MODULES !== 'undefined' ? SYS_MODULES : []).map(m =>
+      `<option value="${m.id}" ${enc.modulo === m.id ? 'selected' : ''}>${m.label}</option>`
+    ).join('');
+    return `<div style="display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;flex-wrap:wrap;" data-enc-idx="${i}">
+      <select onchange="sysEncargados[${i}].modulo=this.value" style="flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;">
+        <option value="">— Módulo —</option>${moduloOpts}
+      </select>
+      <div style="font-size:11px;color:var(--muted);flex-shrink:0;">→</div>
+      <select onchange="sysEncargados[${i}].userId=this.value" style="flex:1;min-width:140px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 8px;color:var(--text);font-size:12px;">
+        <option value="">— Usuario —</option>${usuarioOpts}
+      </select>
+      <button onclick="cfgEliminarEncargado(${i})" style="padding:6px 10px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.25);border-radius:6px;color:#f87171;font-size:12px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function cfgAgregarEncargado() {
+  sysEncargados.push({ modulo: '', userId: '' });
+  cfgRenderEncargados();
+}
+
+function cfgEliminarEncargado(idx) {
+  sysEncargados.splice(idx, 1);
+  cfgRenderEncargados();
+}
+
+function cfgGuardarEncargados() {
+  if (typeof canDo === 'function' && !canDo('sys.config')) { showAccessBlocked('Configurar encargados'); return; }
+  // Validar que no haya filas vacías
+  const incompletos = sysEncargados.filter(e => !e.modulo || !e.userId);
+  if (incompletos.length) { if (typeof showToast === 'function') showToast('⚠️ Completa todos los campos antes de guardar', 'yellow'); return; }
+  saveSysEncargados();
+  if (typeof showToast === 'function') showToast('✅ Encargados guardados correctamente');
+}
+
+// Mantener compatibilidad con el checkbox isContact del modal de usuario
+function cfgPreviewContacto() {}
+function cfgGuardarContacto() {}
 
 function cfgVistaPrevia() {
   const nombre = document.getElementById('cfg-nombre-centro')?.value || 'Centro Médico';
@@ -12939,28 +13019,46 @@ const PERMISOS_DEFAULT = {
 
 // ── MOSTRAR MENSAJE DE ACCESO BLOQUEADO ──────────────────────────────────────
 function showAccessBlocked(modulo) {
-  var contacto = (typeof sysUsuarios !== 'undefined')
+  // Buscar el módulo que coincida con la acción
+  var moduloId = null;
+  if (typeof SYS_MODULES !== 'undefined') {
+    moduloId = SYS_MODULES.find(function(m){ return modulo && modulo.toLowerCase().includes(m.id.toLowerCase()); })
+            || SYS_MODULES.find(function(m){ return m.id === modulo; });
+  }
+  // Encargados asignados a este módulo
+  var encargadosModulo = [];
+  if (typeof sysEncargados !== 'undefined' && sysEncargados.length && moduloId) {
+    var ids = sysEncargados.filter(function(e){ return e.modulo === moduloId.id && e.userId; }).map(function(e){ return e.userId; });
+    encargadosModulo = (typeof sysUsuarios !== 'undefined' ? sysUsuarios : []).filter(function(u){ return ids.indexOf(u.id) !== -1 && u.activo !== false; });
+  }
+  // Fallback: isContact o admin
+  var fallback = (typeof sysUsuarios !== 'undefined')
     ? (sysUsuarios.find(function(u){ return u.isContact; }) || sysUsuarios.find(function(u){ return u.rol==='admin'; }))
     : null;
-  var contactoTxt = contacto
-    ? '<br><strong>' + contacto.nombre + '</strong>'
-      + (contacto.extension ? '<br>📞 Ext. ' + contacto.extension : '')
-      + (contacto.telefono  ? ' · ' + contacto.telefono : '')
-      + (contacto.cargo     ? '<br>💼 ' + contacto.cargo : '')
-    : '<br>Comunícate con el administrador del sistema.';
+  var contactos = encargadosModulo.length ? encargadosModulo : (fallback ? [fallback] : []);
+
+  var contactoHtml = contactos.length
+    ? contactos.map(function(u){
+        return '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:10px 14px;text-align:left;margin-top:8px;">'
+          + '<div style="font-weight:700;font-size:13px;color:#e2e8f0;">👤 ' + u.nombre + '</div>'
+          + (u.cargo       ? '<div style="font-size:11px;color:#94a3b8;margin-top:2px;">💼 ' + u.cargo + (u.departamento ? ' · ' + u.departamento : '') + '</div>' : '')
+          + (u.extension   ? '<div style="font-size:11px;color:#94a3b8;margin-top:1px;">📞 Ext. ' + u.extension + (u.telefono ? ' · ' + u.telefono : '') + '</div>' : (u.telefono ? '<div style="font-size:11px;color:#94a3b8;margin-top:1px;">📱 ' + u.telefono + '</div>' : ''))
+          + '</div>';
+      }).join('')
+    : '<div style="font-size:12px;color:#64748b;margin-top:8px;">Comunícate con el administrador del sistema.</div>';
 
   var overlay = document.createElement('div');
   overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(10,15,30,0.92);display:flex;align-items:center;justify-content:center;';
-  overlay.innerHTML = '<div style="background:#0f172a;border:1.5px solid rgba(239,68,68,0.4);border-radius:18px;padding:36px 40px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.7)">'
-    + '<div style="font-size:48px;margin-bottom:14px">⛔</div>'
-    + '<div style="font-size:18px;font-weight:800;color:#f87171;margin-bottom:8px">Acceso Restringido</div>'
-    + '<div style="font-size:13px;color:#94a3b8;line-height:1.6;margin-bottom:20px">'
-      + 'No tienes permiso para acceder a <strong style="color:#e2e8f0">' + modulo + '</strong>.<br>'
-      + 'Comunícate con soporte técnico para solicitar acceso.'
-      + contactoTxt
-    + '</div>'
-    + '<button onclick="this.closest(\'div\').parentElement.remove()" style="background:#3b82f6;color:#fff;border:none;padding:11px 32px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Entendido</button>'
-  + '</div>';
+  overlay.innerHTML =
+    '<div style="background:#0f172a;border:1.5px solid rgba(239,68,68,0.4);border-radius:18px;padding:32px 36px;max-width:460px;width:92%;text-align:center;box-shadow:0 24px 80px rgba(0,0,0,.7)">'
+    + '<div style="font-size:46px;margin-bottom:12px">⛔</div>'
+    + '<div style="font-size:18px;font-weight:800;color:#f87171;margin-bottom:6px">Acceso Restringido</div>'
+    + '<div style="font-size:12px;color:#64748b;margin-bottom:4px">No tienes permiso para acceder a</div>'
+    + '<div style="font-size:14px;font-weight:700;color:#e2e8f0;margin-bottom:14px">' + modulo + '</div>'
+    + '<div style="font-size:11px;color:#64748b;margin-bottom:2px;">Comunícate con el encargado para solicitar acceso:</div>'
+    + contactoHtml
+    + '<button onclick="this.closest(\'div\').parentElement.remove()" style="margin-top:18px;background:#3b82f6;color:#fff;border:none;padding:11px 32px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;width:100%">Entendido</button>'
+    + '</div>';
   document.body.appendChild(overlay);
 }
 
@@ -13869,6 +13967,7 @@ function abrirModalUsuario() {
   usrRenderModulos(PERMISOS_DEFAULT.editor.modulos);
   usrRenderAcciones(PERMISOS_DEFAULT.editor.acciones);
   usrSwitchTab('datos');
+  usrActualizarContactoBadge(null);
   openModal('modal-usuario');
 }
 
@@ -13894,7 +13993,28 @@ function editarUsuario(id) {
   usrRenderModulos(modulos);
   usrRenderAcciones(acciones);
   usrSwitchTab('datos');
+  usrActualizarContactoBadge(u);
   openModal('modal-usuario');
+}
+
+// Muestra el badge "ACTUAL" y quién es el encargado vigente en el modal de usuario
+function usrActualizarContactoBadge(usuarioEditando) {
+  const badge   = document.getElementById('usr-contact-badge');
+  const infoDiv = document.getElementById('usr-contact-current');
+  if (!badge || !infoDiv) return;
+  const contactoActual = (typeof sysUsuarios !== 'undefined' ? sysUsuarios : []).find(u => u.isContact);
+  // Badge "ACTUAL" solo si este usuario ya ES el encargado
+  const esElActual = usuarioEditando && usuarioEditando.isContact;
+  badge.style.display = esElActual ? 'block' : 'none';
+  // Mostrar quién es el encargado actual (si no es este usuario)
+  if (contactoActual && !esElActual) {
+    infoDiv.style.display = 'block';
+    infoDiv.innerHTML = '📌 Encargado actual: <strong>' + contactoActual.nombre + '</strong>' +
+      (contactoActual.cargo ? ' · ' + contactoActual.cargo : '') +
+      '. Marcar esta casilla lo reemplazará.';
+  } else {
+    infoDiv.style.display = 'none';
+  }
 }
 
 function selectRol(el) {
@@ -17681,13 +17801,13 @@ function openDoctorModal() {
 }
 
 function openDoctorModalForModule(modId) {
-  if (typeof canDo==='function' && !canDo('doctores.crear')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: crear doctor','error'); return; }
+  if (typeof canDo==='function' && !canDo('doctores.crear')) { showAccessBlocked('Crear nuevo doctor'); return; }
   openDoctorModal();
   document.getElementById('doc-module').value = modId;
 }
 
 function editDoctor(id) {
-  if (typeof canDo==='function' && !canDo('doctores.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: editar doctor','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: editar doctor','error'); return; }
+  if (typeof canDo==='function' && !canDo('doctores.editar')) { showAccessBlocked('Editar doctor'); return; }
   // Usar == (no ===): ids del Excel son enteros pero onclick los pasa como strings
   const d = store.doctors.find(x => x.id == id); if (!d) return;
   store.editingDoctor = d.id; // guardar el id real del objeto (puede ser número)
@@ -17738,8 +17858,8 @@ window.editDoctor = editDoctor;
 function saveDoctor() {
   var _dEdit = store.editingDoctor != null;
   if (typeof canDo==='function') {
-    if (_dEdit && !canDo('doctores.editar')) { if(typeof toast==='function') toast('🚫 Sin permiso: editar doctor','error'); return; }
-    if (!_dEdit && !canDo('doctores.crear')) { if(typeof toast==='function') toast('🚫 Sin permiso: crear doctor','error'); return; }
+    if (_dEdit && !canDo('doctores.editar')) { showAccessBlocked('Editar doctor'); return; }
+    if (!_dEdit && !canDo('doctores.crear')) { showAccessBlocked('Crear nuevo doctor'); return; }
   }
   const name = (document.getElementById('doc-name')?.value||'').trim();
   if (!name) { toast('⚠️ Ingresa el nombre del doctor', 'error'); switchDocTab('info'); return; }
@@ -18327,7 +18447,7 @@ function openARSModal() {
 }
 
 function editARS(id) {
-  if (typeof canDo==='function' && !canDo('ars.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: editar ARS','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: editar ARS','error'); return; }
+  if (typeof canDo==='function' && !canDo('ars.editar')) { showAccessBlocked('Editar ARS'); return; }
   const a = store.ars.find(x => x.id === id); if (!a) return;
   store.editingARS = id;
   document.getElementById('ars-name').value = a.name;
@@ -18343,8 +18463,8 @@ function editARS(id) {
 function saveARS() {
   var _arsEdit = store.editingARS != null;
   if (typeof canDo==='function') {
-    if (_arsEdit && !canDo('ars.editar')) { if(typeof toast==='function') toast('🚫 Sin permiso: editar ARS','error'); return; }
-    if (!_arsEdit && !canDo('ars.crear')) { if(typeof toast==='function') toast('🚫 Sin permiso: crear ARS','error'); return; }
+    if (_arsEdit && !canDo('ars.editar')) { showAccessBlocked('Editar ARS'); return; }
+    if (!_arsEdit && !canDo('ars.crear')) { showAccessBlocked('Crear ARS'); return; }
   }
   const name = document.getElementById('ars-name').value.trim();
   if (!name) { toast('Ingresa el nombre de la ARS', 'error'); return; }
@@ -21457,10 +21577,7 @@ window.closeModal = function(id) {
   el.classList.remove('open');
 };
 
-// 2. canDo — siempre permite editar/crear/borrar
-window.canDo = function(action) {
-  return true;
-};
+// 2. canDo — usa la función real definida en el sistema de permisos (no sobreescribir)
 
 // 3. editDoctor / openDoctorModal / saveDoctor — ya definidos arriba, se exponen globalmente
 window.editDoctor       = editDoctor;
@@ -21980,7 +22097,9 @@ function mtnLoadConfig() {
   const im = document.getElementById('mtn-info-months');  if(im) im.textContent = Object.keys(mtn.nocturnoMonths).length;
 }
 window.mtnSaveConfig = function() {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar') && !canDo('adm.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso para editar configuración de turnos','error'); return; }
+  if (typeof canDo==='function' && !canDo('adm.calendario.editar') && !canDo('adm.editar')) {
+    showAccessBlocked('Editar configuración de turnos de admisión'); return;
+  }
   const s=document.getElementById('mtn-cfg-start'), e=document.getElementById('mtn-cfg-end'),
         iv=document.getElementById('mtn-cfg-interval'), sd=document.getElementById('mtn-cfg-seqstart');
   if(s) mtn.config.startHour = s.value;

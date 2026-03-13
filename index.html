@@ -1,170 +1,340 @@
-// ═══════════════════════════════════════════════════════════════════════════════
-// SISTEMA DE CONTROL DE ACCESO GRANULAR - EECDATOS.CMM
-// Permisos por módulo con niveles: TODO | SOLO_VER | NADA
-// ═══════════════════════════════════════════════════════════════════════════════
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EECDATOS.CMM - Sistema de Control de Acceso</title>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border-radius: 12px;
+            --transition: all 0.3s ease;
+        }
 
-// ───────────────────────────────────────────────────────────────────────────────
-// DEFINICIÓN COMPLETA DE MÓDULOS Y PERMISOS POSIBLES
-// ───────────────────────────────────────────────────────────────────────────────
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-const MODULE_DEFINITIONS = {
-  // Módulo: Doctores
-  doctores: {
-    name: 'Doctores',
-    icon: '👨‍⚕️',
-    permissions: {
-      view_list: { label: 'Ver listado de doctores', default: true },
-      create: { label: 'Agregar nuevo doctor', default: false },
-      edit: { label: 'Editar información de doctor', default: false },
-      delete: { label: 'Eliminar doctor', default: false },
-      view_private_notes: { label: 'Ver/Editar notas privadas', default: false },
-      assign_specialty: { label: 'Asignar especialidades', default: false },
-      manage_schedule: { label: 'Gestionar horarios', default: false },
-      view_stats: { label: 'Ver estadísticas', default: false },
-      export_data: { label: 'Exportar datos', default: false }
-    }
-  },
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
 
-  // Módulo: ARS (Seguros)
-  ars: {
-    name: 'ARS',
-    icon: '🏥',
-    permissions: {
-      view_list: { label: 'Ver listado de ARS', default: true },
-      create: { label: 'Agregar nueva ARS', default: false },
-      edit: { label: 'Editar ARS', default: false },
-      delete: { label: 'Eliminar ARS', default: false },
-      manage_coverage: { label: 'Gestionar coberturas', default: false },
-      view_contracts: { label: 'Ver contratos', default: false },
-      manage_rates: { label: 'Gestionar tarifas', default: false },
-      authorize_services: { label: 'Autorizar servicios', default: false },
-      view_reports: { label: 'Ver reportes de autorización', default: false }
-    }
-  },
+        /* Layout Principal */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
 
-  // Módulo: Documentación
-  documentacion: {
-    name: 'Documentación',
-    icon: '📁',
-    permissions: {
-      view_docs: { label: 'Ver documentos', default: true },
-      upload: { label: 'Subir documentos', default: false },
-      edit: { label: 'Editar documentos', default: false },
-      delete: { label: 'Eliminar documentos', default: false },
-      download: { label: 'Descargar documentos', default: true },
-      share: { label: 'Compartir documentos', default: false },
-      sign: { label: 'Firmar digitalmente', default: false },
-      archive: { label: 'Archivar documentos', default: false },
-      classify: { label: 'Clasificar documentos', default: false }
-    }
-  },
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--bg-tertiary);
+            display: flex;
+            flex-direction: column;
+            transition: var(--transition);
+        }
 
-  // Módulo: Usuarios (Administración)
-  usuarios: {
-    name: 'Usuarios',
-    icon: '👥',
-    permissions: {
-      view_list: { label: 'Ver listado de usuarios', default: false },
-      create: { label: 'Crear usuarios', default: false },
-      edit: { label: 'Editar usuarios', default: false },
-      delete: { label: 'Eliminar usuarios', default: false },
-      assign_roles: { label: 'Asignar roles', default: false },
-      reset_passwords: { label: 'Resetear contraseñas', default: false },
-      view_audit: { label: 'Ver auditoría', default: false },
-      manage_permissions: { label: 'Gestionar permisos granulares', default: false },
-      deactivate: { label: 'Activar/Desactivar usuarios', default: false }
-    }
-  },
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
 
-  // Módulo: Ingresos (Admisiones)
-  ingresos: {
-    name: 'Ingresos',
-    icon: '📝',
-    permissions: {
-      view_list: { label: 'Ver admisiones', default: true },
-      create: { label: 'Crear admisión', default: false },
-      edit: { label: 'Editar admisión', default: false },
-      delete: { label: 'Eliminar admisión', default: false },
-      discharge: { label: 'Dar de alta', default: false },
-      transfer: { label: 'Transferir paciente', default: false },
-      view_financial: { label: 'Ver información financiera', default: false },
-      assign_bed: { label: 'Asignar cama', default: false },
-      emergency_access: { label: 'Acceso de emergencia', default: false }
-    }
-  },
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
 
-  // Módulo: Cargos (Facturación)
-  cargos: {
-    name: 'Cargos',
-    icon: '💰',
-    permissions: {
-      view_list: { label: 'Ver cargos', default: true },
-      create: { label: 'Crear cargo', default: false },
-      edit: { label: 'Editar cargo', default: false },
-      delete: { label: 'Eliminar cargo', default: false },
-      apply_discounts: { label: 'Aplicar descuentos', default: false },
-      void_charges: { label: 'Anular cargos', default: false },
-      process_insurance: { label: 'Procesar seguros', default: false },
-      view_reports: { label: 'Ver reportes financieros', default: false },
-      export_billing: { label: 'Exportar facturación', default: false }
-    }
-  },
+        .nav-menu {
+            flex: 1;
+            padding: 20px 0;
+            overflow-y: auto;
+        }
 
-  // Módulo: Laboratorio
-  laboratorio: {
-    name: 'Laboratorio',
-    icon: '🧪',
-    permissions: {
-      view_orders: { label: 'Ver órdenes', default: true },
-      create_order: { label: 'Crear orden', default: false },
-      edit_order: { label: 'Editar orden', default: false },
-      delete_order: { label: 'Eliminar orden', default: false },
-      enter_results: { label: 'Ingresar resultados', default: false },
-      validate_results: { label: 'Validar resultados', default: false },
-      print_results: { label: 'Imprimir resultados', default: true },
-      view_critical: { label: 'Ver valores críticos', default: false }
-    }
-  },
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: var(--transition);
+            border-left: 3px solid transparent;
+        }
 
-  // Módulo: Farmacia
-  farmacia: {
-    name: 'Farmacia',
-    icon: '💊',
-    permissions: {
-      view_inventory: { label: 'Ver inventario', default: true },
-      dispense: { label: 'Dispensar medicamentos', default: false },
-      manage_inventory: { label: 'Gestionar inventario', default: false },
-      order_supplies: { label: 'Solicitar suministros', default: false },
-      view_prescriptions: { label: 'Ver recetas', default: true },
-      create_prescription: { label: 'Crear recetas', default: false },
-      controlled_drugs: { label: 'Manejar medicamentos controlados', default: false },
-      view_costs: { label: 'Ver costos de medicamentos', default: false }
-    }
-  },
+        .nav-item:hover {
+            background: var(--bg-tertiary);
+            border-left-color: var(--accent-primary);
+        }
 
-  // Módulo: Configuración
-  configuracion: {
-    name: 'Configuración',
-    icon: '⚙️',
-    permissions: {
-      view_settings: { label: 'Ver configuración', default: false },
-      edit_general: { label: 'Editar configuración general', default: false },
-      manage_backup: { label: 'Gestionar respaldos', default: false },
-      configure_integrations: { label: 'Configurar integraciones', default: false },
-      view_logs: { label: 'Ver logs del sistema', default: false },
-      manage_templates: { label: 'Gestionar plantillas', default: false },
-      system_maintenance: { label: 'Mantenimiento del sistema', default: false }
-    }
-  },
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: var(--accent-primary);
+        }
 
-  // Módulo: Reportes
-  reportes: {
-    name: 'Reportes',
-    icon: '📊',
-    permissions: {
-      view_basic: { label: 'Ver reportes básicos', default: true },
-      view_advanced: { label: 'Ver reportes avanzados', default: false },
-      create_custom: { label: 'Crear reportes personalizados', default: false },
-      export_data: { label: 'Exportar datos', default: false },
-      schedule_reports: { label: 'Programar reportes', default: false },
-      view_confidential: { label: 'Ver datos confidenciales',
+        .nav-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-icon {
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 30px;
+        }
+
+        .page-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .content-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+        }
+
+        /* Páginas */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--bg-tertiary);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* Tabla de Usuarios */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--bg-tertiary);
+        }
+
+        .data-table th {
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .data-table tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+
+        /* Badges */
+        .badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .badge-admin {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        .badge-editor {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .badge-viewer {
+            background: rgba(148, 163, 184, 0.2);
+            color: #94a3b8;
+        }
+
+        .badge-active {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+        }
+
+        .badge-inactive {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--accent-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .btn-secondary:hover {
+            background: #475569;
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--bg-tertiary);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal

@@ -4337,8 +4337,8 @@ window.showPage = function(id) {
 
           <!-- Acciones -->
           <div class="o2-actions">
-            <button class="o2-btn-save" data-perm="enc.editar" onclick="saveOxyCalc()">💾 Guardar cálculo</button>
-            <button class="o2-btn-clear" data-perm="enc.editar" onclick="clearOxy()">↺ Limpiar</button>
+            <button class="o2-btn-save" data-perm="oxy.crear"  onclick="saveOxyCalc()">💾 Guardar cálculo</button>
+            <button class="o2-btn-clear" data-perm="oxy.limpiar" onclick="clearOxy()">↺ Limpiar</button>
           </div>
         </div>
 
@@ -6834,6 +6834,88 @@ window.showPage = function(id) {
     </div>
 
     <!-- ═══ MODAL CONFIGURACIÓN INDIVIDUAL DE PERSONAL ═══ -->
+    <!-- ══════════════════════════════════════════════════════════
+         MTN — MODAL VISTA ROTACIÓN INDIVIDUAL (doctor nocturno)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="mtn-rotation-view-modal">
+      <div class="modal" style="max-width:580px;max-height:90vh;display:flex;flex-direction:column;">
+        <div class="modal-head" style="background:linear-gradient(135deg,rgba(99,102,241,0.25),rgba(139,92,246,0.18));border-bottom:1px solid rgba(139,92,246,0.35);flex-shrink:0;">
+          <h3 id="mtn-rv-title" style="display:flex;align-items:center;gap:10px;font-size:16px;">
+            <span id="mtn-rv-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#6366f1;flex-shrink:0;"></span>
+            <span>Rotación</span>
+          </h3>
+          <button class="close-btn" onclick="closeModal('mtn-rotation-view-modal')">×</button>
+        </div>
+        <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
+
+          <!-- Ficha del doctor -->
+          <div id="mtn-rv-card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;margin-bottom:20px;background:rgba(99,102,241,0.08);border:1px solid rgba(139,92,246,0.25);"></div>
+
+          <!-- Stats rápidas -->
+          <div id="mtn-rv-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"></div>
+
+          <!-- Próximos turnos -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📅 Próximos 8 turnos</div>
+            <div id="mtn-rv-next" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;"></div>
+          </div>
+
+          <!-- Calendario 3 meses -->
+          <div style="margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🗓️ Vista de calendario (3 meses)</div>
+            <div id="mtn-rv-calendars" style="display:flex;flex-direction:column;gap:16px;"></div>
+          </div>
+
+        </div>
+        <div class="modal-foot" style="display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
+          <button class="btn btn-secondary" onclick="closeModal('mtn-rotation-view-modal')">Cerrar</button>
+          <button class="btn btn-primary" id="mtn-rv-edit-btn" onclick="mtnRvOpenEdit()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">⚙️ Editar rotación</button>
+          <button class="btn btn-secondary" id="mtn-rv-noperm-btn" onclick="showAccessBlocked('turno-nocturno')" style="display:none;opacity:.65;cursor:not-allowed;" title="Sin permiso para editar">🔒 Editar rotación</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         MEL — MODAL VISTA ROTACIÓN INDIVIDUAL (médico emergencia)
+         ══════════════════════════════════════════════════════════ -->
+    <div class="modal-overlay" id="mel-rotation-view-modal">
+      <div class="modal" style="max-width:580px;max-height:90vh;display:flex;flex-direction:column;">
+        <div class="modal-head" style="background:linear-gradient(135deg,rgba(239,68,68,0.25),rgba(220,38,38,0.18));border-bottom:1px solid rgba(239,68,68,0.35);flex-shrink:0;">
+          <h3 id="mel-rv-title" style="display:flex;align-items:center;gap:10px;font-size:16px;">
+            <span id="mel-rv-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
+            <span>Rotación</span>
+          </h3>
+          <button class="close-btn" onclick="closeModal('mel-rotation-view-modal')">×</button>
+        </div>
+        <div class="modal-body" style="padding:20px;overflow-y:auto;flex:1;">
+
+          <!-- Ficha del doctor -->
+          <div id="mel-rv-card" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:10px;margin-bottom:20px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);"></div>
+
+          <!-- Stats rápidas -->
+          <div id="mel-rv-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;"></div>
+
+          <!-- Próximos turnos -->
+          <div style="margin-bottom:20px;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">📅 Próximos 8 turnos</div>
+            <div id="mel-rv-next" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;"></div>
+          </div>
+
+          <!-- Calendario 3 meses -->
+          <div style="margin-bottom:6px;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;">🗓️ Vista de calendario (3 meses)</div>
+            <div id="mel-rv-calendars" style="display:flex;flex-direction:column;gap:16px;"></div>
+          </div>
+
+        </div>
+        <div class="modal-foot" style="display:flex;justify-content:flex-end;gap:10px;flex-shrink:0;">
+          <button class="btn btn-secondary" onclick="closeModal('mel-rotation-view-modal')">Cerrar</button>
+          <button class="btn btn-primary" id="mel-rv-edit-btn" onclick="melRvOpenEdit()" style="background:linear-gradient(135deg,#ef4444,#dc2626);">⚙️ Editar rotación</button>
+          <button class="btn btn-secondary" id="mel-rv-noperm-btn" onclick="showAccessBlocked('med-especialista')" style="display:none;opacity:.65;cursor:not-allowed;" title="Sin permiso para editar">🔒 Editar rotación</button>
+        </div>
+      </div>
+    </div>
+
     <div class="modal-overlay" id="mtn-staff-config-modal">
       <div class="modal" style="max-width:480px;">
         <div class="modal-head" style="background:linear-gradient(135deg,rgba(99,102,241,0.2),rgba(139,92,246,0.15));border-bottom:1px solid rgba(139,92,246,0.3);">
@@ -8438,11 +8520,21 @@ window.showPage = function(id) {
 
           <!-- PESTAÑA: ACCIONES -->
           <div id="usr-panel-acciones" class="usr-panel" style="padding:20px;display:none;">
-            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Define exactamente qué operaciones puede realizar este usuario en cada sección del sistema.</div>
+            <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Define exactamente qué operaciones puede realizar este usuario en cada módulo del sistema. Cada sección corresponde a un módulo específico.</div>
+            <!-- Leyenda de iconos -->
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px;padding:8px 12px;background:rgba(0,0,0,0.15);border-radius:8px;border:1px solid var(--border);">
+              <span style="font-size:10px;color:#94a3b8;">👁️ Solo Ver</span>
+              <span style="font-size:10px;color:#4ade80;">➕ Crear</span>
+              <span style="font-size:10px;color:#60a5fa;">✏️ Editar</span>
+              <span style="font-size:10px;color:#f87171;">🗑️ Borrar</span>
+              <span style="font-size:10px;color:#c084fc;">🖨️ Imprimir</span>
+              <span style="font-size:10px;color:#fb923c;">🔖 Alta/Asignar</span>
+              <span style="font-size:10px;color:#34d399;">📥 Agregar/Subir</span>
+            </div>
             <div style="display:flex;gap:8px;margin-bottom:16px;padding:10px 14px;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.18);border-radius:8px;align-items:center;flex-wrap:wrap;">
-              <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-right:4px;">Todos los módulos:</span>
+              <span style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-right:4px;">Aplicar a todos:</span>
               <button onclick="usrTodosAcciones(true)"  style="font-size:11px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;">✅ Todo</button>
-              <button onclick="usrSoloVerTodos()"       style="font-size:11px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;">👁 Solo Ver</button>
+              <button onclick="usrSoloVerTodos()"       style="font-size:11px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;">👁️ Solo Ver</button>
               <button onclick="usrTodosAcciones(false)" style="font-size:11px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;">🚫 Nada</button>
             </div>
             <div id="usr-acciones-grid" style="display:flex;flex-direction:column;gap:14px;"></div>
@@ -12712,40 +12804,98 @@ let sysAuditLog   = JSON.parse(localStorage.getItem('cmm_audit_v1')    || '[]');
 // Un usuario NUNCA puede tener más permisos que los de su rol, sin importar
 // lo que esté guardado en localStorage.
 const ROL_CEILING = {
+  // ── VIEWER: solo lectura en todo ─────────────────────────────────────────
   viewer: new Set([
-    'doctores.ver','ars.ver','ext.ver','enc.ver','enc.imprimir',
-    'cat.ver','docs.ver','docs.imprimir','ppto.ver',
-    'mll.ver','adm.ver','adm.calendario.ver','audit.ver',
-    'comp.ver','comp.imprimir'
+    // Doctores
+    'doctores.ver',
+    // ARS
+    'ars.ver',
+    // Extensiones
+    'ext.ver',
+    // Atención Emergencia
+    'enc.ver','enc.imprimir',
+    // Personal de Admisión
+    'adm.ver','adm.calendario.ver',
+    // Médico de Emergencia
+    'mel.ver','mel.calendario.ver',
+    // Médico por Llamada
+    'mll.ver',
+    // Catálogo
+    'cat.ver',
+    // Cálculo de Oxígeno
+    'oxy.ver',
+    // Presupuestos
+    'ppto.ver',
+    // Documentación
+    'docs.ver','docs.imprimir',
+    // Carta Compromiso
+    'comp.ver','comp.imprimir',
+    // Auditoría
+    'audit.ver',
   ]),
+  // ── EDITOR: puede crear y editar, NO borrar ni admin ─────────────────────
   editor: new Set([
+    // Doctores
     'doctores.ver','doctores.crear','doctores.editar','doctores.notas',
+    // ARS
     'ars.ver','ars.crear','ars.editar',
+    // Extensiones
     'ext.ver','ext.crear','ext.editar',
+    // Atención Emergencia
     'enc.ver','enc.asignar','enc.editar','enc.alta','enc.imprimir',
-    'adm.ver','adm.editar','adm.calendario.ver','adm.calendario.editar',
-    'cat.ver','cat.crear','cat.editar',
-    'docs.ver','docs.crear','docs.editar','docs.imprimir',
-    'comp.ver','comp.crear','comp.imprimir',
-    'ppto.ver','ppto.crear','ppto.editar',
+    // Personal de Admisión
+    'adm.ver','adm.calendario.ver','adm.editar','adm.calendario.editar',
+    // Médico de Emergencia
+    'mel.ver','mel.calendario.ver','mel.rotacion.editar','mel.calendario.subir',
+    // Médico por Llamada
     'mll.ver','mll.editar','mll.agregar','mll.semanas',
-    'sys.escaneo','sys.anuncios','sys.importar',
-    'audit.ver'
-  ]),
-  supervisor: new Set([
-    'doctores.ver','doctores.crear','doctores.editar','doctores.notas','doctores.borrar',
-    'ars.ver','ars.crear','ars.editar','ars.borrar',
-    'ext.ver','ext.crear','ext.editar','ext.borrar',
-    'enc.ver','enc.asignar','enc.editar','enc.alta','enc.reabrir','enc.borrar','enc.imprimir',
-    'adm.ver','adm.editar','adm.calendario.ver','adm.calendario.editar','adm.calendario.borrar',
-    'cat.ver','cat.crear','cat.editar','cat.borrar',
-    'docs.ver','docs.crear','docs.editar','docs.borrar','docs.imprimir',
+    // Catálogo
+    'cat.ver','cat.crear','cat.editar',
+    // Cálculo de Oxígeno
+    'oxy.ver','oxy.crear','oxy.limpiar',
+    // Presupuestos
+    'ppto.ver','ppto.crear','ppto.editar',
+    // Documentación
+    'docs.ver','docs.crear','docs.editar','docs.imprimir',
+    // Carta Compromiso
     'comp.ver','comp.crear','comp.imprimir',
-    'ppto.ver','ppto.crear','ppto.editar','ppto.borrar',
+    // Auditoría
+    'audit.ver',
+    // Sistema
+    'sys.escaneo','sys.anuncios','sys.importar',
+  ]),
+  // ── SUPERVISOR: acceso completo excepto config de sistema y admin ─────────
+  supervisor: new Set([
+    // Doctores
+    'doctores.ver','doctores.crear','doctores.editar','doctores.notas','doctores.borrar',
+    // ARS
+    'ars.ver','ars.crear','ars.editar','ars.borrar',
+    // Extensiones
+    'ext.ver','ext.crear','ext.editar','ext.borrar',
+    // Atención Emergencia
+    'enc.ver','enc.asignar','enc.editar','enc.alta','enc.reabrir','enc.borrar','enc.imprimir',
+    // Personal de Admisión
+    'adm.ver','adm.calendario.ver','adm.editar','adm.calendario.editar','adm.calendario.borrar',
+    // Médico de Emergencia
+    'mel.ver','mel.calendario.ver','mel.rotacion.editar','mel.rotacion.borrar','mel.calendario.subir',
+    // Médico por Llamada
     'mll.ver','mll.editar','mll.agregar','mll.eliminar','mll.semanas',
+    // Catálogo
+    'cat.ver','cat.crear','cat.editar','cat.borrar',
+    // Cálculo de Oxígeno
+    'oxy.ver','oxy.crear','oxy.borrar','oxy.limpiar',
+    // Presupuestos
+    'ppto.ver','ppto.crear','ppto.editar','ppto.borrar',
+    // Documentación
+    'docs.ver','docs.crear','docs.editar','docs.borrar','docs.imprimir',
+    // Carta Compromiso
+    'comp.ver','comp.crear','comp.imprimir',
+    // Usuarios
     'usr.ver','usr.crear','usr.editar',
+    // Auditoría
+    'audit.ver','audit.limpiar',
+    // Sistema
     'sys.escaneo','sys.anuncios','sys.importar','sys.modulos',
-    'audit.ver','audit.limpiar'
   ])
 };
 
@@ -12881,91 +13031,110 @@ const SYS_MODULES = [
   { id: 'configuracion',        label: '⚙️ Configuración',             grupo: 'Admin'       },
 ];
 
-// ── DEFINICIÓN DE ACCIONES POR SECCIÓN ─────────────────────────────────────
+// ── DEFINICIÓN DE ACCIONES POR SECCIÓN (granular por módulo) ────────────────
 const SYS_ACCIONES = [
-  { seccion: '👨‍⚕️ Doctores',     acciones: [
-    { id: 'doctores.ver',    label: 'Ver listado de doctores' },
+  // ── MÉDICO ─────────────────────────────────────────────────────────────────
+  { seccion: '👨‍⚕️ Doctores', modulo: 'doctores', acciones: [
+    { id: 'doctores.ver',    label: 'Solo ver listado de doctores' },
     { id: 'doctores.crear',  label: 'Agregar nuevo doctor' },
     { id: 'doctores.editar', label: 'Editar información de doctor' },
     { id: 'doctores.borrar', label: 'Eliminar doctor' },
-    { id: 'doctores.notas',  label: 'Ver/editar notas privadas' },
+    { id: 'doctores.notas',  label: 'Ver y editar notas privadas' },
   ]},
-  { seccion: '🏥 ARS',            acciones: [
-    { id: 'ars.ver',    label: 'Ver listado de ARS' },
+  { seccion: '🛡️ ARS', modulo: 'ars', acciones: [
+    { id: 'ars.ver',    label: 'Solo ver listado de ARS' },
     { id: 'ars.crear',  label: 'Agregar nueva ARS' },
-    { id: 'ars.editar', label: 'Editar ARS' },
+    { id: 'ars.editar', label: 'Editar ARS existente' },
     { id: 'ars.borrar', label: 'Eliminar ARS' },
   ]},
-  { seccion: '🗂️ Documentación',  acciones: [
-    { id: 'docs.ver',       label: 'Ver documentos' },
-    { id: 'docs.crear',     label: 'Crear documentos / ingresos' },
-    { id: 'docs.editar',    label: 'Editar documentos' },
-    { id: 'docs.borrar',    label: 'Eliminar documentos' },
-    { id: 'docs.imprimir',  label: 'Imprimir / exportar' },
+  { seccion: '📞 Extensiones / Directorio', modulo: 'extensiones', acciones: [
+    { id: 'ext.ver',    label: 'Solo ver directorio de extensiones' },
+    { id: 'ext.crear',  label: 'Agregar nueva extensión' },
+    { id: 'ext.editar', label: 'Editar extensión existente' },
+    { id: 'ext.borrar', label: 'Eliminar extensión' },
   ]},
-  { seccion: '💰 Presupuestos',    acciones: [
-    { id: 'ppto.ver',    label: 'Ver presupuestos' },
-    { id: 'ppto.crear',  label: 'Crear presupuesto' },
-    { id: 'ppto.editar', label: 'Editar presupuesto' },
-    { id: 'ppto.borrar', label: 'Eliminar presupuesto' },
-  ]},
-  { seccion: '👥 Usuarios',        acciones: [
-    { id: 'usr.ver',    label: 'Ver usuarios del sistema' },
-    { id: 'usr.crear',  label: 'Crear nuevos usuarios' },
-    { id: 'usr.editar', label: 'Editar usuarios' },
-    { id: 'usr.borrar', label: 'Eliminar usuarios' },
-  ]},
-  { seccion: '📞 Médico por Llamada', acciones: [
-    { id: 'mll.ver',      label: 'Ver lista de llamada' },
-    { id: 'mll.editar',   label: 'Editar médico de llamada' },
-    { id: 'mll.agregar',  label: 'Agregar médico a la rotación' },
-    { id: 'mll.eliminar', label: 'Eliminar médico de la lista' },
-    { id: 'mll.semanas',  label: 'Crear / editar semanas de rotación' },
-  ]},
-  { seccion: '🔍 Auditoría',       acciones: [
-    { id: 'audit.ver',    label: 'Ver log de auditoría' },
-    { id: 'audit.limpiar',label: 'Limpiar log de auditoría' },
-  ]},
-  { seccion: '📞 Extensiones',      acciones: [
-    { id: 'ext.ver',      label: 'Ver directorio de extensiones' },
-    { id: 'ext.crear',    label: 'Agregar extensión' },
-    { id: 'ext.editar',   label: 'Editar extensión' },
-    { id: 'ext.borrar',   label: 'Eliminar extensión' },
-  ]},
-  { seccion: '🩺 Atención de Emergencia', acciones: [
-    { id: 'enc.ver',      label: 'Ver camas y pacientes' },
-    { id: 'enc.asignar',  label: 'Asignar / registrar nuevo paciente' },
-    { id: 'enc.editar',   label: 'Editar datos de paciente' },
+  // ── EMERGENCIA ─────────────────────────────────────────────────────────────
+  { seccion: '🩺 Atención de Emergencia', modulo: 'atencion-emergencia', acciones: [
+    { id: 'enc.ver',      label: 'Solo ver camas y pacientes' },
+    { id: 'enc.asignar',  label: 'Registrar / asignar nuevo paciente' },
+    { id: 'enc.editar',   label: 'Modificar datos de paciente' },
     { id: 'enc.alta',     label: 'Dar de alta a paciente' },
     { id: 'enc.reabrir',  label: 'Reabrir paciente dado de alta' },
     { id: 'enc.borrar',   label: 'Eliminar registro de paciente' },
     { id: 'enc.imprimir', label: 'Imprimir hoja de atención' },
   ]},
-  { seccion: '🏥 Personal de Admisión & Calendario', acciones: [
-    { id: 'adm.ver',           label: 'Ver personal de admisión' },
-    { id: 'adm.editar',        label: 'Editar turnos y personal' },
-    { id: 'adm.calendario.ver',  label: 'Ver calendarios de turno' },
-    { id: 'adm.calendario.editar', label: 'Crear / editar calendarios de turno' },
+  { seccion: '🏥 Personal de Admisión', modulo: 'turno-nocturno', acciones: [
+    { id: 'adm.ver',               label: 'Solo ver personal y calendario' },
+    { id: 'adm.calendario.ver',    label: 'Ver calendarios de turno' },
+    { id: 'adm.editar',            label: 'Editar personal y configuración' },
+    { id: 'adm.calendario.editar', label: 'Crear y editar calendarios de turno' },
     { id: 'adm.calendario.borrar', label: 'Eliminar calendarios de turno' },
   ]},
-  { seccion: '🔬 Catálogo de Estudios',   acciones: [
-    { id: 'cat.ver',      label: 'Ver catálogo' },
-    { id: 'cat.crear',    label: 'Agregar estudio' },
-    { id: 'cat.editar',   label: 'Editar estudio' },
-    { id: 'cat.borrar',   label: 'Eliminar estudio' },
+  { seccion: '🚨 Médico de Emergencia (MEL)', modulo: 'med-especialista', acciones: [
+    { id: 'mel.ver',              label: 'Solo ver rotación de médicos' },
+    { id: 'mel.calendario.ver',   label: 'Ver calendario MEL completo' },
+    { id: 'mel.rotacion.editar',  label: 'Editar rotación y configurar médicos MEL' },
+    { id: 'mel.rotacion.borrar',  label: 'Eliminar médico de la rotación MEL' },
+    { id: 'mel.calendario.subir', label: 'Subir y archivar calendario MEL (xlsx)' },
   ]},
-  { seccion: '📋 Carta Compromiso',        acciones: [
-    { id: 'comp.ver',     label: 'Ver cartas compromiso' },
-    { id: 'comp.crear',   label: 'Crear carta compromiso' },
-    { id: 'comp.imprimir',label: 'Imprimir carta compromiso' },
+  { seccion: '📞 Médico por Llamada', modulo: 'medico-llamada', acciones: [
+    { id: 'mll.ver',      label: 'Solo ver lista de llamada' },
+    { id: 'mll.editar',   label: 'Editar datos de médico de llamada' },
+    { id: 'mll.agregar',  label: 'Agregar médico a la rotación' },
+    { id: 'mll.eliminar', label: 'Eliminar médico de la lista' },
+    { id: 'mll.semanas',  label: 'Crear y editar semanas de rotación' },
   ]},
-  { seccion: '⚙️ Sistema',         acciones: [
-    { id: 'sys.modulos',  label: 'Gestionar módulos del sistema' },
-    { id: 'sys.importar', label: 'Importar datos' },
-    { id: 'sys.escaneo',  label: 'Usar escaneo con IA' },
-    { id: 'sys.anuncios', label: 'Crear y gestionar anuncios' },
-    { id: 'sys.config',   label: 'Acceder a configuración del sistema' },
-    { id: 'sys.configPwd',label: 'Cambiar contraseña del sistema' },
+  // ── CLÍNICO ────────────────────────────────────────────────────────────────
+  { seccion: '🫁 Cálculo de Oxígeno', modulo: 'oxigeno', acciones: [
+    { id: 'oxy.ver',    label: 'Solo ver historial de cálculos' },
+    { id: 'oxy.crear',  label: 'Guardar nuevo cálculo de oxígeno' },
+    { id: 'oxy.borrar', label: 'Eliminar cálculo del historial' },
+    { id: 'oxy.limpiar',label: 'Limpiar calculadora (resetear campos)' },
+  ]},
+  { seccion: '🔬 Catálogo de Estudios', modulo: 'catalogo', acciones: [
+    { id: 'cat.ver',    label: 'Solo ver catálogo de estudios' },
+    { id: 'cat.crear',  label: 'Agregar nuevo estudio al catálogo' },
+    { id: 'cat.editar', label: 'Editar estudio existente' },
+    { id: 'cat.borrar', label: 'Eliminar estudio del catálogo' },
+  ]},
+  // ── FINANZAS ───────────────────────────────────────────────────────────────
+  { seccion: '💰 Presupuestos', modulo: 'presupuestos', acciones: [
+    { id: 'ppto.ver',    label: 'Solo ver presupuestos' },
+    { id: 'ppto.crear',  label: 'Crear nuevo presupuesto' },
+    { id: 'ppto.editar', label: 'Editar presupuesto existente' },
+    { id: 'ppto.borrar', label: 'Eliminar presupuesto' },
+  ]},
+  // ── DOCUMENTACIÓN ──────────────────────────────────────────────────────────
+  { seccion: '🗂️ Documentación / Ingresos', modulo: 'documentos', acciones: [
+    { id: 'docs.ver',      label: 'Solo ver documentos e ingresos' },
+    { id: 'docs.crear',    label: 'Crear nuevo documento o ingreso' },
+    { id: 'docs.editar',   label: 'Editar documento existente' },
+    { id: 'docs.borrar',   label: 'Eliminar documento o ingreso' },
+    { id: 'docs.imprimir', label: 'Imprimir y exportar documentos' },
+  ]},
+  { seccion: '📋 Carta Compromiso', modulo: 'compromiso', acciones: [
+    { id: 'comp.ver',      label: 'Solo ver cartas compromiso' },
+    { id: 'comp.crear',    label: 'Crear nueva carta compromiso' },
+    { id: 'comp.imprimir', label: 'Imprimir carta compromiso' },
+  ]},
+  // ── ADMIN / SISTEMA ────────────────────────────────────────────────────────
+  { seccion: '👥 Usuarios del Sistema', modulo: 'usuarios', acciones: [
+    { id: 'usr.ver',    label: 'Solo ver listado de usuarios' },
+    { id: 'usr.crear',  label: 'Crear nuevos usuarios' },
+    { id: 'usr.editar', label: 'Editar usuarios existentes' },
+    { id: 'usr.borrar', label: 'Eliminar usuarios' },
+  ]},
+  { seccion: '🔍 Auditoría', modulo: 'auditoria', acciones: [
+    { id: 'audit.ver',     label: 'Solo ver log de auditoría' },
+    { id: 'audit.limpiar', label: 'Limpiar log de auditoría' },
+  ]},
+  { seccion: '⚙️ Sistema / Configuración', modulo: 'configuracion', acciones: [
+    { id: 'sys.escaneo',   label: 'Usar módulo de Escaneo con IA' },
+    { id: 'sys.anuncios',  label: 'Crear y gestionar anuncios' },
+    { id: 'sys.modulos',   label: 'Gestionar módulos del sistema' },
+    { id: 'sys.importar',  label: 'Importar datos al sistema' },
+    { id: 'sys.config',    label: 'Acceder a configuración del sistema' },
+    { id: 'sys.configPwd', label: 'Cambiar contraseña del sistema' },
   ]},
 ];
 
@@ -12975,44 +13144,35 @@ const PERMISOS_DEFAULT = {
     modulos:  SYS_MODULES.map(m => m.id),
     acciones: SYS_ACCIONES.flatMap(s => s.acciones.map(a => a.id))
   },
+  supervisor: {
+    modulos: [
+      'inicio','dashboard',
+      'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
+      'atencion-emergencia','turno-nocturno',
+      'oxigeno','catalogo','presupuestos',
+      'documentos','compromiso','escaneo',
+      'importar','usuarios','auditoria',
+    ],
+    acciones: [...ROL_CEILING.supervisor]
+  },
   editor: {
     modulos: [
       'inicio','dashboard',
       'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
       'atencion-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
-      'documentos','compromiso',
-      'escaneo'
+      'documentos','compromiso','escaneo',
     ],
-    acciones: [
-      'doctores.ver','doctores.crear','doctores.editar','doctores.notas',
-      'ars.ver','ars.crear','ars.editar',
-      'ext.ver','ext.crear','ext.editar',
-      'enc.ver','enc.asignar','enc.editar','enc.alta','enc.imprimir',
-      'adm.ver','adm.editar','adm.calendario.ver','adm.calendario.editar',
-      'sys.escaneo','sys.anuncios',
-      'cat.ver','cat.crear','cat.editar',
-      'docs.ver','docs.crear','docs.editar','docs.imprimir',
-      'comp.ver','comp.crear','comp.imprimir',
-      'ppto.ver','ppto.crear','ppto.editar',
-      'mll.ver','mll.editar','mll.agregar','mll.eliminar','mll.semanas',
-      'sys.escaneo','sys.anuncios'
-    ]
+    acciones: [...ROL_CEILING.editor]
   },
   viewer: {
     modulos: [
       'inicio','dashboard',
       'doctores','ars','extensiones',
       'atencion-emergencia',
-      'presupuestos','catalogo','documentos'
+      'presupuestos','catalogo','documentos',
     ],
-    acciones: [
-      'doctores.ver','ars.ver','ext.ver',
-      'enc.ver','enc.imprimir',
-      'cat.ver','docs.ver','docs.imprimir',
-      'ppto.ver','mll.ver',
-      'adm.ver','adm.calendario.ver'
-    ]
+    acciones: [...ROL_CEILING.viewer]
   },
 };
 
@@ -13063,11 +13223,28 @@ function showAccessBlocked(modulo) {
 }
 
 const SUPERVISOR_ONLY_ACTIONS = new Set([
-  'doctores.crear', 'doctores.editar', 'doctores.borrar',
-  'ars.crear', 'ars.editar', 'ars.borrar',
-  'ext.crear', 'ext.editar', 'ext.borrar',
-  'mll.editar', 'mll.agregar', 'mll.eliminar', 'mll.semanas',
-  'adm.editar', 'adm.calendario.editar', 'adm.calendario.borrar',
+  // Borrar en módulos médicos
+  'doctores.borrar',
+  'ars.borrar',
+  'ext.borrar',
+  // Emergencia: reabrir y borrar
+  'enc.reabrir','enc.borrar',
+  // Admisión: borrar calendario
+  'adm.calendario.borrar',
+  // MEL: borrar rotación
+  'mel.rotacion.borrar',
+  // Llamada: eliminar médico
+  'mll.eliminar',
+  // Catálogo, presupuestos, docs: borrar
+  'cat.borrar',
+  'ppto.borrar',
+  'docs.borrar',
+  // Usuarios
+  'usr.ver','usr.crear','usr.editar','usr.borrar',
+  // Auditoría: limpiar
+  'audit.limpiar',
+  // Sistema avanzado
+  'sys.modulos',
 ]);
 
 function canDo(action) {
@@ -13902,21 +14079,43 @@ function usrToggleAllMods(val) {
 // ── RENDER ACCIONES EN MODAL ─────────────────────────────────────────────────
 function usrRenderAcciones(seleccionadas) {
   const grid = document.getElementById('usr-acciones-grid'); if (!grid) return;
+  // Icono visual por tipo de acción
+  function accIcon(id) {
+    if (id.endsWith('.ver'))           return '<span style="color:#94a3b8;font-size:11px;">👁️</span>';
+    if (id.endsWith('.crear'))         return '<span style="color:#4ade80;font-size:11px;">➕</span>';
+    if (id.endsWith('.editar') || id.endsWith('.modificar')) return '<span style="color:#60a5fa;font-size:11px;">✏️</span>';
+    if (id.endsWith('.borrar') || id.endsWith('.eliminar') || id.endsWith('.limpiar')) return '<span style="color:#f87171;font-size:11px;">🗑️</span>';
+    if (id.endsWith('.imprimir'))      return '<span style="color:#c084fc;font-size:11px;">🖨️</span>';
+    if (id.endsWith('.asignar') || id.endsWith('.alta') || id.endsWith('.reabrir')) return '<span style="color:#fb923c;font-size:11px;">🔖</span>';
+    if (id.endsWith('.agregar') || id.endsWith('.semanas') || id.endsWith('.subir')) return '<span style="color:#34d399;font-size:11px;">📥</span>';
+    return '<span style="color:#64748b;font-size:11px;">⚙️</span>';
+  }
   grid.innerHTML = SYS_ACCIONES.map(sec => `
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(99,102,241,0.08);border-bottom:1px solid var(--border);">
-        <span style="font-size:12px;font-weight:700;color:var(--white);">${sec.seccion}</span>
-        <div style="display:flex;gap:6px;">
-          <button onclick="usrToggleSeccionBtn(this,true)"  data-sec="${sec.seccion}" style="font-size:10px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.3);color:#4ade80;border-radius:5px;padding:2px 8px;cursor:pointer;">Todo</button>
-          <button onclick="usrSoloVerSeccion(this)" data-sec="${sec.seccion}" style="font-size:10px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:5px;padding:2px 8px;cursor:pointer;">Solo Ver</button>
-          <button onclick="usrToggleSeccionBtn(this,false)" data-sec="${sec.seccion}" style="font-size:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:5px;padding:2px 8px;cursor:pointer;">Nada</button>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(99,102,241,0.10);border-bottom:1px solid var(--border);">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--white);">${sec.seccion}</div>
+          <div style="font-size:10px;color:#64748b;margin-top:1px;">Módulo: <code style="color:#818cf8;">${sec.modulo}</code></div>
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end;">
+          <button onclick="usrToggleSeccionBtn(this,true)" data-sec="${sec.seccion}"
+            style="font-size:10px;background:rgba(34,197,94,0.12);border:1px solid rgba(34,197,94,0.35);color:#4ade80;border-radius:5px;padding:3px 9px;cursor:pointer;font-weight:600;">✅ Todo</button>
+          <button onclick="usrSoloVerSeccion(this)" data-sec="${sec.seccion}"
+            style="font-size:10px;background:rgba(251,191,36,0.10);border:1px solid rgba(251,191,36,0.35);color:#fbbf24;border-radius:5px;padding:3px 9px;cursor:pointer;font-weight:600;">👁️ Solo Ver</button>
+          <button onclick="usrToggleSeccionBtn(this,false)" data-sec="${sec.seccion}"
+            style="font-size:10px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);color:#f87171;border-radius:5px;padding:3px 9px;cursor:pointer;font-weight:600;">🚫 Nada</button>
         </div>
       </div>
-      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:6px;">
+      <div style="padding:10px 14px;display:flex;flex-direction:column;gap:4px;">
         ${sec.acciones.map(a => `
-          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:5px 0;">
-            <input type="checkbox" class="usr-acc-cb" data-acc="${a.id}" data-sec="${sec.seccion}" ${seleccionadas.includes(a.id)?'checked':''} style="width:15px;height:15px;accent-color:#818cf8;flex-shrink:0;">
-            <span style="font-size:12px;color:var(--text);">${a.label}</span>
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:6px 8px;border-radius:7px;transition:background .12s;"
+            onmouseover="this.style.background='rgba(99,102,241,0.07)'" onmouseout="this.style.background='transparent'">
+            <input type="checkbox" class="usr-acc-cb" data-acc="${a.id}" data-sec="${sec.seccion}"
+              ${seleccionadas.includes(a.id)?'checked':''}
+              style="width:15px;height:15px;accent-color:#818cf8;flex-shrink:0;">
+            ${accIcon(a.id)}
+            <span style="font-size:12px;color:var(--text);flex:1;">${a.label}</span>
+            <code style="font-size:9px;color:#475569;background:rgba(0,0,0,0.2);padding:1px 5px;border-radius:4px;flex-shrink:0;">${a.id}</code>
           </label>`).join('')}
       </div>
     </div>`).join('');
@@ -13924,12 +14123,14 @@ function usrRenderAcciones(seleccionadas) {
 
 function usrToggleSeccionBtn(btn, val) { usrToggleSeccion(btn.dataset.sec, val); }
 function usrToggleSeccion(secNombre, val) {
-  document.querySelectorAll(`.usr-acc-cb[data-sec="${secNombre}"]`).forEach(cb => cb.checked = val);
+  document.querySelectorAll('.usr-acc-cb[data-sec="' + secNombre + '"]').forEach(function(cb) { cb.checked = val; });
 }
 function usrSoloVerSeccion(btn) {
   var sec = btn.dataset.sec;
+  // Marca solo los permisos .ver de esta sección; desmarca el resto
   document.querySelectorAll('.usr-acc-cb[data-sec="' + sec + '"]').forEach(function(cb) {
-    cb.checked = (cb.dataset.acc || '').endsWith('.ver');
+    var id = cb.dataset.acc || '';
+    cb.checked = id.endsWith('.ver') || id === 'enc.imprimir' || id === 'docs.imprimir' || id === 'comp.imprimir' || id === 'comp.ver' || id === 'mel.calendario.ver' || id === 'adm.calendario.ver' || id === 'audit.ver';
   });
 }
 function usrTodosAcciones(val) {
@@ -13937,7 +14138,8 @@ function usrTodosAcciones(val) {
 }
 function usrSoloVerTodos() {
   document.querySelectorAll('.usr-acc-cb').forEach(function(cb) {
-    cb.checked = (cb.dataset.acc || '').endsWith('.ver');
+    var id = cb.dataset.acc || '';
+    cb.checked = id.endsWith('.ver') || id === 'enc.imprimir' || id === 'docs.imprimir' || id === 'comp.imprimir' || id === 'mel.calendario.ver' || id === 'adm.calendario.ver' || id === 'audit.ver';
   });
 }
 
@@ -18591,7 +18793,7 @@ function calcOxy() {
 }
 
 function saveOxyCalc() {
-  if (typeof canDo==='function' && !canDo('docs.crear')) { if(typeof showToast==='function') showToast('\U0001f6ab Sin permiso: guardar cálculo de oxígeno','error'); return; }
+  if (typeof canDo==='function' && !canDo('oxy.crear')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar cálculo de oxígeno','error'); return; }
   const litrosMin = parseFloat(document.getElementById('oxy-litros').value) || 0;
   const horaIni   = parseInt(document.getElementById('oxy-hh-ini').value)   || 0;
   const minIni    = parseInt(document.getElementById('oxy-mm-ini').value)   || 0;
@@ -18626,7 +18828,7 @@ function saveOxyCalc() {
 }
 
 function clearOxy() {
-  if (typeof canDo==='function' && !canDo('enc.editar')) { showToast && showToast('\U0001f6ab Sin permiso: limpiar calculadora de oxígeno','error'); return; }
+  if (typeof canDo==='function' && !canDo('oxy.limpiar')) { showToast && showToast('🚫 Sin permiso: limpiar calculadora de oxígeno','error'); return; }
   document.getElementById('oxy-hh-ini').value   = '8';
   document.getElementById('oxy-mm-ini').value   = '30';
   document.getElementById('oxy-hh-fin').value   = '2';
@@ -18978,13 +19180,13 @@ function renderOxyHistory() {
       <div style="font-size:12px;color:var(--muted);"><strong style="color:var(--text);">${d}</strong> min<br><span style="font-size:11px;">${hd}h ${String(md).padStart(2,'0')}m</span></div>
       <div><span class="badge badge-yellow" style="font-size:12px;">${lm} L/min</span></div>
       <div><span class="o2-liters-big">${(c.result||0).toLocaleString('es-DO')}</span><span style="font-size:11px;color:var(--muted);margin-left:3px;">L</span></div>
-      <div>${(typeof canDo==='function'&&canDo('docs.borrar'))?`<button class="btn btn-sm btn-danger" onclick="deleteOxy('${c.id}')">🗑️</button>`:''}</div>
+      <div>${(typeof canDo==='function'&&canDo('oxy.borrar'))?`<button class="btn btn-sm btn-danger" onclick="deleteOxy('${c.id}')">🗑️</button>`:''}</div>
     </div>`;
   }).join('');
 }
 
 function deleteOxy(id) {
-  if (typeof canDo==='function' && !canDo('docs.borrar')) { if(typeof showToast==='function') showToast('\U0001f6ab Sin permiso: eliminar cálculo de oxígeno','error'); return; }
+  if (typeof canDo==='function' && !canDo('oxy.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar cálculo de oxígeno','error'); return; }
   store.oxyHistory = store.oxyHistory.filter(c => c.id !== id);
   saveStore(); renderOxyHistory(); toast('Cálculo eliminado');
 }
@@ -21791,7 +21993,7 @@ function renderMtnMonth(c) {
     if (holiday) html += '<div style="font-size:8px;font-weight:700;padding:2px 4px;border-radius:3px;margin-bottom:3px;background:rgba(251,191,36,0.18);color:#fbbf24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="' + holiday.nombre + '">' + holiday.emoji + ' ' + holiday.nombre + '</div>';
     staff.slice(0,3).forEach(function(s){
       const sc = window.mtnStaffColor(s);
-      html += '<div onclick="event.stopPropagation();window.mtnOpenStaffConfig(' + s.id + ')" title="Configurar ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:' + sc.bg + ';color:' + sc.hex + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"><div style="width:5px;height:5px;border-radius:50%;background:' + sc.dot + ';flex-shrink:0;"></div>' + s.type + ') ' + s.name.split(' ')[0] + ' <span style="margin-left:auto;opacity:.5;">⚙</span></div>';
+      html += '<div onclick="event.stopPropagation();window.mtnOpenRotationView(' + s.id + ')" title="Ver rotación: ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:' + sc.bg + ';color:' + sc.hex + ';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"><div style="width:5px;height:5px;border-radius:50%;background:' + sc.dot + ';flex-shrink:0;"></div>' + s.type + ') ' + s.name.split(' ')[0] + ' <span style="margin-left:auto;opacity:.5;">📅</span></div>';
     });
     if (staff.length > 3) html += '<div style="font-size:9px;color:var(--muted);padding:1px 3px;">+' + (staff.length-3) + ' más</div>';
     if (noct) {
@@ -21872,11 +22074,11 @@ function renderMtnDay(c) {
     html += '<td style="border:1px solid var(--border);padding:6px;vertical-align:top;height:65px;">';
     if (hi===0 && staff.length) {
       staff.slice(0,3).forEach(function(s) {
-        html += '<div onclick="window.mtnOpenStaffConfig(' + s.id + ')" title="Configurar ' + s.name + '" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;margin-bottom:4px;background:' + (s.type==='P'?'rgba(16,185,129,.18)':'rgba(59,130,246,.18)') + ';border-left:4px solid ' + (s.type==='P'?'#10b981':'#3b82f6') + ';cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.25)\'" onmouseout="this.style.filter=\'\'\'">';
+        html += '<div onclick="window.mtnOpenRotationView(' + s.id + ')" title="Ver rotación de ' + s.name + '" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:7px;margin-bottom:4px;background:' + (s.type==='P'?'rgba(16,185,129,.18)':'rgba(59,130,246,.18)') + ';border-left:4px solid ' + (s.type==='P'?'#10b981':'#3b82f6') + ';cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.25)\'" onmouseout="this.style.filter=\'\'\'">';
         html += '<span style="font-size:15px;">' + (s.type==='P'?'👶':'🏥') + '</span>';
         html += '<div style="flex:1;"><div style="font-size:13px;font-weight:700;color:' + (s.type==='P'?'#6ee7b7':'#93c5fd') + ';">' + s.name + '</div>';
         html += '<div style="font-size:10px;opacity:.7;">' + (s.type==='P'?'Admisión Pediátrica':'Admisión Adultos') + '</div></div>';
-        html += '<span style="opacity:.5;font-size:13px;">⚙</span></div>';
+        html += '<span style="opacity:.5;font-size:11px;">📅</span></div>';
       });
     }
     if (hi===2 && noct) {
@@ -21923,6 +22125,17 @@ window.mtnSwitchView = function(v) {
 
 // ── TABS ──────────────────────────────────────────────────────
 window.mtnTab = function(name) {
+  // ── Control de acceso por tab ──────────────────────────────────
+  if ((name === 'config' || name === 'personal') &&
+      typeof canDo === 'function' &&
+      !canDo('adm.calendario.editar') && !canDo('adm.editar')) {
+    if (typeof showAccessBlocked === 'function') {
+      showAccessBlocked('Editar configuración de Personal de Admisión');
+    } else if (typeof showToast === 'function') {
+      showToast('🔒 Sin permiso para editar esta sección', 'yellow');
+    }
+    return; // No abrir el tab
+  }
   ['calendario','personal','config'].forEach(function(t) {
     const pg = document.getElementById('mtn-page-'+t);
     const btn = document.getElementById('mtn-tab-'+t);
@@ -21941,7 +22154,7 @@ window.mtnRenderStaffList = function() {
   list.innerHTML = '';
   mtn.staff.forEach(function(s, i) {
     const row = document.createElement('div');
-    row.style.cssText = 'display:grid;grid-template-columns:36px 1fr 160px 100px 100px 36px;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:6px;transition:border-color .2s;';
+    row.style.cssText = 'display:grid;grid-template-columns:36px 1fr 160px 100px 100px 36px 36px;gap:8px;align-items:center;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:10px 12px;margin-bottom:6px;transition:border-color .2s;';
     row.onmouseover = function(){ this.style.borderColor='var(--accent)'; };
     row.onmouseout  = function(){ this.style.borderColor='var(--border)'; };
     row.innerHTML =
@@ -21953,6 +22166,7 @@ window.mtnRenderStaffList = function() {
         '<option value="P"' + (s.type==='P'?' selected':'') + '>👶 Pediátrico</option>' +
       '</select>' +
       '<input type="number" value="' + (s.interval||mtn.config.interval) + '" min="1" max="30" onchange="mtnUpdateStaff(' + s.id + ',\'interval\',+this.value)" style="background:var(--surface);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:\'DM Sans\',sans-serif;font-size:12px;padding:5px 8px;text-align:center;outline:none;width:100%;" />' +
+      '<button onclick="window.mtnOpenRotationView(' + s.id + ')" title="Ver rotación" style="width:28px;height:28px;border-radius:6px;border:none;cursor:pointer;background:rgba(99,102,241,.15);color:#818cf8;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background=\'rgba(99,102,241,.3)\'" onmouseout="this.style.background=\'rgba(99,102,241,.15)\'">📅</button>' +
       '<button onclick="mtnRemoveStaff(' + s.id + ')" style="width:28px;height:28px;border-radius:6px;border:none;cursor:pointer;background:rgba(239,68,68,.1);color:#f87171;font-size:13px;display:flex;align-items:center;justify-content:center;transition:all .2s;" onmouseover="this.style.background=\'rgba(239,68,68,.25)\'" onmouseout="this.style.background=\'rgba(239,68,68,.1)\'">✕</button>';
     list.appendChild(row);
   });
@@ -22153,12 +22367,12 @@ window.mtnOpenDay = function(ds) {
     html += '<div style="margin-bottom:16px;"><div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:600;margin-bottom:10px;">🏥 Personal de Admisión</div>';
     staff.forEach(function(s) {
       const dsc = window.mtnStaffColor(s);
-      html += '<div onclick="closeModal(\'mtn-detail-modal\');setTimeout(function(){window.mtnOpenStaffConfig(' + s.id + ',\'' + ds + '\');},150);" title="Configurar ' + s.name + '" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;border-left:4px solid ' + dsc.hex + ';border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderLeftColor=\'white\'" onmouseout="this.style.borderLeftColor=\'' + dsc.hex + '\'">'  +
+      html += '<div onclick="closeModal(\'mtn-detail-modal\');setTimeout(function(){window.mtnOpenRotationView(' + s.id + ');},150);" title="Ver rotación de ' + s.name + '" style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;margin-bottom:6px;border-left:4px solid ' + dsc.hex + ';border-top:1px solid var(--border);border-right:1px solid var(--border);border-bottom:1px solid var(--border);cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderLeftColor=\'white\'" onmouseout="this.style.borderLeftColor=\'' + dsc.hex + '\'">'  +
         '<div style="width:32px;height:32px;border-radius:8px;background:' + dsc.bg + ';border:2px solid ' + dsc.hex + ';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">' + (s.type==='P'?'👶':'🏥') + '</div>' +
         '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + s.name + '</div>' +
         '<div style="font-size:11px;color:var(--muted);">' + (s.cargo ? s.cargo + ' · ' : '') + (s.type==='P'?'Admisión Pediátrica':'Admisión Adultos') + ' · cada ' + (s.interval||mtn.config.interval||3) + ' días</div></div>' +
         '<span style="padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:' + dsc.bgSt + ';color:' + dsc.hex + ';">' + s.type + '</span>' +
-        '<span style="opacity:.5;font-size:14px;margin-left:4px;">⚙</span></div>';
+        '<span style="opacity:.5;font-size:13px;margin-left:4px;">📅</span></div>';
     });
     html += '</div>';
   } else {
@@ -22173,6 +22387,10 @@ window.mtnOpenDay = function(ds) {
 
 // ── DAY PANEL TOGGLE ──────────────────────────────────────────
 window.mtnDayToggleRotation = function() {
+  if (typeof canDo==='function' && !canDo('adm.calendario.editar') && !canDo('adm.editar')) {
+    showAccessBlocked('Configurar rotación — Personal de Admisión');
+    return;
+  }
   const rp = document.getElementById('mtn-day-rotation-panel');
   const ap = document.getElementById('mtn-day-add-panel');
   if (ap) ap.style.display = 'none';
@@ -22224,6 +22442,10 @@ function mtnWeeklyStartDate(val, fromDate) {
 }
 
 window.mtnDayApplyRotation = function() {
+  if (typeof canDo==='function' && !canDo('adm.calendario.editar') && !canDo('adm.editar')) {
+    showAccessBlocked('Aplicar cambio de rotación — Personal de Admisión');
+    return;
+  }
   const ds   = mtnDetailCurrentDate; if (!ds) return;
   const sel  = document.getElementById('mtn-day-person-sel');
   const repV = (document.getElementById('mtn-day-repeat-sel')||{}).value || '3d';
@@ -22357,9 +22579,148 @@ window.mtnScmSetColor = function(hex) {
   if (prev) prev.style.background = hex;
   if (lbl)  lbl.textContent = hex;
 };
+// ══════════════════════════════════════════════════════════════
+// MTN — VISTA DE ROTACIÓN INDIVIDUAL
+// ══════════════════════════════════════════════════════════════
+var _mtnRvCurrentId = null;
+
+window.mtnOpenRotationView = function(staffId) {
+  var s = mtn.staff.find(function(x){ return x.id === staffId; });
+  if (!s) return;
+  _mtnRvCurrentId = staffId;
+
+  var color = s.color || (s.type === 'P' ? '#10b981' : '#6366f1');
+  var typeLabel = s.type === 'P' ? '👶 Pediátrico' : '🏥 Adulto';
+  var iv = s.interval || mtn.config.interval || 3;
+  var staffIdx = mtn.staff.findIndex(function(x){ return x.id === staffId; });
+  var seqStartDate = mtn.config.seqStartDate || new Date().toISOString().slice(0,10);
+
+  // Título
+  document.getElementById('mtn-rv-title').innerHTML =
+    '<span id="mtn-rv-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>' +
+    '<span style="font-weight:700;">' + s.name + '</span>';
+
+  // Ficha
+  document.getElementById('mtn-rv-card').innerHTML =
+    '<div style="width:48px;height:48px;border-radius:12px;background:' + color + '22;border:2px solid ' + color + '55;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">' + (s.type==='P'?'👶':'🏥') + '</div>' +
+    '<div style="flex:1;">' +
+      '<div style="font-size:16px;font-weight:800;color:' + color + ';">' + s.name + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + (s.cargo || typeLabel) + '</div>' +
+    '</div>' +
+    '<div style="text-align:right;">' +
+      '<div style="font-size:22px;font-weight:900;color:' + color + ';">' + iv + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);">días entre turnos</div>' +
+    '</div>';
+
+  // Calcular turnos para stats (90 días)
+  var today = new Date(); today.setHours(0,0,0,0);
+  var seqStart = new Date(seqStartDate + 'T00:00:00');
+  var shiftsNext30 = 0, shiftsNext60 = 0, shiftsNext90 = 0;
+  var allShifts = [];
+  var d = new Date(today);
+  for (var ci = 0; ci < 90; ci++) {
+    var diff = Math.round((d - seqStart) / 86400000);
+    if (diff >= 0 && ((diff - staffIdx) % iv + iv) % iv === 0) {
+      var ds2 = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+      allShifts.push(new Date(d));
+      if (ci < 30) shiftsNext30++;
+      if (ci < 60) shiftsNext60++;
+      shiftsNext90++;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  // Stats
+  var DAYS_STAT = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var nextShift = allShifts[0];
+  var daysToNext = nextShift ? Math.round((nextShift - today) / 86400000) : '—';
+  document.getElementById('mtn-rv-stats').innerHTML =
+    '<div style="background:' + color + '15;border:1px solid ' + color + '40;border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:' + color + ';">' + (daysToNext === 0 ? 'HOY' : daysToNext) + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">' + (daysToNext===0?'Turno hoy':'días al próximo') + '</div>' +
+    '</div>' +
+    '<div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:#818cf8;">' + shiftsNext30 + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">turnos / 30 días</div>' +
+    '</div>' +
+    '<div style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:#818cf8;">' + shiftsNext90 + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">turnos / 90 días</div>' +
+    '</div>';
+
+  // Próximos 8 turnos
+  var MONTHS_RV = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var next8Html = '';
+  var next8 = allShifts.slice(0, 8);
+  if (!next8.length) {
+    next8Html = '<div style="color:var(--muted);font-size:12px;grid-column:span 2;">Sin turnos próximos encontrados</div>';
+  } else {
+    next8.forEach(function(dt, ni) {
+      var isToday = Math.round((dt - today)/86400000) === 0;
+      next8Html += '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:' +
+        (isToday ? color+'30' : color+'12') + ';border:1px solid ' + color + (isToday?'60':'30') + ';">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;' + (isToday?'box-shadow:0 0 6px '+color+';':'') + '"></div>' +
+        '<div style="font-size:10px;font-weight:700;color:var(--muted);width:26px;">' + DAYS_STAT[dt.getDay()] + '</div>' +
+        '<div style="font-size:13px;font-weight:700;color:' + color + ';">' + dt.getDate() + ' ' + MONTHS_RV[dt.getMonth()] + ' ' + dt.getFullYear() + '</div>' +
+        (isToday ? '<div style="margin-left:auto;font-size:9px;font-weight:700;background:' + color + ';color:white;padding:2px 6px;border-radius:4px;">HOY</div>' : '') +
+        '</div>';
+    });
+  }
+  document.getElementById('mtn-rv-next').innerHTML = next8Html;
+
+  // Calendarios 3 meses
+  var calHtml = '';
+  var DAYS_SHORT2 = ['D','L','M','X','J','V','S'];
+  for (var mi = 0; mi < 3; mi++) {
+    var cm = new Date(today.getFullYear(), today.getMonth() + mi, 1);
+    var cy = cm.getFullYear(), cmo = cm.getMonth();
+    var daysInMo = new Date(cy, cmo+1, 0).getDate();
+    var firstDow = new Date(cy, cmo, 1).getDay();
+    calHtml += '<div>';
+    calHtml += '<div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:8px;text-align:center;">' + ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][cmo] + ' ' + cy + '</div>';
+    calHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">';
+    DAYS_SHORT2.forEach(function(dl){ calHtml += '<div style="text-align:center;font-size:9px;font-weight:700;color:var(--muted);padding:3px 0;">' + dl + '</div>'; });
+    for (var bi = 0; bi < firstDow; bi++) calHtml += '<div></div>';
+    for (var dd2 = 1; dd2 <= daysInMo; dd2++) {
+      var dds = cy + '-' + String(cmo+1).padStart(2,'0') + '-' + String(dd2).padStart(2,'0');
+      var ddObj = new Date(cy, cmo, dd2);
+      var ddiff = Math.round((ddObj - seqStart) / 86400000);
+      var isShift = ddiff >= 0 && ((ddiff - staffIdx) % iv + iv) % iv === 0;
+      var isTodayCell = dds === (today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0'));
+      var isWknd = ddObj.getDay() === 0 || ddObj.getDay() === 6;
+      calHtml += '<div style="text-align:center;padding:4px 2px;border-radius:6px;font-size:11px;font-weight:' + (isShift?'800':'500') + ';' +
+        'background:' + (isShift ? color : (isTodayCell ? 'rgba(255,255,255,0.08)' : 'transparent')) + ';' +
+        'color:' + (isShift ? 'white' : (isTodayCell ? 'white' : (isWknd ? 'var(--muted)' : 'var(--text)'))) + ';' +
+        (isTodayCell && !isShift ? 'outline:2px solid rgba(255,255,255,0.4);outline-offset:-2px;' : '') +
+        (isShift ? 'box-shadow:0 2px 6px ' + color + '55;' : '') +
+        '">' + dd2 + '</div>';
+    }
+    calHtml += '</div></div>';
+  }
+  document.getElementById('mtn-rv-calendars').innerHTML = calHtml;
+
+  window.openModal('mtn-rotation-view-modal');
+
+  // Mostrar/ocultar botón Editar según permisos
+  var canEdit = typeof canDo === 'function' && canDo('adm.calendario.editar');
+  var editBtn   = document.getElementById('mtn-rv-edit-btn');
+  var noPermBtn = document.getElementById('mtn-rv-noperm-btn');
+  if (editBtn)   editBtn.style.display   = canEdit ? '' : 'none';
+  if (noPermBtn) noPermBtn.style.display = canEdit ? 'none' : '';
+};
+
+window.mtnRvOpenEdit = function() {
+  if (typeof canDo === 'function' && !canDo('adm.calendario.editar')) {
+    showAccessBlocked('turno-nocturno');
+    return;
+  }
+  closeModal('mtn-rotation-view-modal');
+  setTimeout(function(){ window.mtnOpenStaffConfig(_mtnRvCurrentId); }, 160);
+};
+
 window.mtnOpenStaffConfig = function(staffId, contextDate) {
   if (typeof canDo==='function' && !canDo('adm.calendario.editar')) {
-    showAccessBlocked('Configurar turno de personal');
+    showAccessBlocked('turno-nocturno');
     return;
   }
   const s = mtn.staff.find(function(x){ return x.id === staffId; });
@@ -22455,7 +22816,7 @@ function mtnScmRenderPreviewFromModal() {
 function mtnScmRenderPreview(s, interval) {
   const el = document.getElementById('mtn-scm-preview');
   if (!el) return;
-  const today = new Date();
+  const today = new Date(); today.setHours(0,0,0,0);
   const seqStart = mtn.config.seqStartDate ? new Date(mtn.config.seqStartDate + 'T00:00:00') : today;
   const staffIdx = mtn.staff.findIndex(function(x){ return x.id === s.id; });
 
@@ -22464,7 +22825,7 @@ function mtnScmRenderPreview(s, interval) {
   let d = new Date(today);
   let checked = 0;
   while (next.length < 5 && checked < 120) {
-    const ds = d.toISOString().slice(0,10);
+    const ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     const diff = Math.round((d - seqStart) / 86400000);
     const iv = interval || 3;
     if (diff >= 0 && ((diff - staffIdx) % iv + iv) % iv === 0) {
@@ -23490,6 +23851,17 @@ function melFileForMonth(year, month) {
 
 // ── TABS ─────────────────────────────────────────────────────
 window.melTab = function(name) {
+  // ── Control de acceso por tab ──────────────────────────────────
+  if ((name === 'config' || name === 'personal') &&
+      typeof canDo === 'function' &&
+      !canDo('mel.rotacion.editar') && !canDo('adm.editar')) {
+    if (typeof showAccessBlocked === 'function') {
+      showAccessBlocked('Editar configuración de Médico de Emergencia');
+    } else if (typeof showToast === 'function') {
+      showToast('🔒 Sin permiso para editar esta sección', 'yellow');
+    }
+    return; // No abrir el tab
+  }
   ['calendario','personal','config'].forEach(function(t) {
     var pg  = document.getElementById('mel-page-'+t);
     var btn = document.getElementById('mel-tab-'+t);
@@ -23576,9 +23948,9 @@ function melRenderMonth(c) {
       var firstName = s.name.split(' ')[0];
       var lastName  = s.name.split(' ').slice(1).join(' ').split(' ')[0] || firstName;
       var displayName = lastName || firstName;
-      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("adm.calendario.editar"));
+      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("mel.rotacion.editar"));
       var pillClick = canCfg
-        ? 'onclick="event.stopPropagation();melOpenStaffConfig(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="⚙️ Configurar: ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"'
+        ? 'onclick="event.stopPropagation();melOpenRotationView(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="📅 Ver rotación: ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"'
         : 'style="font-size:9px;font-weight:600;padding:2px 5px;border-radius:4px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;"';
       html += '<div ' + pillClick + '>'+
         '<div style="width:5px;height:5px;border-radius:50%;background:'+pc.dot+';flex-shrink:0;"></div>'+
@@ -23640,9 +24012,9 @@ function melRenderWeek(c) {
       var firstName = s.name.split(' ')[0];
       var lastName  = s.name.split(' ').slice(1).join(' ').split(' ')[0] || firstName;
       var displayName = lastName || firstName;
-      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("adm.calendario.editar"));
+      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("mel.rotacion.editar"));
       var pillClick = canCfg
-        ? 'onclick="event.stopPropagation();melOpenStaffConfig(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="⚙️ ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 4px;border-radius:3px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"'
+        ? 'onclick="event.stopPropagation();melOpenRotationView(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="📅 ' + s.name + '" style="font-size:9px;font-weight:600;padding:2px 4px;border-radius:3px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.4)\'" onmouseout="this.style.filter=\'\'"'
         : 'style="font-size:9px;font-weight:600;padding:2px 4px;border-radius:3px;margin-bottom:2px;background:'+pc.bg+';color:'+pc.cl+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:flex;align-items:center;gap:3px;"';
       html += '<div ' + pillClick + '>'+
         '<div style="width:5px;height:5px;border-radius:50%;background:'+pc.dot+';flex-shrink:0;"></div>'+
@@ -23672,15 +24044,15 @@ function melRenderDay(c) {
     };
     staff.forEach(function(s){
       var rc = roleConfig[s.role] || roleConfig['MA'];
-      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("adm.calendario.editar"));
+      var canCfg = s.seqIdx >= 0 && (typeof canDo==="function" && canDo("mel.rotacion.editar"));
       var cardClick = canCfg
-        ? 'onclick="melOpenStaffConfig(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="⚙️ Configurar" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:10px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.3)\'" onmouseout="this.style.filter=\'\'"'
+        ? 'onclick="melOpenRotationView(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')" title="📅 Ver rotación" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:10px;cursor:pointer;transition:filter .15s;" onmouseover="this.style.filter=\'brightness(1.3)\'" onmouseout="this.style.filter=\'\'"'
         : 'style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:10px;"';
       html += '<div ' + cardClick + '>';
       html += '<span style="font-size:24px;">' + rc.icon + '</span>';
       html += '<div style="flex:1;"><div style="font-size:15px;font-weight:700;color:' + rc.color + ';">' + s.name + '</div>';
       html += '<div style="font-size:11px;color:var(--muted);">' + rc.label + ' · Turno 24h</div></div>';
-      if (canCfg) html += '<div style="font-size:16px;opacity:.4;">⚙️</div>';
+      if (canCfg) html += '<div style="font-size:14px;opacity:.5;">📅</div>';
       html += '</div>';
     });
   } else {
@@ -23828,14 +24200,14 @@ window.melOpenDay = function(ds) {
         iv = (entry && typeof entry === 'object' && entry.interval) ? entry.interval : (s.seqType === 'MA' ? 6 : 5);
       }
       var clickAttr = canConfig
-        ? 'onclick="closeModal(\'mel-detail-modal\');setTimeout(function(){melOpenStaffConfig(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')},120);" style="padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:8px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between;gap:12px;" onmouseover="this.style.background=\'' + rc.hoverBg + '\';this.style.transform=\'translateX(3px)\'" onmouseout="this.style.background=\'' + rc.bg + '\';this.style.transform=\'translateX(0)\'"'
+        ? 'onclick="closeModal(\'mel-detail-modal\');setTimeout(function(){melOpenRotationView(\'' + s.seqType + '\',' + s.seqIdx + ',\'' + s.seqSub + '\')},120);" style="padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:8px;cursor:pointer;transition:all .18s;display:flex;align-items:center;justify-content:space-between;gap:12px;" onmouseover="this.style.background=\'' + rc.hoverBg + '\';this.style.transform=\'translateX(3px)\'" onmouseout="this.style.background=\'' + rc.bg + '\';this.style.transform=\'translateX(0)\'"'
         : 'style="padding:14px 16px;border-radius:10px;background:' + rc.bg + ';border-left:4px solid ' + rc.border + ';margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;gap:12px;"';
       html += '<div ' + clickAttr + '>';
       html += '<div style="flex:1;">';
       html += '<div style="font-size:14px;font-weight:700;color:' + rc.color + ';">' + rc.icon + ' ' + s.name + '</div>';
       html += '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + rc.label + (iv ? ' · cada ' + iv + ' días' : '') + '</div>';
       html += '</div>';
-      if (canConfig) html += '<div style="font-size:18px;opacity:.45;">⚙️</div>';
+      if (canConfig) html += '<div style="font-size:16px;opacity:.55;">📅</div>';
       html += '</div>';
     });
     html += '</div>';
@@ -23858,6 +24230,10 @@ window.melOpenDay = function(ds) {
 
 // ── MEL DAY PANEL FUNCTIONS ───────────────────────────────────
 window.melDayToggleRotation = function() {
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) {
+    showAccessBlocked('Configurar rotación — Médico de Emergencia');
+    return;
+  }
   var rp = document.getElementById('mel-day-rotation-panel');
   var ap = document.getElementById('mel-day-add-panel');
   if (ap) ap.style.display = 'none';
@@ -23872,7 +24248,7 @@ window.melDayToggleRotation = function() {
 };
 
 window.melDayToggleAdd = function() {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: agregar turno especialista','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: agregar turno especialista','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: agregar turno especialista','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: agregar turno especialista','error'); return; }
   var rp = document.getElementById('mel-day-rotation-panel');
   var ap = document.getElementById('mel-day-add-panel');
   if (rp) rp.style.display = 'none';
@@ -23941,6 +24317,10 @@ window.melDayScopeChange = function() {
 };
 
 window.melDayApplyRotation = function() {
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) {
+    showAccessBlocked('Aplicar cambio de rotación — Médico de Emergencia');
+    return;
+  }
   var ds = melDetailCurrentDate; if (!ds) return;
   var scope = document.querySelector('input[name="mel-day-scope"]:checked');
   if (!scope) return;
@@ -24172,14 +24552,16 @@ function melRenderStaffListMA() {
       } else {
         html += '<div style="width:26px;"></div>';
       }
-      // Config button
-      if (typeof canDo==='function' && canDo('adm.calendario.editar')) {
-        html += '<button onclick="melOpenStaffConfig(\'MA\',' + i + ',\'\')" title="Configurar" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">⚙️</button>';
+      // Config button - visible para mel.ver
+      if (typeof canDo!=='function' || canDo('mel.ver')) {
+        html += '<button onclick="melOpenRotationView(\'MA\',' + i + ',\'\')" title="Ver rotación" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;">📅</button>';
       } else {
         html += '<div style="width:26px;"></div>';
       }
-      // Eliminar
-      html += '<button onclick="melDeleteMA('+i+')" title="Eliminar" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fca5a5;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>';
+      // Eliminar - solo si puede borrar
+      if (typeof canDo!=='function' || canDo('mel.rotacion.borrar')) {
+        html += '<button onclick="melDeleteMA('+i+')" title="Eliminar" style="width:26px;height:26px;border-radius:6px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fca5a5;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;">×</button>';
+      }
       html += '</div>';
     });
   }
@@ -24203,17 +24585,17 @@ function melRenderStaffListG() {
       else html += '<div style="width:24px;"></div>';
       if (i < MEL_G_SEQUENCE.length - 1) html += '<button onclick="melMoveG('+i+',1)" title="Bajar" style="width:24px;height:24px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;font-size:11px;">↓</button>';
       else html += '<div style="width:24px;"></div>';
-      html += '<button onclick="melOpenEditModal(\'G\','+i+')" title="Editar par" style="width:24px;height:24px;border-radius:5px;border:1px solid rgba(59,130,246,.4);background:rgba(59,130,246,.1);color:#93c5fd;cursor:pointer;font-size:11px;">✏️</button>';
-      html += '<button onclick="melDeleteG('+i+')" title="Eliminar" style="width:24px;height:24px;border-radius:5px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fca5a5;cursor:pointer;font-size:13px;font-weight:700;">×</button>';
+      if (typeof canDo!=='function' || canDo('mel.rotacion.editar')) html += '<button onclick="melOpenEditModal(\'G\','+i+')" title="Editar par" style="width:24px;height:24px;border-radius:5px;border:1px solid rgba(59,130,246,.4);background:rgba(59,130,246,.1);color:#93c5fd;cursor:pointer;font-size:11px;">✏️</button>';
+      if (typeof canDo!=='function' || canDo('mel.rotacion.borrar')) html += '<button onclick="melDeleteG('+i+')" title="Eliminar" style="width:24px;height:24px;border-radius:5px;border:1px solid rgba(239,68,68,.4);background:rgba(239,68,68,.1);color:#fca5a5;cursor:pointer;font-size:13px;font-weight:700;">×</button>';
       html += '</div></div>';
       html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
       html += '<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:#fbbf24;background:rgba(245,158,11,.12);padding:6px 10px;border-radius:7px;border:1px solid rgba(245,158,11,.2);">';
       html += '<span>👨‍⚕️ G1: ' + g1name + '</span>';
-      if (typeof canDo==='function' && canDo('adm.calendario.editar')) html += '<button onclick="melOpenStaffConfig(\'G\',' + i + ',\'g1\')" title="Configurar G1" style="width:20px;height:20px;border-radius:4px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer;font-size:10px;flex-shrink:0;">⚙️</button>';
+      if (typeof canDo!=='function' || canDo('mel.ver')) html += '<button onclick="melOpenRotationView(\'G\',' + i + ',\'g1\')" title="Ver rotación G1" style="width:20px;height:20px;border-radius:4px;border:1px solid rgba(251,191,36,.4);background:rgba(251,191,36,.1);color:#fbbf24;cursor:pointer;font-size:10px;flex-shrink:0;">📅</button>';
       html += '</div>';
       html += '<div style="display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:700;color:#6ee7b7;background:rgba(16,185,129,.1);padding:6px 10px;border-radius:7px;border:1px solid rgba(16,185,129,.2);">';
       html += '<span>👩‍⚕️ G2: ' + g2name + '</span>';
-      if (typeof canDo==='function' && canDo('adm.calendario.editar')) html += '<button onclick="melOpenStaffConfig(\'G\',' + i + ',\'g2\')" title="Configurar G2" style="width:20px;height:20px;border-radius:4px;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:#6ee7b7;cursor:pointer;font-size:10px;flex-shrink:0;">⚙️</button>';
+      if (typeof canDo!=='function' || canDo('mel.ver')) html += '<button onclick="melOpenRotationView(\'G\',' + i + ',\'g2\')" title="Ver rotación G2" style="width:20px;height:20px;border-radius:4px;border:1px solid rgba(16,185,129,.4);background:rgba(16,185,129,.1);color:#6ee7b7;cursor:pointer;font-size:10px;flex-shrink:0;">📅</button>';
       html += '</div>';
       html += '</div></div>';
     });
@@ -24245,7 +24627,7 @@ window.melMoveG = function(idx, dir) {
 
 // Delete MA
 window.melDeleteMA = function(idx) {
-  if (typeof canDo==='function' && !canDo('adm.calendario.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar médico asignado','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: eliminar médico asignado','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.borrar')) { showAccessBlocked('mel.rotacion.borrar'); return; }
 
   var entry = MEL_MA_SEQUENCE[idx];
   var name = typeof entry === 'string' ? entry : (entry && entry.name ? entry.name : 'este médico');
@@ -24257,7 +24639,7 @@ window.melDeleteMA = function(idx) {
 
 // Delete G pair
 window.melDeleteG = function(idx) {
-  if (typeof canDo==='function' && !canDo('adm.calendario.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar guardia','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: eliminar guardia','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.borrar')) { showAccessBlocked('mel.rotacion.borrar'); return; }
 
   var pair = MEL_G_SEQUENCE[idx];
   if (!confirm('¿Eliminar el par ' + pair.g1 + ' / ' + pair.g2 + '?')) return;
@@ -24287,7 +24669,7 @@ window.melOpenAddModal = function(type) {
 
 // Open modal to edit
 window.melOpenEditModal = function(type, idx) {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) {
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) {
     showAccessBlocked('Editar médico en calendario');
     return;
   }
@@ -24314,7 +24696,7 @@ window.melOpenEditModal = function(type, idx) {
 
 // Save from modal
 window.melSaveDoctorModal = function() {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar médico en calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar médico en calendario','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar médico en calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar médico en calendario','error'); return; }
 
   var type = document.getElementById('mel-doc-edit-type').value;
   var idx  = parseInt(document.getElementById('mel-doc-edit-idx').value);
@@ -24363,7 +24745,7 @@ window.melSaveDoctorModal = function() {
 };
 
 window.melUpdateStaff = function(id, field, val) {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: editar personal calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: editar personal calendario','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: editar personal calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: editar personal calendario','error'); return; }
 
   saveMelState(); melRenderPreview(); melRenderCalendar();
 };
@@ -24408,9 +24790,177 @@ window.melScmSetScope = function(scope) {
   melScmRenderPreview();
 };
 
+// ══════════════════════════════════════════════════════════════
+// MEL — VISTA DE ROTACIÓN INDIVIDUAL
+// ══════════════════════════════════════════════════════════════
+var _melRvCurrentCtx = null;
+
+window.melOpenRotationView = function(type, idx, subtype) {
+  subtype = subtype || '';
+  _melRvCurrentCtx = { type: type, idx: idx, subtype: subtype };
+
+  var name = '', emtype = 'A', iv = (type==='MA'?6:5), startDate = MEL_SEQ_REF_DATE;
+
+  if (type === 'MA') {
+    var entry = MEL_MA_SEQUENCE[idx];
+    if (typeof entry === 'string') { name = entry; }
+    else if (entry && typeof entry === 'object') {
+      name = entry.name || ''; emtype = entry.emtype || 'A';
+      iv = entry.interval || 6; startDate = entry.startDate || MEL_SEQ_REF_DATE;
+    }
+  } else {
+    var pair = MEL_G_SEQUENCE[idx] || {};
+    var person = subtype === 'g2' ? pair.g2 : pair.g1;
+    if (typeof person === 'string') { name = person; }
+    else if (person && typeof person === 'object') {
+      name = person.name || ''; emtype = person.emtype || 'A';
+      iv = person.interval || 5; startDate = person.startDate || MEL_SEQ_REF_DATE;
+    }
+  }
+
+  var isP = emtype === 'P';
+  var color = isP ? '#10b981' : '#ef4444';
+  var typeLabel = isP ? '👶 Pediátrico' : '🏥 Adulto';
+  var typeIcon  = type === 'MA' ? '🚨' : '🟢';
+  var seqLen    = type === 'MA' ? MEL_MA_SEQUENCE.length : MEL_G_SEQUENCE.length;
+
+  // ── Función: ¿le toca a este doctor ese día? ──────────────────
+  // Usamos getMelStaffForDate (la misma fuente de verdad que el calendario)
+  function doctorHasShift(dateStr) {
+    var info = getMelStaffForDate(dateStr);
+    if (type === 'MA') {
+      return info.maIdx === idx;
+    } else {
+      // Para G: el par correcto debe ser gIdx, y la persona correcta g1/g2
+      if (info.gIdx !== idx) return false;
+      if (subtype === 'g1') return info.g1Sub === 'g1' || (!info.g1Sub && true);
+      if (subtype === 'g2') return info.g2Sub === 'g2' || (!info.g2Sub && true);
+      return false;
+    }
+  }
+
+  // Título
+  document.getElementById('mel-rv-title').innerHTML =
+    '<span id="mel-rv-dot" style="display:inline-block;width:14px;height:14px;border-radius:50%;background:' + color + ';flex-shrink:0;"></span>' +
+    '<span style="font-weight:700;">' + name + '</span>';
+
+  // Ficha
+  document.getElementById('mel-rv-card').innerHTML =
+    '<div style="width:48px;height:48px;border-radius:12px;background:' + color + '22;border:2px solid ' + color + '55;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">' + typeIcon + '</div>' +
+    '<div style="flex:1;">' +
+      '<div style="font-size:16px;font-weight:800;color:' + color + ';">' + name + '</div>' +
+      '<div style="font-size:12px;color:var(--muted);margin-top:2px;">' + typeLabel + ' · ' + (type==='MA'?'Médico de Guardia':'Grupo '+subtype.toUpperCase()) + '</div>' +
+    '</div>' +
+    '<div style="text-align:right;">' +
+      '<div style="font-size:22px;font-weight:900;color:' + color + ';">' + seqLen + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);">en rotación</div>' +
+    '</div>';
+
+  // ── Calcular turnos iterando día a día con getMelStaffForDate ─
+  var today = new Date(); today.setHours(0,0,0,0);
+  var allShifts = [], shiftsNext30 = 0, shiftsNext90 = 0;
+  var d = new Date(today);
+  for (var ci = 0; ci < 90; ci++) {
+    var dds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (doctorHasShift(dds)) {
+      allShifts.push(new Date(d));
+      if (ci < 30) shiftsNext30++;
+      shiftsNext90++;
+    }
+    d.setDate(d.getDate() + 1);
+  }
+
+  var nextShift  = allShifts[0];
+  var daysToNext = nextShift ? Math.round((nextShift - today) / 86400000) : '—';
+
+  // Stats
+  document.getElementById('mel-rv-stats').innerHTML =
+    '<div style="background:' + color + '15;border:1px solid ' + color + '40;border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:' + color + ';">' + (daysToNext===0?'HOY':daysToNext) + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">' + (daysToNext===0?'Turno hoy':'días al próximo') + '</div>' +
+    '</div>' +
+    '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:#f87171;">' + shiftsNext30 + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">turnos / 30 días</div>' +
+    '</div>' +
+    '<div style="background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:10px;padding:12px;text-align:center;">' +
+      '<div style="font-size:26px;font-weight:900;color:#f87171;">' + shiftsNext90 + '</div>' +
+      '<div style="font-size:10px;color:var(--muted);margin-top:2px;">turnos / 90 días</div>' +
+    '</div>';
+
+  // Próximos 8 turnos
+  var DAYS_R   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var MONTHS_R = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var next8Html = '';
+  allShifts.slice(0, 8).forEach(function(dt) {
+    var isToday = Math.round((dt - today) / 86400000) === 0;
+    next8Html +=
+      '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;background:' +
+        (isToday ? color+'30' : color+'12') + ';border:1px solid ' + color + (isToday ? '60' : '30') + ';">' +
+      '<div style="width:8px;height:8px;border-radius:50%;background:' + color + ';flex-shrink:0;' + (isToday?'box-shadow:0 0 6px '+color+';':'') + '"></div>' +
+      '<div style="font-size:10px;font-weight:700;color:var(--muted);width:26px;">' + DAYS_R[dt.getDay()] + '</div>' +
+      '<div style="font-size:13px;font-weight:700;color:' + color + ';">' + dt.getDate() + ' ' + MONTHS_R[dt.getMonth()] + ' ' + dt.getFullYear() + '</div>' +
+      (isToday ? '<div style="margin-left:auto;font-size:9px;font-weight:700;background:'+color+';color:white;padding:2px 6px;border-radius:4px;">HOY</div>' : '') +
+      '</div>';
+  });
+  document.getElementById('mel-rv-next').innerHTML = next8Html || '<div style="color:var(--muted);font-size:12px;grid-column:span 2;">Sin turnos próximos</div>';
+
+  // Calendarios 3 meses — usando la misma fuente que el calendario principal
+  var calHtml = '';
+  var DAYS_S2    = ['D','L','M','X','J','V','S'];
+  var MONTHS_FULL = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+
+  for (var mi = 0; mi < 3; mi++) {
+    var cm  = new Date(today.getFullYear(), today.getMonth() + mi, 1);
+    var cy  = cm.getFullYear(), cmo = cm.getMonth();
+    var daysInMo = new Date(cy, cmo+1, 0).getDate();
+    var firstDow = new Date(cy, cmo, 1).getDay();
+    calHtml += '<div>';
+    calHtml += '<div style="font-size:12px;font-weight:700;color:var(--white);margin-bottom:8px;text-align:center;">' + MONTHS_FULL[cmo] + ' ' + cy + '</div>';
+    calHtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;">';
+    DAYS_S2.forEach(function(dl){ calHtml += '<div style="text-align:center;font-size:9px;font-weight:700;color:var(--muted);padding:3px 0;">' + dl + '</div>'; });
+    for (var bi = 0; bi < firstDow; bi++) calHtml += '<div></div>';
+    for (var dd3 = 1; dd3 <= daysInMo; dd3++) {
+      var dds3    = cy + '-' + String(cmo+1).padStart(2,'0') + '-' + String(dd3).padStart(2,'0');
+      var isShift3 = doctorHasShift(dds3);
+      var isTodayC = dds3 === todayStr;
+      var isWknd3  = new Date(cy, cmo, dd3).getDay() === 0 || new Date(cy, cmo, dd3).getDay() === 6;
+      calHtml += '<div style="text-align:center;padding:4px 2px;border-radius:6px;font-size:11px;font-weight:' + (isShift3?'800':'500') + ';' +
+        'background:' + (isShift3 ? color : (isTodayC ? 'rgba(255,255,255,0.08)' : 'transparent')) + ';' +
+        'color:' + (isShift3 ? 'white' : (isTodayC ? 'white' : (isWknd3 ? 'var(--muted)' : 'var(--text)'))) + ';' +
+        (isTodayC && !isShift3 ? 'outline:2px solid rgba(255,255,255,0.4);outline-offset:-2px;' : '') +
+        (isShift3 ? 'box-shadow:0 2px 6px ' + color + '55;' : '') +
+        '">' + dd3 + '</div>';
+    }
+    calHtml += '</div></div>';
+  }
+  document.getElementById('mel-rv-calendars').innerHTML = calHtml;
+
+  window.openModal('mel-rotation-view-modal');
+
+  // Mostrar/ocultar botón Editar según permisos
+  var canEdit2  = typeof canDo === 'function' && canDo('mel.rotacion.editar');
+  var editBtn2   = document.getElementById('mel-rv-edit-btn');
+  var noPermBtn2 = document.getElementById('mel-rv-noperm-btn');
+  if (editBtn2)   editBtn2.style.display   = canEdit2 ? '' : 'none';
+  if (noPermBtn2) noPermBtn2.style.display = canEdit2 ? 'none' : '';
+};
+
+window.melRvOpenEdit = function() {
+  if (typeof canDo === 'function' && !canDo('mel.rotacion.editar')) {
+    showAccessBlocked('med-especialista');
+    return;
+  }
+  closeModal('mel-rotation-view-modal');
+  var c = _melRvCurrentCtx;
+  if (!c) return;
+  setTimeout(function(){ window.melOpenStaffConfig(c.type, c.idx, c.subtype); }, 160);
+};
+
 window.melOpenStaffConfig = function(type, idx, subtype) {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) {
-    showAccessBlocked('Configurar turno médico especialista');
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) {
+    showAccessBlocked('med-especialista');
     return;
   }
   // type: 'MA' or 'G', idx: index in sequence, subtype: 'g1' or 'g2' (for G only)
@@ -24500,33 +25050,35 @@ window.melScmRenderPreview = function() {
   var ctx = melScmCurrentCtx;
   if (!ctx) return;
 
-  var interval = parseInt(document.getElementById('mel-scm-interval').value) || (ctx.type === 'MA' ? 6 : 5);
-  var startDateStr = document.getElementById('mel-scm-startdate').value || MEL_SEQ_REF_DATE;
   var isP = document.getElementById('mel-scm-emtype-P').checked;
+  var typeColor = isP ? '#10b981' : '#ef4444';
+  var typeBg    = isP ? 'rgba(16,185,129,.12)' : 'rgba(239,68,68,.12)';
 
-  // Determine staff position in sequence for offset
-  var staffIdx = ctx.idx;
+  // ── Usar la misma fuente de verdad que el calendario ─────────
+  var type    = ctx.type;
+  var idx     = ctx.idx;
+  var subtype = ctx.subtype || '';
 
-  var seqStart = new Date(startDateStr + 'T00:00:00');
-  var today = new Date();
-  today.setHours(0,0,0,0);
+  function doctorHasShiftPreview(dateStr) {
+    var info = getMelStaffForDate(dateStr);
+    if (type === 'MA') return info.maIdx === idx;
+    if (info.gIdx !== idx) return false;
+    return subtype === 'g2' ? (info.g2Sub === 'g2') : (info.g1Sub === 'g1' || subtype === 'g1');
+  }
 
-  var next = [];
-  var d = new Date(today);
+  var today = new Date(); today.setHours(0,0,0,0);
+  var next  = [];
+  var d     = new Date(today);
   var checked = 0;
   while (next.length < 5 && checked < 200) {
-    var diff = Math.round((d - seqStart) / 86400000);
-    if (diff >= 0 && ((diff - staffIdx) % interval + interval) % interval === 0) {
-      next.push(d.toISOString().slice(0,10));
-    }
+    var dds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (doctorHasShiftPreview(dds)) next.push(dds);
     d.setDate(d.getDate() + 1);
     checked++;
   }
 
   var DAYS_SHORT   = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
   var MONTHS_SHORT = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-  var typeColor = isP ? '#10b981' : '#ef4444';
-  var typeBg    = isP ? 'rgba(16,185,129,.12)' : 'rgba(239,68,68,.12)';
 
   el.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">📅 Próximos turnos (estimado)</div>' +
     (next.length ? next.map(function(ds) {
@@ -24539,7 +25091,7 @@ window.melScmRenderPreview = function() {
 };
 
 window.melScmSave = function() {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar esquema calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar esquema calendario','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar esquema calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar esquema calendario','error'); return; }
 
   var ctx = melScmCurrentCtx;
   if (!ctx) return;
@@ -24669,7 +25221,7 @@ window.melLoadConfig = function() {
   var im = document.getElementById('mel-info-months');  if(im) im.textContent = Object.keys(melLoadData()).length;
 };
 window.melSaveConfig = function() {
-  if (typeof canDo==='function' && !canDo('adm.calendario.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar configuración calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar configuración calendario','error'); return; }
+  if (typeof canDo==='function' && !canDo('mel.rotacion.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar configuración calendario','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: guardar configuración calendario','error'); return; }
 
   var s=document.getElementById('mel-cfg-start'), e=document.getElementById('mel-cfg-end'),
       iv=document.getElementById('mel-cfg-interval'), sd=document.getElementById('mel-cfg-seqstart');

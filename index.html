@@ -10696,14 +10696,22 @@ const EXT_DEFAULT = [
 ];
 
 function initExtensiones() {
+  // ── FIX: la migración/siembra de datos por defecto solo debe ocurrir UNA VEZ.
+  // Antes se comparaba extensiones.length !== EXT_DEFAULT.length en cada visita
+  // a la página, así que cualquier extensión creada o eliminada (que cambia el
+  // total) provocaba un reseteo completo a la lista por defecto, borrando lo
+  // creado/editado. Ahora se usa una bandera persistente en localStorage.
+  const migrated = localStorage.getItem('cmm_extensiones_migrated_v3');
+  if (migrated) return;
+
   const hasOldData = extensiones.length > 0 && extensiones[0].id && extensiones[0].id.startsWith('ext_d');
   const hasRealData = extensiones.length > 0 && extensiones[0].id && extensiones[0].id.startsWith('ext_real');
-  const wrongCount = extensiones.length !== EXT_DEFAULT.length;
-  const needsReset = !extensiones.length || hasOldData || !hasRealData || wrongCount;
-  if (needsReset) {
+  const needsSeed = !extensiones.length || hasOldData || !hasRealData;
+  if (needsSeed) {
     extensiones = JSON.parse(JSON.stringify(EXT_DEFAULT));
     saveExtensiones();
   }
+  localStorage.setItem('cmm_extensiones_migrated_v3', '1');
 }
 
 function saveExtensiones() {
@@ -10745,10 +10753,13 @@ function renderExtensiones() {
   if (statTotal) statTotal.textContent = extensiones.length;
   if (statDepts) statDepts.textContent = allDepts.length;
 
-  // Update dept filter
+  // Update dept filter (se reconstruye siempre para reflejar altas/bajas/ediciones al instante)
   const sel = document.getElementById('ext-filter-dept');
-  if (sel && sel.options.length <= 1) {
+  if (sel) {
+    const prevVal = sel.value;
+    sel.innerHTML = '<option value="">Todos los departamentos</option>';
     allDepts.sort().forEach(d => { const o = document.createElement('option'); o.value = d; o.textContent = d; sel.appendChild(o); });
+    if (allDepts.includes(prevVal)) sel.value = prevVal;
   }
 
   // Dept chips

@@ -3521,6 +3521,7 @@ window.showPage = function(id) {
     <div class="nav-item" onclick="showPage('oxigeno')"><span class="icon">🫁</span> Cálculo de Oxígeno</div>
     <div class="nav-item" onclick="showPage('presupuestos')"><span class="icon">💰</span> Presupuestos</div>
     <div class="nav-item" onclick="showPage('catalogo')"><span class="icon">🔬</span> Catálogo de Estudios</div>
+    <div class="nav-item" onclick="showPage('procedimientos-emergencia')"><span class="icon">📋</span> Procedimientos de Emergencia</div>
     <div class="nav-item" onclick="showPage('escaneo')"><span class="icon">🤖</span> Pregúntale a la IA</div>
     <div class="nav-item" onclick="showPage('importar')"><span class="icon">📥</span> Importar Datos</div>
 
@@ -3601,6 +3602,7 @@ window.showPage = function(id) {
   <div class="drawer-nav-item" onclick="showPage('oxigeno');mbCloseDrawer()"><span class="d-icon">🫁</span> Cálculo de Oxígeno</div>
   <div class="drawer-nav-item" onclick="showPage('presupuestos');mbCloseDrawer()"><span class="d-icon">💰</span> Presupuestos</div>
   <div class="drawer-nav-item" onclick="showPage('catalogo');mbCloseDrawer()"><span class="d-icon">🔬</span> Catálogo de Estudios</div>
+  <div class="drawer-nav-item" onclick="showPage('procedimientos-emergencia');mbCloseDrawer()"><span class="d-icon">📋</span> Procedimientos de Emergencia</div>
   <div class="drawer-nav-item" onclick="showPage('escaneo');mbCloseDrawer()"><span class="d-icon">🤖</span> Pregúntale a la IA</div>
   <div class="drawer-nav-item" onclick="showPage('importar');mbCloseDrawer()"><span class="d-icon">📥</span> Importar Datos</div>
 
@@ -3827,6 +3829,12 @@ window.showPage = function(id) {
               <div style="font-size:28px;margin-bottom:8px;">🔬</div>
               <div style="font-weight:700;font-size:13px;color:#1E293B;margin-bottom:3px;">Catálogo de Estudios</div>
               <div style="font-size:11px;color:var(--muted);">Exámenes y análisis</div>
+            </div>
+
+            <div onclick="showPage('procedimientos-emergencia')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;" onmouseover="this.style.borderColor='#fb7185';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(251,113,133,.15)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none';this.style.boxShadow='none'">
+              <div style="font-size:28px;margin-bottom:8px;">📋</div>
+              <div style="font-weight:700;font-size:13px;color:#1E293B;margin-bottom:3px;">Procedimientos de Emergencia</div>
+              <div style="font-size:11px;color:var(--muted);">Tarifas por ARS</div>
             </div>
 
             <div onclick="showPage('escaneo')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;" onmouseover="this.style.borderColor='#c4b5fd';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(139,92,246,.2)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='none';this.style.boxShadow='none'">
@@ -5965,6 +5973,140 @@ window.showPage = function(id) {
         </div>
       </div>
     </div>
+
+    <!-- ═══════════════════════ MÓDULO PROCEDIMIENTOS DE EMERGENCIA ═══════════════════════ -->
+    <div class="page" id="page-procedimientos-emergencia">
+      <style>
+        .pem-wrap { display:flex; flex-direction:column; gap:20px; }
+        .pem-header { display:flex; align-items:center; gap:14px; padding-bottom:16px; border-bottom:1px solid var(--border); }
+        .pem-icon { width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,rgba(176,16,48,0.22),rgba(176,16,48,0.12));display:flex;align-items:center;justify-content:center;font-size:24px;border:1px solid rgba(176,16,48,0.3); }
+        .pem-title { font-size:20px;font-weight:700;color:var(--text); }
+        .pem-sub { font-size:12px;color:var(--muted); }
+
+        .pem-toolbar { display:flex;gap:10px;align-items:center;flex-wrap:wrap; }
+        .pem-search { flex:1;min-width:220px;padding:9px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none; }
+        .pem-search:focus { border-color:var(--accent); }
+        .pem-btn-new { padding:9px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-dk));color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s; }
+        .pem-btn-new:hover { transform:translateY(-1px);box-shadow:0 6px 16px rgba(27,95,168,.3); }
+        .pem-btn-ars { padding:9px 16px;border-radius:10px;border:1px solid var(--border);background:var(--surface2);color:var(--text);font-size:13px;font-weight:700;cursor:pointer;transition:all .18s; }
+        .pem-btn-ars:hover { border-color:var(--accent); color:var(--accent); }
+        .pem-count { font-size:12px;color:var(--muted);white-space:nowrap; }
+
+        .pem-table-scroll { overflow-x:auto; background:var(--surface);border:1px solid var(--border);border-radius:16px; }
+        .pem-table { width:100%; border-collapse:collapse; min-width:1080px; }
+        .pem-table thead th { text-align:left; font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted); background:var(--surface2); padding:12px 14px; border-bottom:1px solid var(--border); white-space:nowrap; position:sticky; top:0; }
+        .pem-table tbody td { padding:12px 14px; border-bottom:1px solid var(--border); vertical-align:top; font-size:12.5px; color:var(--text); }
+        .pem-table tbody tr:last-child td { border-bottom:none; }
+        .pem-table tbody tr:hover { background:var(--surface3); }
+        .pem-proc-name { font-weight:700; color:var(--text); min-width:190px; }
+        .pem-val { white-space:pre-line; line-height:1.5; }
+        .pem-val:empty::before, .pem-val.pem-empty::before { content:'—'; color:var(--muted); }
+        .pem-actions { display:flex; gap:6px; white-space:nowrap; }
+        .pem-act-btn { padding:5px 10px;border-radius:7px;border:1px solid;font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;background:none; }
+        .pem-act-btn.edit { border-color:var(--accent);color:var(--accent);background:var(--accent-lt); }
+        .pem-act-btn.edit:hover { filter:brightness(0.95); }
+        .pem-act-btn.del  { border-color:var(--rose);color:var(--rose);background:var(--rose-lt); }
+        .pem-act-btn.del:hover  { filter:brightness(0.95); }
+        .pem-empty-state { padding:60px 20px;text-align:center;color:var(--muted); }
+
+        /* Modal procedimiento */
+        #pem-modal-overlay { display:none;position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:8000;align-items:center;justify-content:center;padding:20px; }
+        #pem-modal-overlay.open { display:flex; }
+        #pem-modal { background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;width:min(640px,96vw);max-height:90vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-xl); }
+        .pem-modal-title { font-size:17px;font-weight:700;color:var(--text);margin-bottom:20px; }
+        .pem-form-row { display:flex;flex-direction:column;gap:6px;margin-bottom:14px; }
+        .pem-form-lbl { font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--muted); }
+        .pem-form-input,.pem-form-textarea { width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;font-family:inherit;transition:all .18s;box-sizing:border-box; }
+        .pem-form-input:focus,.pem-form-textarea:focus { border-color:var(--accent);background:var(--accent-lt); }
+        .pem-form-textarea { resize:vertical;min-height:44px; }
+        .pem-form-grid { display:grid;grid-template-columns:1fr 1fr;gap:12px; }
+        .pem-modal-actions { display:flex;gap:10px;margin-top:20px; }
+        .pem-modal-save { flex:1;padding:12px;border-radius:11px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent-dk));color:#fff;font-size:14px;font-weight:700;cursor:pointer; }
+        .pem-modal-cancel { padding:12px 18px;border-radius:11px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:14px;font-weight:600; }
+        .pem-hint { font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:14px;line-height:1.4; }
+
+        /* Modal gestionar ARS */
+        #pem-ars-modal-overlay { display:none;position:fixed;inset:0;background:rgba(10,20,40,.55);z-index:8100;align-items:center;justify-content:center;padding:20px; }
+        #pem-ars-modal-overlay.open { display:flex; }
+        #pem-ars-modal { background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:28px;width:min(480px,96vw);max-height:90vh;overflow-y:auto;position:relative;box-shadow:var(--shadow-xl); }
+        .pem-ars-list { display:flex;flex-direction:column;gap:8px;margin:14px 0 18px; }
+        .pem-ars-item { display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:8px 10px; }
+        .pem-ars-item input { flex:1;border:none;background:transparent;color:var(--text);font-size:13px;outline:none;font-family:inherit; }
+        .pem-ars-item .pem-ars-del { background:var(--rose-lt);border:1px solid var(--rose);color:var(--rose);border-radius:7px;padding:4px 9px;cursor:pointer;font-size:12px;font-weight:700; }
+        .pem-ars-add-row { display:flex;gap:8px; }
+        .pem-ars-add-row input { flex:1; }
+        .pem-ars-add-btn { padding:10px 16px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--emerald),#0f5c2c);color:#fff;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap; }
+        .pem-ars-empty-hint { font-size:11px;color:var(--muted);margin-bottom:4px; }
+
+        @media(max-width:900px){ .pem-form-grid{grid-template-columns:1fr;} }
+      </style>
+
+      <div class="module-centered pem-wrap">
+
+        <!-- Header -->
+        <div class="pem-header">
+          <div class="pem-icon">📋</div>
+          <div>
+            <div class="pem-title">Procedimientos de Emergencia</div>
+            <div class="pem-sub" id="pem-sub-ars">Tarifas por procedimiento y ARS</div>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="pem-toolbar">
+          <input type="text" id="pem-search" class="pem-search" placeholder="🔍 Buscar procedimiento..." oninput="renderPemProcedures()">
+          <span class="pem-count"><span id="pem-count">0</span> procedimiento(s)</span>
+          <button class="pem-btn-ars" data-perm="pem.editar" id="btn-gestionar-ars" onclick="openPemArsModal()" style="display:none;">🛡️ Gestionar ARS</button>
+          <button class="pem-btn-new" data-perm="pem.crear" id="btn-nuevo-pem" onclick="openPemModal()" style="display:none;">+ Nuevo Procedimiento</button>
+        </div>
+
+        <!-- Table -->
+        <div class="pem-table-scroll">
+          <table class="pem-table">
+            <thead id="pem-table-head"></thead>
+            <tbody id="pem-table-body"></tbody>
+          </table>
+        </div>
+
+      </div>
+
+      <!-- Modal Procedimiento -->
+      <div id="pem-modal-overlay">
+        <div id="pem-modal">
+          <div class="pem-modal-title" id="pem-modal-title">➕ Nuevo Procedimiento</div>
+          <input type="hidden" id="pem-edit-id">
+          <div class="pem-form-row">
+            <label class="pem-form-lbl">Nombre del procedimiento *</label>
+            <input type="text" id="pem-f-name" class="pem-form-input" placeholder="Ej: Sutura de Heridas">
+          </div>
+          <div class="pem-hint">Puedes escribir montos, notas o condiciones libremente en cada campo (ej: "700 (un área)" y en otra línea "1,700 (áreas múltiples)", o simplemente "llamar"). ¿Falta una ARS? Ciérrra este formulario y usa "🛡️ Gestionar ARS".</div>
+          <div class="pem-form-grid" id="pem-form-ars-fields"></div>
+          <div class="pem-modal-actions">
+            <button class="pem-modal-save" onclick="savePemProcedure()">💾 Guardar</button>
+            <button class="pem-modal-cancel" onclick="closePemModal()">Cancelar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Gestionar ARS -->
+      <div id="pem-ars-modal-overlay">
+        <div id="pem-ars-modal">
+          <div class="pem-modal-title">🛡️ Gestionar ARS</div>
+          <div class="pem-hint">Agrega, renombra o elimina las ARS que aparecen como columnas en la tabla de procedimientos. Al renombrar, se conservan las tarifas ya cargadas. Al eliminar, se borran las tarifas de esa ARS en todos los procedimientos.</div>
+          <div class="pem-ars-empty-hint" id="pem-ars-empty-hint" style="display:none;">Aún no hay ninguna ARS agregada.</div>
+          <div class="pem-ars-list" id="pem-ars-list"></div>
+          <div class="pem-ars-add-row">
+            <input type="text" id="pem-ars-new-name" class="pem-form-input" placeholder="Nombre de nueva ARS (Ej: Palic Salud)">
+            <button class="pem-ars-add-btn" onclick="addPemArs()">+ Agregar</button>
+          </div>
+          <div class="pem-modal-actions">
+            <button class="pem-modal-cancel" style="flex:1;text-align:center;" onclick="closePemArsModal()">Cerrar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════ MÓDULO TURNO NOCTURNO ═══════════════════════ -->
 
     <!-- ═══════════════════════ MÓDULO TURNO NOCTURNO ═══════════════════════ -->
     <div class="page" id="page-turno-nocturno">
@@ -13772,6 +13914,8 @@ const ROL_CEILING = {
     'mll.ver',
     // Catálogo
     'cat.ver',
+    // Procedimientos de Emergencia
+    'pem.ver',
     // Cálculo de Oxígeno
     'oxy.ver',
     // Presupuestos
@@ -13801,6 +13945,8 @@ const ROL_CEILING = {
     'mll.ver','mll.editar','mll.agregar','mll.semanas',
     // Catálogo
     'cat.ver','cat.crear','cat.editar',
+    // Procedimientos de Emergencia
+    'pem.ver','pem.crear','pem.editar',
     // Cálculo de Oxígeno
     'oxy.ver','oxy.crear','oxy.limpiar',
     // Presupuestos
@@ -13832,6 +13978,8 @@ const ROL_CEILING = {
     'mll.ver','mll.editar','mll.agregar','mll.eliminar','mll.semanas',
     // Catálogo
     'cat.ver','cat.crear','cat.editar','cat.borrar',
+    // Procedimientos de Emergencia
+    'pem.ver','pem.crear','pem.editar','pem.borrar',
     // Cálculo de Oxígeno
     'oxy.ver','oxy.crear','oxy.borrar','oxy.limpiar',
     // Presupuestos
@@ -13966,6 +14114,7 @@ const SYS_MODULES = [
   // ── Clínico / Herramientas ─────────────────────────────────
   { id: 'oxigeno',              label: '🫁 Cálculo de Oxígeno',        grupo: 'Clínico'     },
   { id: 'catalogo',             label: '🔬 Catálogo de Estudios',      grupo: 'Clínico'     },
+  { id: 'procedimientos-emergencia', label: '📋 Procedimientos de Emergencia', grupo: 'Clínico' },
   // ── Finanzas ───────────────────────────────────────────────
   { id: 'presupuestos',         label: '💰 Presupuestos',              grupo: 'Finanzas'    },
   // ── Documentación / Admisión ───────────────────────────────
@@ -14046,6 +14195,12 @@ const SYS_ACCIONES = [
     { id: 'cat.crear',  label: 'Agregar nuevo estudio al catálogo' },
     { id: 'cat.editar', label: 'Editar estudio existente' },
     { id: 'cat.borrar', label: 'Eliminar estudio del catálogo' },
+  ]},
+  { seccion: '📋 Procedimientos de Emergencia', modulo: 'procedimientos-emergencia', acciones: [
+    { id: 'pem.ver',    label: 'Solo ver procedimientos y tarifas' },
+    { id: 'pem.crear',  label: 'Agregar nuevo procedimiento' },
+    { id: 'pem.editar', label: 'Editar procedimiento existente' },
+    { id: 'pem.borrar', label: 'Eliminar procedimiento' },
   ]},
   // ── FINANZAS ───────────────────────────────────────────────────────────────
   { seccion: '💰 Presupuestos', modulo: 'presupuestos', acciones: [
@@ -14187,6 +14342,7 @@ const SUPERVISOR_ONLY_ACTIONS = new Set([
   'mll.eliminar',
   // Catálogo, presupuestos, docs: borrar
   'cat.borrar',
+  'pem.borrar',
   'ppto.borrar',
   'docs.borrar',
   // Usuarios
@@ -14211,8 +14367,8 @@ function canAccessModule(pageId) {
   if (sysSession.rol === 'admin') return true;
   // medico-llamada accessible to all roles (editing restricted by canDo)
   if (sysSession.modulos && Array.isArray(sysSession.modulos)) return sysSession.modulos.includes(pageId);
-  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','turno-nocturno','oxigeno','catalogo','presupuestos','documentos','compromiso','escaneo','importar','auditoria'];
-  const viewerMods = ['inicio','dashboard','doctores','ars','extensiones','atencion-emergencia','presupuestos','catalogo','documentos','medico-llamada','med-especialista','turno-nocturno','extensiones'];
+  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','turno-nocturno','oxigeno','catalogo','procedimientos-emergencia','presupuestos','documentos','compromiso','escaneo','importar','auditoria'];
+  const viewerMods = ['inicio','dashboard','doctores','ars','extensiones','atencion-emergencia','presupuestos','catalogo','procedimientos-emergencia','documentos','medico-llamada','med-especialista','turno-nocturno','extensiones'];
   if (sysSession.rol === 'supervisor') return editorMods.includes(pageId) || ['usuarios','cargo-suministros','cargo-laboratorio','cargo-admision','medico-llamada'].includes(pageId);
   if (sysSession.rol === 'editor') return editorMods.includes(pageId);
   return viewerMods.includes(pageId);
@@ -17680,7 +17836,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
   });
-  const titles = { inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
+  const titles = { inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
   document.getElementById('page-title').textContent = titles[id] || id;
   // ── Historial de navegación para botón Atrás ──────────────────────────────
   if (!window._navHistory) window._navHistory = [];
@@ -17698,6 +17854,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   if (id === 'enlace') renderLinks();
   if (id === 'oxigeno') renderOxyHistory();
   if (id === 'catalogo') { setTimeout(()=>{ renderCatalog(); updateCatStats(); }, 50); }
+  if (id === 'procedimientos-emergencia') { setTimeout(()=>{ renderPemProcedures(); }, 50); }
   if (id === 'importar') renderImportModules();
   if (id === 'presupuestos') { renderBudgetList(); updateBudgetDoctorARS(); }
   if (id === 'escaneo') { renderScanHistory(); }
@@ -17799,6 +17956,7 @@ const SYSTEM_MODULES = [
   { id:'sys-oxigeno',     icon:'🫁',  name:'Cálculo de Oxígeno',   desc:'Cálculo de suministro de oxígeno',        color:'green',  page:'oxigeno' },
   { id:'sys-presupuestos',icon:'💰',  name:'Presupuestos',         desc:'Cotizaciones y presupuestos médicos',     color:'yellow', page:'presupuestos' },
   { id:'sys-catalogo',    icon:'🔬',  name:'Catálogo de Estudios', desc:'Estudios y procedimientos disponibles',   color:'blue',   page:'catalogo' },
+  { id:'sys-procedimientos', icon:'📋', name:'Procedimientos de Emergencia', desc:'Tarifas de procedimientos por ARS', color:'yellow', page:'procedimientos-emergencia' },
   { id:'sys-escaneo',     icon:'🤖',  name:'Escaneo con IA',       desc:'Escaneo inteligente de documentos',       color:'cyan',   page:'escaneo' },
   { id:'sys-importar',    icon:'📥',  name:'Importar Datos',       desc:'Importación de datos externos',           color:'green',  page:'importar' },
   { id:'sys-documentos',  icon:'🗂️',  name:'Documentación',        desc:'Cartas y documentos oficiales',          color:'yellow', page:'documentos' },
@@ -20366,6 +20524,273 @@ function printCatOrder() {
   <div class="footer">Documento generado por EECDATOS · Centro Médico Moderno</div>
   </body></html>`);
   w.document.close(); w.print();
+}
+
+// ===== PROCEDIMIENTOS DE EMERGENCIA =====
+const PEM_ARS_DEFAULT = ['Universal', 'Senasa', 'APS', 'Meta Salud', 'Mapfre', 'Humano', 'Futuro'];
+const PEM_LEGACY_KEYS = { universal:'Universal', senasa:'Senasa', aps:'APS', metasalud:'Meta Salud', mapfre:'Mapfre', humano:'Humano', futuro:'Futuro' };
+
+let pemArsList = JSON.parse(localStorage.getItem('pem_ars_list') || 'null') || PEM_ARS_DEFAULT.slice();
+
+let pemProcedures = JSON.parse(localStorage.getItem('pem_procedures') || 'null') || [
+  { id:'pem1',  name:'Sutura de Heridas',                              precios:{ 'Universal':'700 (una sola área)\n1,700 (área múltiples)', 'Senasa':'1,800', 'APS':'2,500', 'Meta Salud':'3,000', 'Mapfre':'4,032', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem2',  name:'Cura de heridas',                                 precios:{ 'Universal':'500',  'Senasa':'',      'APS':'800',   'Meta Salud':'1,000', 'Mapfre':'',      'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem3',  name:'Cura de quemaduras',                               precios:{ 'Universal':'1,100 (10%)\n3,000 (20%)\n4,300 (30%)', 'Senasa':'', 'APS':'1,500', 'Meta Salud':'1,650', 'Mapfre':'500', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem4',  name:'Colocación de férulas',                           precios:{ 'Universal':'800',  'Senasa':'1,200', 'APS':'3,000', 'Meta Salud':'2,000', 'Mapfre':'5,000', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem5',  name:'Reanimación (RCP)',                                precios:{ 'Universal':'2,500','Senasa':'',      'APS':'2,500', 'Meta Salud':'3,000', 'Mapfre':'',      'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem6',  name:'Desfibrilación',                                  precios:{ 'Universal':'6,500','Senasa':'3,000', 'APS':'2,500', 'Meta Salud':'3,000', 'Mapfre':'1,300', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem7',  name:'Cardioversión eléctricas y medicamentosas',       precios:{ 'Universal':'6,500','Senasa':'',      'APS':'',      'Meta Salud':'',      'Mapfre':'1,300', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem8',  name:'Entubación',                                      precios:{ 'Universal':'2,500','Senasa':'5,000', 'APS':'3,500', 'Meta Salud':'4,000', 'Mapfre':'2,800', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem9',  name:'Vías centrales',                                  precios:{ 'Universal':'5,500','Senasa':'8,000', 'APS':'8,000', 'Meta Salud':'8,000', 'Mapfre':'10,000','Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem10', name:'Extracción cuerpos extraños en oídos y nariz',    precios:{ 'Universal':'1,100 y 1,800', 'Senasa':'1,296', 'APS':'2,500', 'Meta Salud':'1,500 ambos', 'Mapfre':'4,500 ambas', 'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem11', name:'Sedación consciente',                             precios:{ 'Universal':'',     'Senasa':'',      'APS':'',      'Meta Salud':'',      'Mapfre':'',      'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem12', name:'Honorarios Diurno',                                precios:{ 'Universal':'500',  'Senasa':'400',   'APS':'500',   'Meta Salud':'700',   'Mapfre':'500',   'Humano':'500', 'Futuro':'Llamar' } },
+  { id:'pem13', name:'Honorarios Nocturno',                              precios:{ 'Universal':'500',  'Senasa':'400',   'APS':'800',   'Meta Salud':'900',   'Mapfre':'800',   'Humano':'800', 'Futuro':'Llamar' } },
+  { id:'pem14', name:'Colocación de sonda vesical',                     precios:{ 'Universal':'2,000','Senasa':'2,500', 'APS':'2,100', 'Meta Salud':'2,100', 'Mapfre':'',      'Humano':'', 'Futuro':'Llamar' } },
+  { id:'pem15', name:'Colocación de sonda nasogástricas',                precios:{ 'Universal':'1,800','Senasa':'',      'APS':'2,000', 'Meta Salud':'2,000', 'Mapfre':'',      'Humano':'', 'Futuro':'Llamar' } },
+];
+let pemEditId = null;
+
+// ── Migración: versiones antiguas guardaban campos fijos (universal, senasa, aps...) ──
+(function pemMigrateLegacy() {
+  let changed = false;
+  pemProcedures = pemProcedures.map(p => {
+    if (p && !p.precios) {
+      const precios = {};
+      Object.keys(PEM_LEGACY_KEYS).forEach(k => {
+        if (p[k] !== undefined) precios[PEM_LEGACY_KEYS[k]] = p[k];
+      });
+      changed = true;
+      return { id: p.id, name: p.name, precios };
+    }
+    return p;
+  });
+  if (changed) savePemToStorage();
+})();
+
+function savePemToStorage() {
+  try { localStorage.setItem('pem_procedures', JSON.stringify(pemProcedures)); } catch(e) {}
+}
+
+function savePemArsToStorage() {
+  try { localStorage.setItem('pem_ars_list', JSON.stringify(pemArsList)); } catch(e) {}
+}
+
+function pemEsc(s) {
+  return (s == null ? '' : String(s)).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+}
+
+function pemFieldId(arsName) {
+  return 'pem-f-' + arsName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function renderPemTableHead() {
+  const head = document.getElementById('pem-table-head');
+  if (!head) return;
+  head.innerHTML = `<tr>
+    <th>Procedimiento</th>
+    ${pemArsList.map(a => `<th>${pemEsc(a)}</th>`).join('')}
+    <th>Acciones</th>
+  </tr>`;
+}
+
+function renderPemProcedures() {
+  const _ncBtn = document.getElementById('btn-nuevo-pem');
+  if (_ncBtn) _ncBtn.style.display = (typeof canDo==='function' && canDo('pem.crear')) ? '' : 'none';
+  const _arsBtn = document.getElementById('btn-gestionar-ars');
+  if (_arsBtn) _arsBtn.style.display = (typeof canDo==='function' && canDo('pem.editar')) ? '' : 'none';
+
+  const subEl = document.getElementById('pem-sub-ars');
+  if (subEl) subEl.textContent = 'Tarifas por procedimiento y ARS · ' + (pemArsList.length ? pemArsList.join(' · ') : 'sin ARS configuradas');
+
+  renderPemTableHead();
+
+  const q = (document.getElementById('pem-search')?.value || '').toLowerCase().trim();
+  const filtered = pemProcedures.filter(p => !q || p.name.toLowerCase().includes(q));
+
+  const body = document.getElementById('pem-table-body');
+  if (!body) return;
+
+  const cntEl = document.getElementById('pem-count');
+  if (cntEl) cntEl.textContent = filtered.length;
+
+  const colspan = pemArsList.length + 2;
+  if (filtered.length === 0) {
+    body.innerHTML = `<tr><td colspan="${colspan}" class="pem-empty-state">📋 No se encontraron procedimientos</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = filtered.map(p => {
+    const valTds = pemArsList.map(a => {
+      const v = pemEsc((p.precios || {})[a]);
+      return `<td><div class="pem-val${v ? '' : ' pem-empty'}">${v}</div></td>`;
+    }).join('');
+    return `<tr>
+      <td class="pem-proc-name">${pemEsc(p.name)}</td>
+      ${valTds}
+      <td>
+        <div class="pem-actions">
+          ${(typeof canDo==='function'&&canDo('pem.editar'))?`<button class="pem-act-btn edit" onclick="openPemModal('${p.id}')">✏️ Editar</button>`:''}
+          ${(typeof canDo==='function'&&canDo('pem.borrar'))?`<button class="pem-act-btn del" onclick="deletePemProcedure('${p.id}')">🗑️ Eliminar</button>`:''}
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPemFormArsFields(values) {
+  const wrap = document.getElementById('pem-form-ars-fields');
+  if (!wrap) return;
+  values = values || {};
+  if (!pemArsList.length) {
+    wrap.innerHTML = '<div class="pem-hint" style="margin:0;">No hay ARS configuradas todavía. Usa "🛡️ Gestionar ARS" para agregar la primera.</div>';
+    return;
+  }
+  wrap.innerHTML = pemArsList.map(a => `
+    <div class="pem-form-row" style="margin-bottom:0">
+      <label class="pem-form-lbl">${pemEsc(a)}</label>
+      <textarea id="${pemFieldId(a)}" class="pem-form-textarea" data-ars="${pemEsc(a)}" placeholder="Ej: 700">${pemEsc(values[a])}</textarea>
+    </div>`).join('');
+}
+
+function openPemModal(id) {
+  if (typeof canDo==='function') { const needed = id ? 'pem.editar' : 'pem.crear'; if (!canDo(needed)) { if(typeof showToast==='function') showToast('🚫 Sin permiso: ' + (id?'editar':'crear') + ' procedimiento de emergencia','error'); return; } }
+  pemEditId = id || null;
+  const modal = document.getElementById('pem-modal-overlay');
+  const title = document.getElementById('pem-modal-title');
+  if (!modal) return;
+  if (id) {
+    const p = pemProcedures.find(x => x.id === id);
+    if (!p) return;
+    document.getElementById('pem-f-name').value = p.name;
+    renderPemFormArsFields(p.precios || {});
+    title.textContent = '✏️ Editar Procedimiento';
+  } else {
+    document.getElementById('pem-f-name').value = '';
+    renderPemFormArsFields({});
+    title.textContent = '➕ Nuevo Procedimiento';
+  }
+  modal.classList.add('open');
+}
+
+function closePemModal() {
+  const modal = document.getElementById('pem-modal-overlay');
+  if (modal) modal.classList.remove('open');
+  pemEditId = null;
+}
+
+function savePemProcedure() {
+  const needed = pemEditId ? 'pem.editar' : 'pem.crear';
+  if (typeof canDo==='function' && !canDo(needed)) { if(typeof showToast==='function') showToast('🚫 Sin permiso: guardar procedimiento de emergencia','error'); return; }
+  const name = document.getElementById('pem-f-name')?.value?.trim();
+  if (!name) { if(typeof showToast==='function') showToast('⚠️ El nombre del procedimiento es obligatorio','yellow'); return; }
+  const precios = {};
+  pemArsList.forEach(a => {
+    const el = document.getElementById(pemFieldId(a));
+    precios[a] = el ? el.value.trim() : '';
+  });
+  if (pemEditId) {
+    const idx = pemProcedures.findIndex(p => p.id === pemEditId);
+    if (idx >= 0) pemProcedures[idx] = { ...pemProcedures[idx], name, precios };
+  } else {
+    pemProcedures.push({ id: 'pem' + Date.now(), name, precios });
+  }
+  savePemToStorage();
+  closePemModal();
+  renderPemProcedures();
+  if (typeof logAudit === 'function') logAudit(pemEditId ? 'EDITAR' : 'CREAR', 'Procedimiento de Emergencia: ' + name, false);
+}
+
+function deletePemProcedure(id) {
+  if (typeof canDo==='function' && !canDo('pem.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar procedimiento de emergencia','error'); return; }
+  const p = pemProcedures.find(x => x.id === id);
+  if (!confirm('¿Eliminar el procedimiento "' + (p ? p.name : '') + '"?')) return;
+  pemProcedures = pemProcedures.filter(x => x.id !== id);
+  savePemToStorage();
+  renderPemProcedures();
+  if (typeof logAudit === 'function') logAudit('ELIMINAR', 'Procedimiento de Emergencia: ' + (p ? p.name : id), true);
+}
+
+// ── Gestión de ARS (columnas dinámicas) ──────────────────────────────────
+function openPemArsModal() {
+  if (typeof canDo==='function' && !canDo('pem.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: gestionar ARS de procedimientos','error'); return; }
+  const modal = document.getElementById('pem-ars-modal-overlay');
+  if (!modal) return;
+  const nameInput = document.getElementById('pem-ars-new-name');
+  if (nameInput) nameInput.value = '';
+  renderPemArsModalList();
+  modal.classList.add('open');
+}
+
+function closePemArsModal() {
+  const modal = document.getElementById('pem-ars-modal-overlay');
+  if (modal) modal.classList.remove('open');
+  renderPemProcedures();
+}
+
+function renderPemArsModalList() {
+  const list = document.getElementById('pem-ars-list');
+  const emptyHint = document.getElementById('pem-ars-empty-hint');
+  if (!list) return;
+  if (emptyHint) emptyHint.style.display = pemArsList.length ? 'none' : 'block';
+  list.innerHTML = pemArsList.map((a, idx) => `
+    <div class="pem-ars-item">
+      <input type="text" value="${pemEsc(a)}" onchange="renamePemArs(${idx}, this.value)">
+      <button class="pem-ars-del" onclick="removePemArs(${idx})">🗑️</button>
+    </div>`).join('');
+}
+
+function addPemArs() {
+  if (typeof canDo==='function' && !canDo('pem.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: gestionar ARS de procedimientos','error'); return; }
+  const input = document.getElementById('pem-ars-new-name');
+  const name = (input?.value || '').trim();
+  if (!name) { if(typeof showToast==='function') showToast('⚠️ Escribe el nombre de la ARS','yellow'); return; }
+  if (pemArsList.some(a => a.toLowerCase() === name.toLowerCase())) { if(typeof showToast==='function') showToast('⚠️ Esa ARS ya existe','yellow'); return; }
+  pemArsList.push(name);
+  pemProcedures.forEach(p => { if (!p.precios) p.precios = {}; p.precios[name] = ''; });
+  savePemArsToStorage();
+  savePemToStorage();
+  if (input) input.value = '';
+  renderPemArsModalList();
+  if (typeof logAudit === 'function') logAudit('CREAR', 'ARS de Procedimientos de Emergencia: ' + name, false);
+  if (typeof showToast==='function') showToast('✅ ARS "' + name + '" agregada','green');
+}
+
+function renamePemArs(idx, newNameRaw) {
+  if (typeof canDo==='function' && !canDo('pem.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: gestionar ARS de procedimientos','error'); renderPemArsModalList(); return; }
+  const newName = (newNameRaw || '').trim();
+  const oldName = pemArsList[idx];
+  if (!newName) { renderPemArsModalList(); return; }
+  if (newName === oldName) return;
+  if (pemArsList.some((a, i) => i !== idx && a.toLowerCase() === newName.toLowerCase())) {
+    if(typeof showToast==='function') showToast('⚠️ Ya existe una ARS con ese nombre','yellow');
+    renderPemArsModalList();
+    return;
+  }
+  pemArsList[idx] = newName;
+  pemProcedures.forEach(p => {
+    if (!p.precios) return;
+    if (Object.prototype.hasOwnProperty.call(p.precios, oldName)) {
+      p.precios[newName] = p.precios[oldName];
+      delete p.precios[oldName];
+    }
+  });
+  savePemArsToStorage();
+  savePemToStorage();
+  renderPemArsModalList();
+  if (typeof logAudit === 'function') logAudit('EDITAR', 'ARS de Procedimientos de Emergencia: ' + oldName + ' → ' + newName, false);
+}
+
+function removePemArs(idx) {
+  if (typeof canDo==='function' && !canDo('pem.editar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: gestionar ARS de procedimientos','error'); return; }
+  const name = pemArsList[idx];
+  if (!confirm('¿Eliminar la ARS "' + name + '"? Se borrarán sus tarifas en todos los procedimientos.')) return;
+  pemArsList.splice(idx, 1);
+  pemProcedures.forEach(p => { if (p.precios) delete p.precios[name]; });
+  savePemArsToStorage();
+  savePemToStorage();
+  renderPemArsModalList();
+  if (typeof logAudit === 'function') logAudit('ELIMINAR', 'ARS de Procedimientos de Emergencia: ' + name, true);
 }
 
 function renderOxyHistory() {

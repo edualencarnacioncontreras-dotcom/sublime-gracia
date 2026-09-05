@@ -5354,9 +5354,20 @@ window.showPage = function(id) {
             </div>
           </div>
 
-          <!-- Botón imprimir -->
-          <div style="flex-shrink:0;">
-            <button class="btn btn-primary" onclick="imprimirDocumento()" style="width:100%;justify-content:center;font-size:13px;padding:11px;">🖨️ Imprimir / Guardar PDF</button>
+          <!-- Ingresos Creados -->
+          <div class="table-card" style="overflow:hidden;flex-shrink:0;">
+            <div class="table-header" style="padding:11px 14px;">
+              <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);">📥 Ingresos Creados</h3>
+            </div>
+            <div id="ingresos-creados-list" style="max-height:220px;overflow-y:auto;">
+              <div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);" id="ingresos-creados-empty">Sin ingresos guardados</div>
+            </div>
+          </div>
+
+          <!-- Botón imprimir / guardar -->
+          <div style="flex-shrink:0;display:flex;gap:8px;">
+            <button class="btn btn-primary" onclick="imprimirDocumento()" style="flex:1;justify-content:center;font-size:13px;padding:11px;">🖨️ Imprimir / Guardar PDF</button>
+            <button class="btn btn-green" onclick="guardarIngresoComoCreado()" style="flex:1;justify-content:center;font-size:13px;padding:11px;">💾 Guardar Ingreso</button>
           </div>
         </div>
 
@@ -5430,6 +5441,7 @@ window.showPage = function(id) {
         </div>
         <div style="display:flex;gap:6px;">
           <button onclick="limpiarDocumento()" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:5px 10px;border-radius:7px;font-size:11px;cursor:pointer;">🗑️ Limpiar</button>
+          <button onclick="guardarIngresoComoCreado()" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:var(--accent);padding:5px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:5px;">💾 Guardar Ingreso</button>
           <button onclick="imprimirDocumento()" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:var(--green);padding:5px 14px;border-radius:7px;font-size:12px;cursor:pointer;font-weight:700;display:flex;align-items:center;gap:5px;">🖨️ Imprimir / PDF</button>
         </div>
       </div>
@@ -9603,8 +9615,8 @@ const DOC_TEMPLATES = {
   'ingreso-paciente': {
     title: 'Formulario de Ingreso de Paciente',
     fields: {
-      'pac_nombre': '', 'pac_cedula': '', 'pac_tel': '',
-      'fam_nombre': '', 'fam_cedula': '', 'fam_tel': '',
+      'pac_nombre': '', 'pac_cedula': '', 'pac_tel': '', 'pac_tel2': '', 'pac_direccion': '',
+      'fam_nombre': '', 'fam_cedula': '', 'fam_tel': '', 'fam_tel2': '', 'fam_direccion': '',
       'doc_nombre': '', 'doc_cod_ars': '', 'ars_nombre': '',
       'diagnostico': '', 'habitacion': '', 'procedimiento': '',
       'cups': '', 'simon': ''
@@ -9624,6 +9636,8 @@ const DOC_TEMPLATES = {
               <div><label style="font-weight:700;font-size:13px;">No. Identificación: </label><input class="print-field" data-field="pac_cedula" value="${f.pac_cedula}" placeholder="___________________" style="width:55%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
               <div><label style="font-weight:700;font-size:13px;">Teléfono: </label><input class="print-field" data-field="pac_tel" value="${f.pac_tel}" placeholder="___________________" style="width:60%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
             </div>
+            <div style="margin-bottom:10px;"><label style="font-weight:700;font-size:13px;">Dirección: </label><input class="print-field" data-field="pac_direccion" value="${f.pac_direccion}" placeholder="_______________________________________________________" style="width:88%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
+            <div><label style="font-weight:700;font-size:13px;">Otro Teléfono: </label><input class="print-field" data-field="pac_tel2" value="${f.pac_tel2}" placeholder="___________________" style="width:55%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
           </div>
 
           <div style="margin-bottom:24px;">
@@ -9633,6 +9647,8 @@ const DOC_TEMPLATES = {
               <div><label style="font-weight:700;font-size:13px;">No. Identificación: </label><input class="print-field" data-field="fam_cedula" value="${f.fam_cedula}" placeholder="___________________" style="width:55%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
               <div><label style="font-weight:700;font-size:13px;">Teléfono: </label><input class="print-field" data-field="fam_tel" value="${f.fam_tel}" placeholder="___________________" style="width:60%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
             </div>
+            <div style="margin-bottom:10px;"><label style="font-weight:700;font-size:13px;">Dirección: </label><input class="print-field" data-field="fam_direccion" value="${f.fam_direccion}" placeholder="_______________________________________________________" style="width:88%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
+            <div><label style="font-weight:700;font-size:13px;">Otro Teléfono: </label><input class="print-field" data-field="fam_tel2" value="${f.fam_tel2}" placeholder="___________________" style="width:55%;font-size:13px;padding:2px 4px;font-family:inherit;"></div>
           </div>
 
           <div style="margin-bottom:24px;">
@@ -9760,7 +9776,7 @@ const DOC_TEMPLATES = {
             <div><span style="font-weight:700;font-size:13px;">Cédula de identidad: </span><input class="print-field" data-field="resp_cedula2" value="${f.resp_cedula}" placeholder="_______________________________________" style="font-size:13px;padding:2px 4px;font-family:inherit;width:340px;"></div>
             <div style="margin-top:40px;border-top:1px solid #000;padding-top:8px;width:220px;"><div style="font-weight:700;font-size:13px;">Firma</div></div>
             <div><span style="font-weight:700;font-size:13px;">Números de teléfonos: </span><input class="print-field" data-field="resp_tel1" value="${f.resp_tel1}" placeholder="____________________" style="font-size:13px;padding:2px 4px;font-family:inherit;width:160px;"> y <input class="print-field" data-field="resp_tel2" value="${f.resp_tel2}" placeholder="____________________" style="font-size:13px;padding:2px 4px;font-family:inherit;width:160px;"></div>
-            <div><span style="font-weight:700;font-size:13px;">Dirección: </span><input class="print-field" data-field="resp_dir" value="${f.resp_dir}" placeholder="_______________________________________________" style="font-size:13px;padding:2px 4px;font-family:inherit;width:420px;"></div>
+            <div><span style="font-weight:700;font-size:13px;">Dirección: </span><input class="print-field" data-field="resp_dir" value="${f.resp_dir}" placeholder="_______________________________________________________" style="font-size:13px;padding:2px 4px;font-family:inherit;width:90%;"></div>
           </div>
         </div>`;
     }
@@ -10236,6 +10252,93 @@ function renderCustomDocMenu() {
     </div>`).join('');
 }
 
+// ---- Ingresos Creados (guardar formularios de ingreso ya llenados) ----
+const INGRESOS_CREADOS_KEY = 'ingresos_creados_v1';
+
+function getIngresosCreados() {
+  try { return JSON.parse(localStorage.getItem(INGRESOS_CREADOS_KEY) || '[]'); }
+  catch(e) { return []; }
+}
+
+function saveIngresosCreados(lista) {
+  localStorage.setItem(INGRESOS_CREADOS_KEY, JSON.stringify(lista));
+}
+
+function guardarIngresoComoCreado() {
+  if (currentDocIsCustom) {
+    showToast('⚠️ Este botón guarda formularios de Ingreso de Paciente', 'yellow');
+    return;
+  }
+  // Aseguramos que trabajamos sobre el formulario de Ingreso de Paciente
+  if (currentDocId !== 'ingreso-paciente') {
+    selectDoc('ingreso-paciente', document.querySelector('.doc-menu-item'));
+  }
+  const nombrePaciente = (docFields.pac_nombre || '').trim();
+  if (!nombrePaciente) {
+    showToast('⚠️ Escribe el nombre del paciente antes de guardar el ingreso', 'yellow');
+    return;
+  }
+  const registro = {
+    id: 'ic_' + Date.now(),
+    fecha: new Date().toISOString(),
+    fechaFmt: new Date().toLocaleDateString('es-DO', {day:'2-digit', month:'2-digit', year:'numeric'}),
+    horaFmt: new Date().toLocaleTimeString('es-DO', {hour:'2-digit', minute:'2-digit'}),
+    datos: Object.assign({}, docFields)
+  };
+  const lista = getIngresosCreados();
+  lista.unshift(registro);
+  saveIngresosCreados(lista);
+  renderIngresosCreados();
+  showToast('✅ Ingreso guardado en "Ingresos Creados"');
+}
+
+function renderIngresosCreados() {
+  const cont = document.getElementById('ingresos-creados-list');
+  if (!cont) return;
+  const lista = getIngresosCreados();
+  if (!lista.length) {
+    cont.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);" id="ingresos-creados-empty">Sin ingresos guardados</div>';
+    return;
+  }
+  cont.innerHTML = lista.map((r, idx) => `
+    <div class="doc-menu-item" onclick="verIngresoCreado(${idx})" style="cursor:pointer;">
+      <div style="font-size:15px;">📥</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(r.datos.pac_nombre || 'Sin nombre').replace(/</g,'&lt;')}</div>
+        <div style="font-size:11px;color:var(--muted);">${r.fechaFmt} · ${r.horaFmt || ''}</div>
+      </div>
+      <button onclick="event.stopPropagation();eliminarIngresoCreado(${idx})" title="Eliminar" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;">🗑️</button>
+    </div>`).join('');
+}
+
+function verIngresoCreado(idx) {
+  const lista = getIngresosCreados();
+  const r = lista[idx];
+  if (!r) return;
+  currentDocId = 'ingreso-paciente';
+  currentDocIsCustom = false;
+  currentCustomDocId = null;
+  docFields = Object.assign({}, DOC_TEMPLATES['ingreso-paciente'].fields, r.datos);
+  document.querySelectorAll('.doc-menu-item').forEach(x => x.classList.remove('active'));
+  _docPrevHeader(DOC_TEMPLATES['ingreso-paciente'].title, '📥', 'Ingreso guardado · ' + r.fechaFmt, false);
+  _fpDocHeader(DOC_TEMPLATES['ingreso-paciente'].title, '📥', 'Ingreso guardado', false);
+  renderDocEditor();
+  abrirDocFlotante();
+}
+
+function eliminarIngresoCreado(idx) {
+  const lista = getIngresosCreados();
+  if (!lista[idx]) return;
+  if (!confirm('¿Eliminar este ingreso guardado? Esta acción no se puede deshacer.')) return;
+  lista.splice(idx, 1);
+  saveIngresosCreados(lista);
+  renderIngresosCreados();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderIngresosCreados();
+});
+
 // ---- Print ----
 function imprimirDocumento() {
   const area = document.getElementById('doc-editor-area');
@@ -10339,7 +10442,7 @@ function imprimirDocumento() {
   @page { margin: 10mm 14mm; size: letter portrait; }
   @media print { body { padding: 0; } }
 </style>
-</head><body><div>${getCmmHeader({titulo:title,subtitulo:"Documento Médico Oficial"})}</div><div style="padding:0 18mm;">${area.innerHTML}</div>
+</head><body><div style="padding:0 18mm;">${area.innerHTML}</div>
 <button id="enc-back-btn" onclick="window._encExitFullscreen()">☰ Menú</button>
 
 </body></html>`);
@@ -15683,7 +15786,7 @@ function wrapSysActions() {
   // Imprimir
   const origPrint = window.imprimirDocumento;
   if (origPrint) window.imprimirDocumento = function() {
-    if (!requirePerm('print', 'Imprimir documento')) return;
+    if (!requirePerm('docs.imprimir', 'Imprimir documento')) return;
     const title = (typeof currentDocIsCustom !== 'undefined' && currentDocIsCustom)
       ? 'Documento personalizado'
       : (typeof DOC_TEMPLATES !== 'undefined' && typeof currentDocId !== 'undefined' ? (DOC_TEMPLATES[currentDocId]?.title || 'Documento') : 'Documento');
@@ -15708,7 +15811,7 @@ function wrapSysActions() {
   if (origGuardarDoc) window.guardarNuevoDoc = function() {
   if (typeof canDo==='function' && !canDo('docs.crear')) { showToast && showToast('\U0001f6ab Sin permiso: guardar nuevo documento','error'); return; }
     const isEdit = typeof editingCustomDocId !== 'undefined' && editingCustomDocId;
-    if (!requirePerm(isEdit ? 'edit' : 'create', (isEdit ? 'Editar' : 'Crear') + ' documento personalizado')) return;
+    if (!requirePerm(isEdit ? 'docs.editar' : 'docs.crear', (isEdit ? 'Editar' : 'Crear') + ' documento personalizado')) return;
     logAudit(isEdit ? 'EDIT' : 'CREATE', 'Documento: ' + (document.getElementById('ndoc-nombre')?.value || ''));
     origGuardarDoc.apply(this, arguments);
   };
@@ -16009,7 +16112,7 @@ function generarCarta() {
       </div>
 
       <div style="text-align:center;margin-top:40px;font-size:10px;color:#aaa;border-top:1px solid #eee;padding-top:12px;">
-        Documento generado por EECDATOS.CMM · Centro Médico Moderno · ${fechaFmt}
+        Documento generado por Centro Médico Moderno · ${fechaFmt}
       </div>
     </div>
   `;
@@ -17650,7 +17753,7 @@ function encGenerarHTML(pacientes, titulo, subtitulo) {
     '<th>Paciente</th><th>Diagnóstico</th><th>Triage</th>' +
     '<th>Médico</th><th>Seguro</th><th style="text-align:center">Cama</th><th style="text-align:center">Hora</th>' +
   '</tr></thead><tbody>'+rows+'</tbody></table>' +
-  '<p class="footer">Centro Médico Moderno — EECDATOS CMM · Impreso: '+new Date().toLocaleString('es-DO')+'</p>' +
+  '<p class="footer">Centro Médico Moderno · Impreso: '+new Date().toLocaleString('es-DO')+'</p>' +
   '</body></html>';
 }
 
@@ -20521,7 +20624,7 @@ function printCatOrder() {
     <tbody>${rows}</tbody>
     <tfoot><tr class="total-row"><td colspan="2">TOTAL (${catOrder.length} estudio${catOrder.length!==1?'s':''})</td><td style="text-align:right;">${fmt(total)}</td></tr></tfoot>
   </table>
-  <div class="footer">Documento generado por EECDATOS · Centro Médico Moderno</div>
+  <div class="footer">Documento generado por Centro Médico Moderno</div>
   </body></html>`);
   w.document.close(); w.print();
 }
@@ -21920,7 +22023,7 @@ function buildPrintHTML(b) {
       </tr>
     </table>
     <div style="margin:0 32px 28px;border-top:1px solid #e2e8f0;padding-top:12px;display:flex;justify-content:space-between;align-items:center;">
-      <div style="font-size:10px;color:#94a3b8;">Generado con EECDATOS.CMM · ${new Date().toLocaleDateString('es-DO')}</div>
+      <div style="font-size:10px;color:#94a3b8;">Generado por Centro Médico Moderno · ${new Date().toLocaleDateString('es-DO')}</div>
       <div style="font-size:10px;color:#94a3b8;">Este presupuesto tiene validez de <strong>${b.validity||30} días</strong> a partir de su fecha de emisión.</div>
     </div>
   </div>`;
@@ -23014,7 +23117,7 @@ function printARSList() {
     </tr>`).join('');
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Lista de ARS — EECDATOS.CMM</title>
+    <title>Lista de ARS — Centro Médico Moderno</title>
     <style>
       * { box-sizing:border-box; margin:0; padding:0; }
       body { padding:14mm 18mm; font-family:Arial,sans-serif; font-size:11pt; color:#000; background:#fff; }
@@ -23068,7 +23171,7 @@ function printDoctoresList() {
   }).join('');
   const w = window.open('', '_blank');
   w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-    <title>Lista de Doctores — EECDATOS.CMM</title>
+    <title>Lista de Doctores — Centro Médico Moderno</title>
     <style>
       * { box-sizing:border-box; margin:0; padding:0; }
       body { padding:14mm 18mm; font-family:Arial,sans-serif; font-size:10pt; color:#000; background:#fff; }
@@ -31714,7 +31817,7 @@ function getCmmFooter() {
   try { cfg = JSON.parse(localStorage.getItem('cmm_identidad_v1') || '{}'); } catch(e) {}
   var nombre = cfg.nombre || 'Centro Médico Moderno';
   var fecha  = new Date().toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'});
-  return `<div class="cmm-footer"><span>🏥 ${nombre} · Documento oficial</span><span>${fecha}</span><span>Sistema EECDATOS v6.0</span></div>`;
+  return `<div class="cmm-footer"><span>🏥 ${nombre} · Documento oficial</span><span>${fecha}</span><span>Documento generado electrónicamente</span></div>`;
 }
 // ============================================================
 
@@ -34368,7 +34471,7 @@ function encQREliminar(item){
     const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Reporte Cargos</title>
       <style>body{font-family:Arial,sans-serif;padding:30px;color:#1e293b}h1{font-size:18px;color:#1B5FA8}table{width:100%;border-collapse:collapse;margin-top:16px}th{background:#1B5FA8;color:#1E293B;padding:8px 10px;font-size:11px;text-align:left}td{padding:7px 10px;border-bottom:1px solid #e2e8f0;font-size:12px}tr:nth-child(even){background:#f8fafc}.total{text-align:right;font-weight:800;padding:10px;font-size:14px}</style>
       </head><body>
-      <h1>🧾 Reporte de Órdenes — EECDATOS.CMM</h1>
+      <h1>🧾 Reporte de Órdenes — Centro Médico Moderno</h1>
       <p style="font-size:12px;color:#64748b">Generado: ${new Date().toLocaleString('es-DO')}</p>
       <table><thead><tr><th>Paciente</th><th>No. Atención</th><th>Descripción</th><th>Tipo</th><th>Monto</th><th>Estado</th><th>Fecha</th></tr></thead>
       <tbody>${rows}</tbody></table>

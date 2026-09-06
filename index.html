@@ -5359,6 +5359,9 @@ window.showPage = function(id) {
             <div class="table-header" style="padding:11px 14px;">
               <h3 style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);">📥 Ingresos Creados</h3>
             </div>
+            <div style="padding:8px 10px 2px;">
+              <input type="text" id="ingresos-creados-search" oninput="renderIngresosCreados()" placeholder="🔍 Buscar por nombre..." style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-size:12px;font-family:inherit;box-sizing:border-box;">
+            </div>
             <div id="ingresos-creados-list" style="max-height:220px;overflow-y:auto;">
               <div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);" id="ingresos-creados-empty">Sin ingresos guardados</div>
             </div>
@@ -10296,18 +10299,28 @@ function renderIngresosCreados() {
   const cont = document.getElementById('ingresos-creados-list');
   if (!cont) return;
   const lista = getIngresosCreados();
+  const q = (document.getElementById('ingresos-creados-search')?.value || '').trim().toLowerCase();
+  const filtered = q ? lista.filter((r, idx) => {
+    r.__idx = idx; // conservar índice original para acciones
+    return (r.datos.pac_nombre || '').toLowerCase().includes(q) || (r.datos.pac_cedula || '').toLowerCase().includes(q);
+  }) : lista.map((r, idx) => { r.__idx = idx; return r; });
   if (!lista.length) {
     cont.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);" id="ingresos-creados-empty">Sin ingresos guardados</div>';
     return;
   }
-  cont.innerHTML = lista.map((r, idx) => `
-    <div class="doc-menu-item" onclick="verIngresoCreado(${idx})" style="cursor:pointer;">
+  if (!filtered.length) {
+    cont.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--muted);">Sin resultados para tu búsqueda</div>';
+    return;
+  }
+  cont.innerHTML = filtered.map((r) => `
+    <div class="doc-menu-item" onclick="verIngresoCreado(${r.__idx})" style="cursor:pointer;">
       <div style="font-size:15px;">📥</div>
       <div style="flex:1;min-width:0;">
         <div style="font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${(r.datos.pac_nombre || 'Sin nombre').replace(/</g,'&lt;')}</div>
         <div style="font-size:11px;color:var(--muted);">${r.fechaFmt} · ${r.horaFmt || ''}</div>
       </div>
-      <button onclick="event.stopPropagation();eliminarIngresoCreado(${idx})" title="Eliminar" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;">🗑️</button>
+      <button onclick="event.stopPropagation();imprimirIngresoCreado(${r.__idx})" title="Imprimir" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;">🖨️</button>
+      <button onclick="event.stopPropagation();eliminarIngresoCreado(${r.__idx})" title="Eliminar" style="background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:2px 4px;">🗑️</button>
     </div>`).join('');
 }
 
@@ -10324,6 +10337,19 @@ function verIngresoCreado(idx) {
   _fpDocHeader(DOC_TEMPLATES['ingreso-paciente'].title, '📥', 'Ingreso guardado', false);
   renderDocEditor();
   abrirDocFlotante();
+}
+
+function imprimirIngresoCreado(idx) {
+  // Carga el registro en el editor (sin abrir la ventana flotante) y lo manda a imprimir
+  const lista = getIngresosCreados();
+  const r = lista[idx];
+  if (!r) return;
+  currentDocId = 'ingreso-paciente';
+  currentDocIsCustom = false;
+  currentCustomDocId = null;
+  docFields = Object.assign({}, DOC_TEMPLATES['ingreso-paciente'].fields, r.datos);
+  renderDocEditor();
+  imprimirDocumento();
 }
 
 function eliminarIngresoCreado(idx) {
@@ -15960,6 +15986,40 @@ function guardarIngreso() {
   ingresos.unshift(ingreso);
   saveIngresos();
   renderIngresos();
+
+  // ── También lo depositamos en la carpeta "Ingresos Creados" (Documentación) ──
+  // así queda visible, buscable e imprimible desde un solo lugar, sin importar
+  // qué formulario se haya usado para guardarlo.
+  try {
+    const ahora = new Date();
+    const registroCarpeta = {
+      id: 'ic_' + Date.now(),
+      fecha: ahora.toISOString(),
+      fechaFmt: ahora.toLocaleDateString('es-DO', {day:'2-digit', month:'2-digit', year:'numeric'}),
+      horaFmt: ahora.toLocaleTimeString('es-DO', {hour:'2-digit', minute:'2-digit'}),
+      datos: {
+        pac_nombre: ingreso.paciente.nombre || '',
+        pac_cedula: ingreso.paciente.cedula || '',
+        pac_tel: ingreso.paciente.telefono || '',
+        fam_nombre: ingreso.familiar.nombre || '',
+        fam_cedula: ingreso.familiar.cedula || '',
+        fam_tel: ingreso.familiar.telefono || '',
+        doc_nombre: ingreso.seguro.doctor || '',
+        doc_cod_ars: ingreso.seguro.codigoDoctor || '',
+        ars_nombre: ingreso.seguro.arsNombre || '',
+        diagnostico: ingreso.seguro.diagnostico || '',
+        habitacion: ingreso.seguro.habitacion || '',
+        procedimiento: ingreso.seguro.procedimiento || '',
+        cups: ingreso.seguro.cups || '',
+        simon: ingreso.seguro.simon || ''
+      }
+    };
+    const listaCarpeta = getIngresosCreados();
+    listaCarpeta.unshift(registroCarpeta);
+    saveIngresosCreados(listaCarpeta);
+    if (typeof renderIngresosCreados === 'function') renderIngresosCreados();
+  } catch(e) { /* no bloquear el guardado principal si esto falla */ }
+
   limpiarIngreso();
   showToast('✅ Ingreso guardado correctamente');
   // refresh compromiso select
@@ -23321,9 +23381,10 @@ function printDoctoresList() {
 
       <!-- TAB HISTORIAL -->
       <div id="ing-tab-hist-body" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
           <input type="text" id="ing2-search" oninput="renderIng2List()" placeholder="Buscar paciente..." style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;width:220px;">
           <span id="ing2-count" style="font-size:12px;color:var(--muted);"></span>
+          <button onclick="cerrarIngresoModal();showPage('documentos');" title="Ver, buscar e imprimir todos los ingresos guardados" style="margin-left:auto;background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:var(--accent);padding:7px 12px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;">📥 Ver carpeta "Ingresos Creados"</button>
         </div>
         <div id="ing2-list"></div>
       </div>
@@ -23436,6 +23497,41 @@ function guardarIng2() {
     localStorage.setItem('ingresos_v1', JSON.stringify(ingresos));
     if (typeof renderIngresos === 'function') renderIngresos();
   }
+
+  // ── También lo depositamos en la carpeta "Ingresos Creados" (Documentación) ──
+  // para que quede visible, buscable e imprimible en un solo lugar.
+  try {
+    if (typeof getIngresosCreados === 'function' && typeof saveIngresosCreados === 'function') {
+      const ahora = new Date();
+      const registroCarpeta = {
+        id: 'ic_' + Date.now(),
+        fecha: ahora.toISOString(),
+        fechaFmt: ahora.toLocaleDateString('es-DO', {day:'2-digit', month:'2-digit', year:'numeric'}),
+        horaFmt: ahora.toLocaleTimeString('es-DO', {hour:'2-digit', minute:'2-digit'}),
+        datos: {
+          pac_nombre: ingreso.paciente.nombre || '',
+          pac_cedula: ingreso.paciente.cedula || '',
+          pac_tel: ingreso.paciente.telefono || '',
+          fam_nombre: ingreso.familiar.nombre || '',
+          fam_cedula: ingreso.familiar.cedula || '',
+          fam_tel: ingreso.familiar.telefono || '',
+          doc_nombre: ingreso.seguro.doctor || '',
+          doc_cod_ars: ingreso.seguro.codigoDoctor || '',
+          ars_nombre: ingreso.seguro.arsNombre || '',
+          diagnostico: ingreso.seguro.diagnostico || '',
+          habitacion: ingreso.seguro.habitacion || '',
+          procedimiento: ingreso.seguro.procedimiento || '',
+          cups: ingreso.seguro.cups || '',
+          simon: ingreso.seguro.simon || ''
+        }
+      };
+      const listaCarpeta = getIngresosCreados();
+      listaCarpeta.unshift(registroCarpeta);
+      saveIngresosCreados(listaCarpeta);
+      if (typeof renderIngresosCreados === 'function') renderIngresosCreados();
+    }
+  } catch(e) { /* no bloquear el guardado principal si esto falla */ }
+
   if (typeof renderDashboard === 'function') renderDashboard();
   if (typeof logAudit === 'function') logAudit('CREATE', 'Ingreso paciente: ' + pacNombre);
   if (typeof toast === 'function') toast('✅ Ingreso guardado correctamente', 'success');

@@ -10097,21 +10097,24 @@ function editarDocumentoCustom() {
 function eliminarDocumentoCustom() {
   if (!currentCustomDocId) return;
   if (typeof canDo==='function' && !canDo('docs.borrar')) { if(typeof showToast==='function') showToast('\U0001f6ab Sin permiso: eliminar documento','error'); return; }
-  showConfirmModal(
-    '¿Eliminar documento?',
-    'Esta acción no se puede deshacer.',
-    () => {
-      customDocs = customDocs.filter(d => d.id !== currentCustomDocId);
-      saveCustomDocs();
-      currentCustomDocId = null;
-      currentDocIsCustom = false;
-      fpClose('fp-doc-viewer');
-      renderCustomDocMenu();
-      const firstFixed = document.querySelector('#doc-menu-fixed .doc-menu-item');
-      if (firstFixed) firstFixed.click();
-      showToast('🗑️ Documento eliminado', 'red');
-    }
-  );
+  const docActual = (typeof customDocs !== 'undefined') ? customDocs.find(d => d.id === currentCustomDocId) : null;
+  const nombreDoc = docActual?.nombre || 'este documento';
+  const ejecutarBorrado = function() {
+    customDocs = customDocs.filter(d => d.id !== currentCustomDocId);
+    saveCustomDocs();
+    currentCustomDocId = null;
+    currentDocIsCustom = false;
+    fpClose('fp-doc-viewer');
+    renderCustomDocMenu();
+    const firstFixed = document.querySelector('#doc-menu-fixed .doc-menu-item');
+    if (firstFixed) firstFixed.click();
+    showToast('🗑️ Documento eliminado', 'red');
+  };
+  if (typeof encSupervisorAuth === 'function') {
+    encSupervisorAuth('eliminar el documento "' + nombreDoc + '"', ejecutarBorrado);
+  } else {
+    showConfirmModal('¿Eliminar documento?', 'Esta acción no se puede deshacer.', ejecutarBorrado);
+  }
 }
 
 function docFieldChange(field, value) {
@@ -10353,12 +10356,25 @@ function imprimirIngresoCreado(idx) {
 }
 
 function eliminarIngresoCreado(idx) {
+  if (typeof canDo==='function' && !canDo('docs.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar ingreso','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: eliminar ingreso','error'); return; }
   const lista = getIngresosCreados();
   if (!lista[idx]) return;
-  if (!confirm('¿Eliminar este ingreso guardado? Esta acción no se puede deshacer.')) return;
-  lista.splice(idx, 1);
-  saveIngresosCreados(lista);
-  renderIngresosCreados();
+  const nombrePac = lista[idx].datos?.pac_nombre || 'este registro';
+  if (typeof encSupervisorAuth === 'function') {
+    encSupervisorAuth('eliminar la hoja de ingreso de "' + nombrePac + '"', function() {
+      const listaActual = getIngresosCreados();
+      if (!listaActual[idx]) return;
+      listaActual.splice(idx, 1);
+      saveIngresosCreados(listaActual);
+      renderIngresosCreados();
+      if (typeof showToast === 'function') showToast('🗑️ Ingreso eliminado', 'red');
+    });
+  } else {
+    if (!confirm('¿Eliminar este ingreso guardado? Esta acción no se puede deshacer.')) return;
+    lista.splice(idx, 1);
+    saveIngresosCreados(lista);
+    renderIngresosCreados();
+  }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -10823,6 +10839,22 @@ function guardarDocumentoEscaneado() {
     state[id].min = false; state[id].max = false;
     bringFront(p);
     _makeDraggable(p);
+    // Si el panel quedó posicionado fuera de la pantalla (por ejemplo, arrastrado
+    // hacia abajo en una apertura anterior), lo reubicamos cerca de la parte superior.
+    setTimeout(() => {
+      const top = parseInt(p.style.top) || 0;
+      const rect = p.getBoundingClientRect();
+      if (top < 0 || rect.top < 0 || rect.top > window.innerHeight - 80 || rect.bottom < 80) {
+        p.style.top = '16px';
+        const sbW = document.body.classList.contains('sb-collapsed') ? 62 : 250;
+        const availW = window.innerWidth - sbW;
+        const pw = parseInt(p.style.width) || p.offsetWidth || 800;
+        p.style.left = Math.max(sbW + 10, sbW + (availW - pw) / 2) + 'px';
+      }
+      // Reiniciar el scroll interno del panel para que se vea desde el inicio del documento
+      const body = p.querySelector('.float-panel-body');
+      if (body) body.scrollTop = 0;
+    }, 0);
   };
 
   window.fpClose = function(id) {
@@ -16065,11 +16097,20 @@ function renderIngresos() {
 
 function eliminarIngreso(id) {
   if (typeof canDo==='function' && !canDo('docs.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar ingreso','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: eliminar ingreso','error'); return; }
-  ingresos = ingresos.filter(i => i.id !== id);
-  saveIngresos();
-  renderIngresos();
-  populateCompromisoSelect();
-  showToast('🗑️ Ingreso eliminado', 'red');
+  const ing = ingresos.find(i => i.id === id);
+  const nombrePac = ing?.paciente?.nombre || 'este ingreso';
+  const ejecutarBorrado = function() {
+    ingresos = ingresos.filter(i => i.id !== id);
+    saveIngresos();
+    renderIngresos();
+    populateCompromisoSelect();
+    showToast('🗑️ Ingreso eliminado', 'red');
+  };
+  if (typeof encSupervisorAuth === 'function') {
+    encSupervisorAuth('eliminar el ingreso de "' + nombrePac + '"', ejecutarBorrado);
+  } else {
+    ejecutarBorrado();
+  }
 }
 
 function usarIngresoEnCarta(id) {
@@ -23579,16 +23620,27 @@ function renderIng2List() {
 
 function eliminarIng2(id) {
   if (typeof canDo==='function' && !canDo('docs.borrar')) { if(typeof showToast==='function') showToast('🚫 Sin permiso: eliminar ingreso admisión','error'); else if(typeof toast==='function') toast('🚫 Sin permiso: eliminar ingreso admisión','error'); return; }
-  if (!confirm('¿Eliminar este ingreso?')) return;
-  if (typeof ingresos !== 'undefined') {
-    const idx = ingresos.findIndex(i => i.id === id);
-    if (idx > -1) {
-      ingresos.splice(idx, 1);
-      localStorage.setItem('ingresos_v1', JSON.stringify(ingresos));
+  const ingArr = (typeof ingresos !== 'undefined') ? ingresos : [];
+  const ing = ingArr.find(i => i.id === id);
+  const nombrePac = ing?.paciente?.nombre || 'este ingreso';
+  const ejecutarBorrado = function() {
+    if (typeof ingresos !== 'undefined') {
+      const idx = ingresos.findIndex(i => i.id === id);
+      if (idx > -1) {
+        ingresos.splice(idx, 1);
+        localStorage.setItem('ingresos_v1', JSON.stringify(ingresos));
+      }
     }
+    renderIng2List();
+    if (typeof renderDashboard === 'function') renderDashboard();
+    if (typeof toast === 'function') toast('🗑️ Ingreso eliminado', 'success');
+  };
+  if (typeof encSupervisorAuth === 'function') {
+    encSupervisorAuth('eliminar el ingreso de "' + nombrePac + '"', ejecutarBorrado);
+  } else {
+    if (!confirm('¿Eliminar este ingreso?')) return;
+    ejecutarBorrado();
   }
-  renderIng2List();
-  if (typeof renderDashboard === 'function') renderDashboard();
 }
 
 // Esconder page-ingreso del sistema de navegación (se mantiene solo para compatibilidad)

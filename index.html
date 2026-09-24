@@ -3732,6 +3732,7 @@ window.showPage = function(id) {
         </div>
       </div>
 
+      <button id="cmm-print-page-btn" class="btn btn-secondary btn-sm no-print" onclick="cmmPrintPage()" title="Imprimir la lista de esta pantalla" style="display:none;">🖨️ Imprimir</button>
       <div id="topbar-user-info"></div>
       <div class="topbar-actions" id="topbar-actions"></div>
       <div id="cmm-sync-dot" title="☁️ Sync automático activo" style="width:10px;height:10px;border-radius:50%;background:#3b82f6;cursor:pointer;transition:background 0.4s;flex-shrink:0;" onclick="cmmSyncManual()" title="☁️ Sync automático activo — clic para sync manual"></div>
@@ -19350,6 +19351,7 @@ function showDoctorDetail(docId) {
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-secondary btn-sm no-print" onclick="printDoctorFicha('${d.id}')" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#059669;">🖨️ Imprimir</button>
         <button class="btn btn-secondary btn-sm" onclick="openNotasPriv('doctor','${d.id}')" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.35);color:#a78bfa;">🔒 Notas Priv.</button>
         <button class="btn btn-secondary btn-sm" onclick="closeDoctorFloat();editDoctor('${d.id}')" style="background:rgba(59,130,246,0.15);border-color:rgba(59,130,246,0.4);color:#60a5fa;">✏️ Editar</button>
         <button onclick="closeDoctorFloat()" style="background:transparent;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.color='#f87171'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='var(--muted)'">×</button>
@@ -19410,7 +19412,7 @@ function showDoctorDetail(docId) {
     </div>
 
     <div style="background:var(--surface2);border-radius:12px;padding:16px;">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;">🛡️ Códigos ARS <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">(${allARS.length})</span></div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin-bottom:12px;">🛡️ Códigos ARS <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--text);">(${allARS.length})</span>${allARS.length?`<button class="btn btn-secondary btn-sm no-print" onclick="printDoctorARS('${d.id}')" style="float:right;margin-top:-4px;padding:3px 10px;font-size:11px;text-transform:none;letter-spacing:0;">🖨️ Imprimir lista</button>`:''}</div>
       ${d.sin_ars?`<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:12px;color:var(--yellow);">⚠️ No trabaja con seguro médico</div>`:''}
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:8px;margin-bottom:14px;">
         ${allARS.length ? allARS.map((a,i) => `
@@ -20101,6 +20103,7 @@ function showARSFloat(id) {
           ${(()=>{const _pn=countNotasPrivVisibles(a.notasPriv);return _pn?`<span style="background:rgba(99,102,241,0.15);color:#a78bfa;border-radius:20px;padding:3px 10px;font-size:11px;">🔒 ${_pn} nota${_pn!==1?'s':''} priv.</span>`:''})()}        </div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button class="btn btn-secondary btn-sm no-print" onclick="printARSFicha('${id}')" style="background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.35);color:#059669;">🖨️ Imprimir</button>
         <button class="btn btn-secondary btn-sm" onclick="openNotasPriv('ars','${id}')" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.35);color:#a78bfa;">🔒 Notas Priv.</button>
         ${(typeof canDo==='function'&&canDo('ars.editar'))?`<button class="btn btn-secondary btn-sm" onclick="closeARSFloat();editARS('${id}')">✏️ Editar</button>`:''}
         <button onclick="closeARSFloat()" style="background:transparent;border:1px solid var(--border);border-radius:10px;width:36px;height:36px;color:var(--muted);font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;" onmouseover="this.style.background='rgba(239,68,68,0.15)';this.style.color='#f87171'" onmouseout="this.style.background='rgba(255,255,255,0.07)';this.style.color='var(--muted)'">×</button>
@@ -39010,6 +39013,167 @@ console.log('[EECGESTIONES] ✅ Funciones ICS/Sync integradas en calendario MTN 
     </div>
   </div>
 </div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   IMPRESIÓN UNIVERSAL DE LISTAS Y FICHAS (usa encabezado CMM)
+   • cmmPrintPage()        → imprime la lista de la pantalla actual
+   • cmmPrintTabla({...})  → imprime cualquier tabla: titulo, subtitulo, headers[], rows[][]
+   • cmmPrintHTML({...})   → imprime HTML libre con encabezado/pie CMM
+   • printDoctorFicha(id) / printDoctorARS(id) / printARSFicha(id)
+   ═══════════════════════════════════════════════════════════ */
+(function(){
+  function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function aviso(m){ try{ toast(m,'error'); }catch(e){ alert(m); } }
+  var SKIP = /^page-(inicio|dashboard|modulos|configuracion|escaneo|importar)$/;
+
+  var CSS = '*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;font-size:10.5pt;color:#000;background:#fff}'
+   + '.pl-body{padding:14px 32px}'
+   + 'table.pl{width:100%;border-collapse:collapse;table-layout:auto}'
+   + 'table.pl th{background:#1e3a5f!important;color:#fff!important;padding:7px 10px;font-size:9.5pt;text-align:left;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+   + 'table.pl td{padding:6px 10px;border-bottom:1px solid #dde;vertical-align:top;font-size:9.5pt}'
+   + 'table.pl tbody tr:nth-child(even){background:#f5f7fa;-webkit-print-color-adjust:exact;print-color-adjust:exact}'
+   + 'tr{page-break-inside:avoid}thead{display:table-header-group}'
+   + '.pl-flat td,.pl-flat td *,.pl-flat>*:not(table),.pl-flat>*:not(table) *{color:#000!important;background:transparent!important;box-shadow:none!important}'
+   + '.pl-sec{font-size:9pt;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#0f4c75;margin:14px 0 6px;border-bottom:1px solid #cbd5e1;padding-bottom:3px}'
+   + '.pl-kv{display:flex;gap:8px;margin:3px 0}.pl-kv b{width:120px;flex-shrink:0;color:#475569;font-weight:600}.pl-kv span{white-space:pre-wrap}'
+   + '.pl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}'
+   + '.pl-card{border:1px solid #cbd5e1;border-left:3px solid #0d9488;border-radius:6px;padding:7px 10px;break-inside:avoid}'
+   + '.pl-card b{display:block;font-size:10pt}.pl-card span{font-family:monospace;font-size:10pt;color:#0f4c75;font-weight:700}';
+
+  window.cmmPrintHTML = function(o){
+    o = o || {};
+    var fecha = new Date().toLocaleDateString('es-DO',{year:'numeric',month:'long',day:'numeric'});
+    var w = window.open('','_blank');
+    if(!w){ alert('Permite las ventanas emergentes para poder imprimir.'); return; }
+    var head = (typeof getCmmHeader==='function') ? getCmmHeader({titulo:esc(o.titulo||''), subtitulo:esc(o.subtitulo||fecha)}) : '<h2>'+esc(o.titulo||'')+'</h2>';
+    var foot = (typeof getCmmFooter==='function') ? getCmmFooter() : '';
+    w.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+esc(o.titulo||'Lista')+' — Centro Médico Moderno</title><style>'+CSS
+      +'@page{margin:10mm 12mm;size:letter '+(o.orientation||'portrait')+'}</style></head><body>'
+      +head+'<div class="pl-body">'+(o.bodyHtml||'')+'</div>'+foot+'</body></html>');
+    w.document.close();
+    setTimeout(function(){ w.focus(); w.print(); },500);
+  };
+
+  function tablaHTML(headers, rows){
+    return '<table class="pl"><thead><tr>'+headers.map(function(h){return '<th>'+esc(h)+'</th>';}).join('')
+      +'</tr></thead><tbody>'+rows.map(function(r){return '<tr>'+r.map(function(c){return '<td>'+esc(c)+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';
+  }
+
+  window.cmmPrintTabla = function(o){
+    if(!o || !o.rows || !o.rows.length){ aviso('No hay datos para imprimir'); return; }
+    cmmPrintHTML({titulo:o.titulo, subtitulo:o.subtitulo||('Total: '+o.rows.length+' registros'),
+      orientation:o.orientation||(o.headers.length>5?'landscape':'portrait'), bodyHtml:tablaHTML(o.headers,o.rows)});
+  };
+
+  /* ── Impresión de la pantalla actual ── */
+  function quitarOcultos(orig, clon){
+    var o=orig.querySelectorAll('*'), c=clon.querySelectorAll('*');
+    for(var i=c.length-1;i>=0;i--){ if(o[i] && getComputedStyle(o[i]).display==='none') c[i].remove(); }
+  }
+  function quitarControles(c){
+    c.querySelectorAll('button,input,select,textarea,script,style,svg,.no-print').forEach(function(e){ e.remove(); });
+  }
+  function limpiarTabla(t){
+    var c = t.cloneNode(true);
+    quitarOcultos(t,c); quitarControles(c);
+    c.removeAttribute('style'); c.removeAttribute('id'); c.className='pl';
+    c.querySelectorAll('th').forEach(function(th){ th.removeAttribute('style'); });
+    var rows = Array.prototype.slice.call(c.rows), n = 0, drop = [];
+    rows.forEach(function(r){ n = Math.max(n, r.cells.length); });
+    for(var j=0;j<n;j++){
+      var hc = (c.tHead && c.tHead.rows[0]) ? c.tHead.rows[0].cells[j] : (rows[0] && rows[0].cells[j]);
+      var ht = hc ? hc.textContent.trim() : '';
+      var hayTexto = rows.some(function(r){ return r.parentNode.tagName!=='THEAD' && r.cells[j] && r.cells[j].textContent.trim(); });
+      if(!hayTexto || /^acci[oó]n/i.test(ht)) drop.push(j);
+    }
+    rows.forEach(function(r){ for(var k=drop.length-1;k>=0;k--){ if(r.cells[drop[k]]) r.deleteCell(drop[k]); } });
+    return c;
+  }
+  window.cmmPrintPage = function(){
+    var pg = document.querySelector('.page.active');
+    if(!pg){ aviso('No hay ninguna lista para imprimir'); return; }
+    var titulo = ((document.getElementById('page-title')||{}).textContent||'Lista').trim();
+    var best=null, bestN=1;
+    pg.querySelectorAll('table').forEach(function(t){
+      if(t.offsetParent===null) return;
+      var n=0; Array.prototype.forEach.call(t.rows,function(r){ if(getComputedStyle(r).display!=='none') n++; });
+      if(n>bestN){ best=t; bestN=n; }
+    });
+    if(best){
+      var c = limpiarTabla(best);
+      var total = c.querySelectorAll('tbody tr').length || (c.rows.length-1);
+      cmmPrintHTML({titulo:titulo, subtitulo:'Total: '+total+' registros',
+        orientation:(c.rows[0] && c.rows[0].cells.length>5)?'landscape':'portrait',
+        bodyHtml:'<div class="pl-flat">'+c.outerHTML+'</div>'});
+    } else {
+      var v = pg.cloneNode(true);
+      quitarOcultos(pg,v); quitarControles(v);
+      cmmPrintHTML({titulo:titulo, bodyHtml:'<div class="pl-flat">'+v.innerHTML+'</div>'});
+    }
+  };
+
+  /* ── Fichas de doctor y ARS ── */
+  function kv(k,v){ return v ? '<div class="pl-kv"><b>'+k+'</b><span>'+esc(v)+'</span></div>' : ''; }
+  function arsDeDoctor(d){
+    var all=(d.arsLinks||[]).slice();
+    (store.links||[]).filter(function(l){return l.doctorId===d.id;}).forEach(function(l){
+      var a=(store.ars||[]).find(function(x){return x.id===l.arsId;});
+      if(a && !all.find(function(x){return (x.ars||'').toUpperCase()===(a.name||'').toUpperCase();})) all.push({ars:a.name,codigo:l.code||'—'});
+    });
+    return all;
+  }
+  function getDoc(id){ return (store.doctors||[]).find(function(x){return x.id==id;}); }
+
+  window.printDoctorARS = function(id){
+    var d=getDoc(id); if(!d) return;
+    var list=arsDeDoctor(d);
+    cmmPrintTabla({titulo:'Códigos ARS — '+(d.name||''), subtitulo:(d.especialidad||'')+' · '+list.length+' ARS',
+      headers:['#','ARS','Código'], rows:list.map(function(a,i){return [i+1,a.ars,a.codigo||'—'];})});
+  };
+
+  window.printDoctorFicha = function(id){
+    var d=getDoc(id); if(!d) return;
+    var list=arsDeDoctor(d);
+    var b='<div class="pl-sec">Contacto</div>'
+      +kv('Teléfono',d.telefono)+kv('Celular',d.celular)+kv('Email',d.email)+kv('Web',d.web)+kv('Fax',d.fax)+kv('Dirección',d.direccion)
+      +kv('Secretaria',d.secretaria)+kv('Tel. secretaria',d.telSecretaria)+kv('Tel. emergencia',d.telEmergencia)+kv('Exequatur',d.exequatur);
+    if(d.horario||d.informacion||d.horaInicio||d.horaFin||(d.dias&&d.dias.length)||d.agendaObs){
+      b+='<div class="pl-sec">Horario e información</div>'+kv('Horario',d.horario)
+        +((d.horaInicio||d.horaFin)?kv('Horas',(d.horaInicio||'—')+' → '+(d.horaFin||'—')):'')
+        +kv('Días',(d.dias||[]).join(', '))+kv('Información',d.informacion)+kv('Observaciones',d.agendaObs);
+    }
+    b+='<div class="pl-sec">Códigos ARS ('+list.length+')</div>'+(d.sin_ars?'<div style="margin-bottom:6px">⚠ No trabaja con seguro médico</div>':'')
+      +(list.length?'<div class="pl-grid">'+list.map(function(a){return '<div class="pl-card"><b>'+esc(a.ars)+'</b><span>Cód: '+esc(a.codigo||'—')+'</span></div>';}).join('')+'</div>'
+        :'<div style="color:#64748b">Sin códigos ARS registrados</div>');
+    cmmPrintHTML({titulo:d.name||'Doctor', subtitulo:(d.especialidad||'')+(d.consultorio?' · Cons. '+d.consultorio:''), bodyHtml:b});
+  };
+
+  window.printARSFicha = function(id){
+    var a=(store.ars||[]).find(function(x){return x.id==id;}); if(!a) return;
+    var N=(a.name||'').toUpperCase(), rows=[];
+    (store.doctors||[]).forEach(function(d){
+      var al=(d.arsLinks||[]).find(function(x){return (x.ars||'').toUpperCase()===N;});
+      var l=(store.links||[]).find(function(x){return x.arsId==a.id && x.doctorId===d.id;});
+      if(al||l) rows.push([d.name||'', d.especialidad||'—', d.telefono||'—', (al&&al.codigo)||(l&&l.code)||'—']);
+    });
+    var b='<div class="pl-sec">Información</div>'+kv('Código',a.code)+kv('Cód. autorización',a.codigoARS)
+      +kv('Cobertura',a.cobertura?a.cobertura+'%':'')+kv('Teléfono',(a.telefono||'')+(a.ext?' ext. '+a.ext:''))+kv('Email',a.email)+kv('Comentarios',a.comments)
+      +'<div class="pl-sec">Doctores vinculados ('+rows.length+')</div>'
+      +(rows.length?tablaHTML(['Doctor','Especialidad','Teléfono','Código'],rows):'<div style="color:#64748b">Sin doctores vinculados</div>');
+    cmmPrintHTML({titulo:a.name||'ARS', subtitulo:'Ficha de aseguradora', bodyHtml:b});
+  };
+
+  /* ── Botón de la barra superior: solo visible en pantallas con listas ── */
+  function actualizarBoton(){
+    var b=document.getElementById('cmm-print-page-btn'); if(!b) return;
+    var pg=document.querySelector('.page.active');
+    b.style.display=(pg && !SKIP.test(pg.id))?'':'none';
+  }
+  actualizarBoton();
+  new MutationObserver(actualizarBoton).observe(document.body,{attributes:true,attributeFilter:['class'],subtree:true});
+})();
+</script>
 
 </body>
 </html>

@@ -3524,6 +3524,7 @@ window.showPage = function(id) {
     <div class="nav-item" onclick="showPage('procedimientos-emergencia')"><span class="icon">📋</span> Procedimientos de Emergencia</div>
     <div class="nav-item" onclick="showPage('escaneo')"><span class="icon">🤖</span> Pregúntale a la IA</div>
     <div class="nav-item" onclick="showPage('importar')"><span class="icon">📥</span> Importar Datos</div>
+    <div class="nav-item" onclick="showPage('accesosweb')"><span class="icon">🌐</span> ARS Web</div>
 
     <div class="nav-section">Admisión</div>
     <div class="nav-item" onclick="showPage('documentos')"><span class="icon">🗂️</span> Documentación</div>
@@ -4051,6 +4052,39 @@ window.showPage = function(id) {
         <div id="ars-detail-inner" style="overflow-y:auto;flex:1;"></div>
       </div>
     </div>
+
+    <!-- ARS WEB -->
+    <div class="page" id="page-accesosweb">
+      <div id="arsw-root"></div>
+    </div>
+
+    <!-- ARS WEB: modal agregar/editar -->
+    <div id="arsw-modal" style="display:none;position:fixed;inset:0;z-index:10050;background:rgba(10,30,70,.45);backdrop-filter:blur(3px);" onclick="if(event.target===this)arswCloseModal()">
+      <div class="arsw-dlg">
+        <h3 id="arsw-modal-title">Agregar ARS</h3>
+        <label>Nombre de la ARS</label>
+        <input type="text" id="arsw-f-nombre" placeholder="Ej: Mapfre Salud ARS" autocomplete="off">
+        <label>Link del portal</label>
+        <input type="text" id="arsw-f-url" placeholder="https://..." autocomplete="off">
+        <div class="arsw-row">
+          <div><label>Usuario</label><input type="text" id="arsw-f-user" autocomplete="off"></div>
+          <div><label>Contraseña</label>
+            <div style="position:relative;"><input type="password" id="arsw-f-pass" autocomplete="new-password" style="padding-right:38px;">
+            <span onclick="arswTogglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:15px;" title="Mostrar / ocultar">👁</span></div>
+          </div>
+        </div>
+        <label>Color de la tarjeta</label>
+        <div id="arsw-colors" class="arsw-colors"></div>
+        <label class="arsw-chk"><input type="checkbox" id="arsw-f-auto" checked> Entrar automáticamente (requiere el script de auto-login)</label>
+        <div class="arsw-actions">
+          <button class="arsw-btn" onclick="arswCloseModal()">Cancelar</button>
+          <button class="arsw-btn arsw-btn-p" onclick="arswSave()">💾 Guardar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ARS WEB: panel de credenciales -->
+    <div id="arsw-assist" style="display:none;"></div>
 
     <!-- ENLACE -->
     <div class="page" id="page-enlace">
@@ -14286,6 +14320,7 @@ const SYS_MODULES = [
   { id: 'escaneo',              label: '🤖 Escaneo / Pregunta IA',     grupo: 'IA'          },
   // ── Admin / Sistema ────────────────────────────────────────
   { id: 'importar',             label: '📥 Importar Datos',            grupo: 'Admin'       },
+  { id: 'accesosweb',              label: '🌐 ARS Web (accesos y claves)', grupo: 'Admin'       },
   { id: 'modulos',              label: '📦 Módulos',                   grupo: 'Admin'       },
   { id: 'usuarios',             label: '👥 Usuarios',                  grupo: 'Admin'       },
   { id: 'auditoria',            label: '🔍 Auditoría',                 grupo: 'Admin'       },
@@ -18041,7 +18076,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
   });
-  const titles = { inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
+  const titles = { accesosweb: '🌐 ARS Web', inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
   document.getElementById('page-title').textContent = titles[id] || id;
   // ── Historial de navegación para botón Atrás ──────────────────────────────
   if (!window._navHistory) window._navHistory = [];
@@ -18056,6 +18091,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   if (id === 'modulos') { renderClonedModulesList(); }
   if (id === 'doctores') renderDoctors();
   if (id === 'ars') renderARS();
+  if (id === 'accesosweb') { if (typeof arswInit==='function') arswInit(); }
   if (id === 'enlace') renderLinks();
   if (id === 'oxigeno') renderOxyHistory();
   if (id === 'catalogo') { setTimeout(()=>{ renderCatalog(); updateCatStats(); }, 50); }
@@ -39175,5 +39211,251 @@ console.log('[EECGESTIONES] ✅ Funciones ICS/Sync integradas en calendario MTN 
 })();
 </script>
 
+<style id="arsw-style">
+#arsw-root{padding:4px 2px 60px;}
+.arsw-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+.arsw-bar h2{font-family:'Outfit',sans-serif;font-size:20px;color:var(--text);margin-right:auto;}
+.arsw-bar input[type=text]{padding:8px 12px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--surface);font:inherit;font-size:13px;min-width:200px;}
+.arsw-btn{padding:8px 14px;border:1px solid var(--border2);border-radius:var(--r-md);background:var(--surface);color:var(--text);font:600 13px 'Nunito',sans-serif;cursor:pointer;transition:.15s;}
+.arsw-btn:hover{background:var(--surface3);}
+.arsw-btn-p{background:var(--accent);border-color:var(--accent-dk);color:#fff;}
+.arsw-btn-p:hover{background:var(--accent-dk);}
+.arsw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
+.arsw-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:22px 16px 16px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;animation:scaleIn .25s both;}
+.arsw-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.arsw-logo{width:64px;height:64px;border-radius:16px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;color:#fff;font:800 24px 'Outfit',sans-serif;box-shadow:0 4px 10px rgba(0,0,0,.18);}
+.arsw-name{font:700 15px 'Nunito',sans-serif;color:var(--text);word-break:break-word;}
+.arsw-host{font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all;}
+.arsw-user{font-size:12px;color:var(--slate);margin-top:8px;}
+.arsw-go{margin-top:12px;font:700 12px 'Nunito',sans-serif;color:var(--accent);}
+.arsw-tools{position:absolute;top:6px;right:6px;display:none;gap:2px;}
+.arsw-card:hover .arsw-tools{display:flex;}
+.arsw-tools span{width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:13px;background:var(--surface2);}
+.arsw-tools span:hover{background:var(--accent-lt);}
+.arsw-add{display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px dashed var(--border2);background:transparent;color:var(--muted);min-height:170px;box-shadow:none;}
+.arsw-add b{font-size:30px;line-height:1;}
+.arsw-lock{max-width:380px;margin:50px auto;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow);padding:28px;text-align:center;}
+.arsw-lock .big{font-size:42px;}
+.arsw-lock h3{font-family:'Outfit',sans-serif;margin:6px 0 4px;}
+.arsw-lock p{font-size:12.5px;color:var(--muted);margin-bottom:14px;}
+.arsw-lock input{width:100%;padding:10px 12px;margin-bottom:10px;border:1px solid var(--border2);border-radius:var(--r-md);font:inherit;text-align:center;letter-spacing:3px;}
+.arsw-lock .arsw-btn{width:100%;margin-top:2px;}
+.arsw-err{color:var(--rose);font-size:12px;min-height:16px;margin-bottom:6px;}
+.arsw-empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:30px;font-size:13px;}
+.arsw-dlg{max-width:460px;margin:60px auto 0;background:var(--surface);border-radius:var(--r-xl);box-shadow:var(--shadow-xl);padding:22px 24px;max-height:88vh;overflow:auto;animation:scaleIn .2s both;}
+.arsw-dlg h3{font-family:'Outfit',sans-serif;margin-bottom:6px;}
+.arsw-dlg label{display:block;font:700 12px 'Nunito',sans-serif;color:var(--slate);margin:12px 0 4px;}
+.arsw-dlg input[type=text],.arsw-dlg input[type=password]{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r-md);background:#fff;font:inherit;font-size:13px;}
+.arsw-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.arsw-colors{display:flex;gap:8px;flex-wrap:wrap;}
+.arsw-colors span{width:26px;height:26px;border-radius:50%;cursor:pointer;border:3px solid transparent;}
+.arsw-colors span.on{border-color:var(--text);}
+.arsw-dlg .arsw-chk{display:flex;gap:8px;align-items:flex-start;font-weight:600;margin-top:16px;cursor:pointer;}
+.arsw-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;}
+#arsw-assist{position:fixed;right:18px;bottom:18px;z-index:10060;background:var(--sb-bg);color:#fff;border-radius:var(--r-xl);box-shadow:var(--shadow-xl);padding:14px 16px;width:280px;animation:fadeUp .25s both;}
+#arsw-assist b{display:block;font-size:13px;margin-bottom:2px;}
+#arsw-assist small{display:block;opacity:.75;font-size:11px;margin-bottom:10px;}
+#arsw-assist .arsw-btn{width:100%;margin-bottom:6px;background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.25);color:#fff;}
+#arsw-assist .arsw-btn:hover{background:rgba(255,255,255,.22);}
+#arsw-assist .x{position:absolute;top:8px;right:12px;cursor:pointer;opacity:.7;}
+@media(max-width:600px){.arsw-row{grid-template-columns:1fr;}.arsw-tools{display:flex;}}
+</style>
+<script id="arsw-script">
+/* ═══ MÓDULO ARS WEB — accesos directos a portales de ARS ═══
+   Los datos se guardan CIFRADOS (AES-GCM + PIN maestro) en localStorage,
+   por lo que la sincronización con Firebase nunca sube contraseñas en texto plano. */
+(function(){
+'use strict';
+var KEY='eec_arsweb_v1';
+var COLORS=['#1B5FA8','#0A7B6E','#B01030','#B05010','#6A3FA0','#1E7A40','#C2185B','#37474F'];
+var USERSCRIPT="// ==UserScript==\n// @name         EEC ARS Auto-Login\n// @namespace    eecgestiones\n// @version      1.0\n// @description  Completa usuario y contrase\u00f1a en los portales de ARS cuando se abren desde EECGESTIONES > ARS Web\n// @match        *://*/*\n// @run-at       document-start\n// @grant        none\n// ==/UserScript==\n(function () {\n  'use strict';\n  var SK = '__eec_auto__', TTL = 120000, data = null;\n  try {\n    var m = location.hash.match(/[#&?]eecauto=([^&]+)/);\n    if (m) {\n      var o = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));\n      sessionStorage.setItem(SK, JSON.stringify({ t: Date.now(), u: o.u, p: o.p }));\n      var h = location.hash.replace(/([#&?])eecauto=[^&]+&?/, '$1').replace(/[#&?]$/, '');\n      history.replaceState(null, '', location.pathname + location.search + h);\n    }\n    var raw = sessionStorage.getItem(SK);\n    if (raw) {\n      var d = JSON.parse(raw);\n      if (Date.now() - d.t < TTL) data = d; else sessionStorage.removeItem(SK);\n    }\n  } catch (e) { return; }\n  if (!data) return;\n\n  var done = false, tries = 0;\n  function vis(el) {\n    var r = el.getBoundingClientRect();\n    return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';\n  }\n  function setVal(el, v) {\n    var desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');\n    if (desc && desc.set) desc.set.call(el, v); else el.value = v;\n    ['input', 'change', 'blur'].forEach(function (ev) { el.dispatchEvent(new Event(ev, { bubbles: true })); });\n  }\n  function attempt() {\n    if (done) return;\n    var pw = [].slice.call(document.querySelectorAll('input[type=password]')).filter(vis)[0];\n    if (!pw) return;\n    var user = null;\n    [].slice.call(document.querySelectorAll('input')).forEach(function (i) {\n      if (vis(i) && /^(text|email|tel|number|)$/i.test(i.type || '') &&\n          (i.compareDocumentPosition(pw) & Node.DOCUMENT_POSITION_FOLLOWING)) user = i;\n    });\n    if (!user) return;\n    done = true;\n    sessionStorage.removeItem(SK);\n    user.focus(); setVal(user, data.u);\n    pw.focus();   setVal(pw, data.p);\n    setTimeout(function () {\n      var scope = pw.form || document, btn = scope.querySelector('button[type=submit],input[type=submit]');\n      if (!btn) {\n        [].slice.call(scope.querySelectorAll('button,input[type=button],a[role=button],div[role=button]')).some(function (b) {\n          if (vis(b) && /iniciar|entrar|login|log in|ingresar|acceder|sign in|continuar/i.test(b.innerText || b.value || '')) { btn = b; return true; }\n        });\n      }\n      if (btn) btn.click();\n      else if (pw.form && pw.form.requestSubmit) pw.form.requestSubmit();\n      else pw.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));\n    }, 400);\n  }\n  var iv = setInterval(function () { tries++; attempt(); if (done || tries > 60) clearInterval(iv); }, 500);\n})();\n";
+var st={key:null,salt:null,items:[],unlocked:false,editId:null,color:COLORS[0],q:''};
+var enc=new TextEncoder(),dec=new TextDecoder();
+
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,t){try{showToast(m,t);}catch(e){}}
+function audit(m){try{logAudit('ARSWEB',m);}catch(e){}}
+function b64(buf){var s='',b=new Uint8Array(buf);for(var i=0;i<b.length;i++)s+=String.fromCharCode(b[i]);return btoa(s);}
+function unb64(s){var d=atob(s),a=new Uint8Array(d.length);for(var i=0;i<d.length;i++)a[i]=d.charCodeAt(i);return a;}
+function hasCrypto(){return !!(window.crypto&&crypto.subtle);}
+function deriveKey(pin,salt){
+  return crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveKey']).then(function(m){
+    return crypto.subtle.deriveKey({name:'PBKDF2',salt:salt,iterations:200000,hash:'SHA-256'},m,{name:'AES-GCM',length:256},false,['encrypt','decrypt']);
+  });
+}
+function readBlob(){try{var r=localStorage.getItem(KEY);return r?JSON.parse(r):null;}catch(e){return null;}}
+function persist(){
+  var iv=crypto.getRandomValues(new Uint8Array(12));
+  return crypto.subtle.encrypt({name:'AES-GCM',iv:iv},st.key,enc.encode(JSON.stringify(st.items))).then(function(ct){
+    localStorage.setItem(KEY,JSON.stringify({v:1,salt:b64(st.salt),iv:b64(iv),data:b64(ct)}));
+  });
+}
+function hostOf(u){try{return new URL(u).hostname.replace(/^www\./,'');}catch(e){return u;}}
+function initials(n){var w=String(n).trim().split(/\s+/).filter(Boolean);return ((w[0]||'?')[0]+((w[1]||'')[0]||'')).toUpperCase();}
+function normUrl(u){u=String(u||'').trim();if(!u)return '';return /^[a-z][a-z0-9+.-]*:\/\//i.test(u)?u:'https://'+u;}
+function copy(txt){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(txt);
+  return new Promise(function(res){var t=document.createElement('textarea');t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand('copy');}catch(e){}t.remove();res();});
+}
+
+/* ── Pantallas ── */
+function render(){
+  var root=$('arsw-root');if(!root)return;
+  if(!hasCrypto()){root.innerHTML='<div class="arsw-lock"><div class="big">⚠️</div><h3>Navegador no compatible</h3><p>Este módulo necesita cifrado del navegador (Web Crypto). Abre el sistema en Chrome o Edge actualizado.</p></div>';return;}
+  if(!st.unlocked){renderLock(root);return;}
+  var q=st.q.toLowerCase();
+  var list=st.items.filter(function(i){return !q||(i.nombre+' '+i.url).toLowerCase().indexOf(q)>-1;});
+  var cards=list.map(function(i){
+    return '<div class="arsw-card" onclick="arswOpen(\''+i.id+'\')" title="Entrar a '+esc(i.nombre)+'">'
+      +'<div class="arsw-tools"><span onclick="event.stopPropagation();arswEdit(\''+i.id+'\')" title="Editar">✏️</span><span onclick="event.stopPropagation();arswDelete(\''+i.id+'\')" title="Eliminar">🗑️</span></div>'
+      +'<div class="arsw-logo" style="background:'+esc(i.color||COLORS[0])+'">'+esc(initials(i.nombre))+'</div>'
+      +'<div class="arsw-name">'+esc(i.nombre)+'</div>'
+      +'<div class="arsw-host">'+esc(hostOf(i.url))+'</div>'
+      +'<div class="arsw-user">👤 '+esc(i.usuario||'—')+'</div>'
+      +'<div class="arsw-go">Entrar ➜</div></div>';
+  }).join('');
+  var empty=(!list.length&&st.items.length)?'<div class="arsw-empty">Sin resultados para esa búsqueda.</div>':'';
+  root.innerHTML='<div class="arsw-bar"><h2>🌐 ARS Web</h2>'
+    +'<input type="text" id="arsw-search" placeholder="Buscar ARS..." value="'+esc(st.q)+'" oninput="arswSearch(this.value)">'
+    +'<button class="arsw-btn arsw-btn-p" onclick="arswAdd()">＋ Agregar ARS</button>'
+    +'<button class="arsw-btn" onclick="arswScriptHelp()" title="Instalar el script que llena usuario y clave en el portal">⚡ Script auto-login</button>'
+    +'<button class="arsw-btn" onclick="arswChangePin()" title="Cambiar PIN maestro">🔑 PIN</button>'
+    +'<button class="arsw-btn" onclick="arswLock()">🔒 Bloquear</button></div>'
+    +'<div class="arsw-grid">'+cards+empty
+    +'<div class="arsw-card arsw-add" onclick="arswAdd()"><b>＋</b><span style="font-size:13px;font-weight:700;margin-top:6px;">Agregar ARS</span></div></div>';
+  var s=$('arsw-search');if(s&&st.q){s.focus();s.setSelectionRange(s.value.length,s.value.length);}
+}
+function renderLock(root){
+  var exists=!!readBlob();
+  root.innerHTML='<div class="arsw-lock"><div class="big">🔐</div>'
+    +'<h3>'+(exists?'ARS Web bloqueado':'Crea tu PIN maestro')+'</h3>'
+    +'<p>'+(exists?'Ingresa tu PIN para ver tus accesos.':'Tus usuarios y contraseñas se guardan cifrados con este PIN. Si lo olvidas no se puede recuperar.')+'</p>'
+    +'<input type="password" id="arsw-pin" placeholder="PIN" autocomplete="off" onkeydown="if(event.key===\'Enter\')arswUnlock()">'
+    +(exists?'':'<input type="password" id="arsw-pin2" placeholder="Repite el PIN" autocomplete="off" onkeydown="if(event.key===\'Enter\')arswUnlock()">')
+    +'<div class="arsw-err" id="arsw-err"></div>'
+    +'<button class="arsw-btn arsw-btn-p" onclick="arswUnlock()">'+(exists?'Desbloquear':'Crear PIN')+'</button>'
+    +(exists?'<div style="margin-top:12px;"><a href="#" onclick="arswForgot();return false;" style="font-size:11px;color:var(--muted);">Olvidé mi PIN</a></div>':'')
+    +'</div>';
+  setTimeout(function(){var p=$('arsw-pin');if(p)p.focus();},50);
+}
+function err(m){var e=$('arsw-err');if(e)e.textContent=m;}
+
+/* ── PIN ── */
+window.arswUnlock=function(){
+  var pin=($('arsw-pin')||{}).value||'',blob=readBlob();
+  if(blob){
+    if(!pin)return err('Escribe tu PIN.');
+    err('Verificando…');
+    var salt=unb64(blob.salt);
+    deriveKey(pin,salt).then(function(k){
+      return crypto.subtle.decrypt({name:'AES-GCM',iv:unb64(blob.iv)},k,unb64(blob.data)).then(function(pt){
+        st.key=k;st.salt=salt;st.items=JSON.parse(dec.decode(pt));st.unlocked=true;render();
+      });
+    }).catch(function(){err('PIN incorrecto.');var p=$('arsw-pin');if(p){p.value='';p.focus();}});
+  }else{
+    var pin2=($('arsw-pin2')||{}).value||'';
+    if(pin.length<4)return err('El PIN debe tener al menos 4 caracteres.');
+    if(pin!==pin2)return err('Los PIN no coinciden.');
+    st.salt=crypto.getRandomValues(new Uint8Array(16));
+    deriveKey(pin,st.salt).then(function(k){st.key=k;st.items=[];st.unlocked=true;return persist();})
+      .then(function(){toast('🔐 PIN creado');render();}).catch(function(){err('No se pudo crear el PIN.');});
+  }
+};
+window.arswLock=function(){st.key=null;st.items=[];st.unlocked=false;st.q='';$('arsw-assist').style.display='none';render();};
+window.arswForgot=function(){
+  if(!confirm('Si olvidaste el PIN, la única opción es BORRAR todos los accesos guardados y empezar de nuevo.\n\n¿Borrar todo?'))return;
+  localStorage.removeItem(KEY);st.unlocked=false;audit('Borró todos los accesos ARS Web (PIN olvidado)');render();
+};
+window.arswChangePin=function(){
+  var a=prompt('Nuevo PIN (mínimo 4 caracteres):');if(a===null)return;
+  if(a.length<4)return alert('El PIN debe tener al menos 4 caracteres.');
+  var b=prompt('Repite el nuevo PIN:');if(b!==a)return alert('Los PIN no coinciden.');
+  st.salt=crypto.getRandomValues(new Uint8Array(16));
+  deriveKey(a,st.salt).then(function(k){st.key=k;return persist();}).then(function(){toast('🔑 PIN actualizado');audit('Cambió PIN de ARS Web');});
+};
+window.arswSearch=function(v){st.q=v;render();};
+
+/* ── CRUD ── */
+function drawColors(){
+  $('arsw-colors').innerHTML=COLORS.map(function(c){return '<span style="background:'+c+'" class="'+(c===st.color?'on':'')+'" onclick="arswPickColor(\''+c+'\')"></span>';}).join('');
+}
+window.arswPickColor=function(c){st.color=c;drawColors();};
+window.arswTogglePass=function(){var p=$('arsw-f-pass');p.type=p.type==='password'?'text':'password';};
+window.arswAdd=function(){
+  st.editId=null;st.color=COLORS[st.items.length%COLORS.length];
+  $('arsw-modal-title').textContent='Agregar ARS';
+  ['nombre','url','user','pass'].forEach(function(f){$('arsw-f-'+f).value='';});
+  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=true;drawColors();
+  $('arsw-modal').style.display='block';setTimeout(function(){$('arsw-f-nombre').focus();},50);
+};
+window.arswEdit=function(id){
+  var i=st.items.filter(function(x){return x.id===id;})[0];if(!i)return;
+  st.editId=id;st.color=i.color||COLORS[0];
+  $('arsw-modal-title').textContent='Editar ARS';
+  $('arsw-f-nombre').value=i.nombre;$('arsw-f-url').value=i.url;$('arsw-f-user').value=i.usuario||'';$('arsw-f-pass').value=i.clave||'';
+  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=i.auto!==false;drawColors();
+  $('arsw-modal').style.display='block';
+};
+window.arswCloseModal=function(){$('arsw-modal').style.display='none';};
+window.arswSave=function(){
+  var nombre=$('arsw-f-nombre').value.trim(),url=normUrl($('arsw-f-url').value);
+  if(!nombre)return alert('Escribe el nombre de la ARS.');
+  if(!url)return alert('Pega el link del portal.');
+  var rec={nombre:nombre,url:url,usuario:$('arsw-f-user').value.trim(),clave:$('arsw-f-pass').value,color:st.color,auto:$('arsw-f-auto').checked};
+  if(st.editId){st.items=st.items.map(function(x){return x.id===st.editId?Object.assign({},x,rec):x;});}
+  else{rec.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);st.items.push(rec);}
+  persist().then(function(){arswCloseModal();render();toast('✅ '+nombre+' guardada');audit((st.editId?'Editó':'Agregó')+' acceso ARS Web: '+nombre);})
+    .catch(function(){alert('No se pudo guardar.');});
+};
+window.arswDelete=function(id){
+  var i=st.items.filter(function(x){return x.id===id;})[0];if(!i)return;
+  if(!confirm('¿Eliminar el acceso a "'+i.nombre+'"?'))return;
+  st.items=st.items.filter(function(x){return x.id!==id;});
+  persist().then(function(){render();audit('Eliminó acceso ARS Web: '+i.nombre);});
+};
+
+/* ── Entrar al portal ── */
+window.arswOpen=function(id){
+  var i=st.items.filter(function(x){return x.id===id;})[0];if(!i)return;
+  var url=i.url;
+  if(i.auto!==false&&(i.usuario||i.clave)){
+    var p=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify({u:i.usuario||'',p:i.clave||''})))));
+    url+=(url.indexOf('#')>-1?'&':'#')+'eecauto='+p;
+  }
+  var w=window.open(url,'_blank');
+  if(!w)toast('⚠️ El navegador bloqueó la ventana. Permite ventanas emergentes para este sistema.','yellow');
+  audit('Abrió portal ARS: '+i.nombre);
+  showAssist(i);
+};
+function showAssist(i){
+  var a=$('arsw-assist');
+  a.innerHTML='<span class="x" onclick="this.parentNode.style.display=\'none\'">✕</span><b>'+esc(i.nombre)+'</b>'
+    +'<small>Si no entró solo, copia y pega tus datos:</small>'
+    +'<button class="arsw-btn" onclick="arswCopy(\''+i.id+'\',\'u\')">📋 Copiar usuario</button>'
+    +'<button class="arsw-btn" onclick="arswCopy(\''+i.id+'\',\'p\')">🔑 Copiar contraseña</button>';
+  a.style.display='block';clearTimeout(showAssist._t);
+  showAssist._t=setTimeout(function(){a.style.display='none';},60000);
+}
+window.arswCopy=function(id,w){
+  var i=st.items.filter(function(x){return x.id===id;})[0];if(!i)return;
+  copy(w==='u'?i.usuario:i.clave).then(function(){
+    toast(w==='u'?'📋 Usuario copiado':'🔑 Contraseña copiada (se limpia en 30 s)');
+    if(w==='p')setTimeout(function(){try{navigator.clipboard.writeText(' ');}catch(e){}},30000);
+  });
+};
+
+/* ── Script de auto-login ── */
+window.arswScriptHelp=function(){
+  var m=confirm('⚡ AUTO-LOGIN REAL (un solo clic)\n\n1) Instala la extensión gratuita Tampermonkey en tu navegador.\n2) Pulsa ACEPTAR para descargar el script y ábrelo (Tampermonkey te ofrecerá instalarlo).\n\nSolo se instala una vez. Después, al tocar una tarjeta el portal se abre y entra solo.\n\n¿Descargar el script ahora?');
+  if(!m)return;
+  var b=new Blob([USERSCRIPT],{type:'text/javascript'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='EEC-ARS-AutoLogin.user.js';
+  document.body.appendChild(a);a.click();a.remove();
+};
+
+window.arswInit=function(){render();};
+})();
+</script>
 </body>
 </html>

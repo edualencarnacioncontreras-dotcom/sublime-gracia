@@ -3606,6 +3606,7 @@ window.showPage = function(id) {
   <div class="drawer-nav-item" onclick="showPage('procedimientos-emergencia');mbCloseDrawer()"><span class="d-icon">📋</span> Procedimientos de Emergencia</div>
   <div class="drawer-nav-item" onclick="showPage('escaneo');mbCloseDrawer()"><span class="d-icon">🤖</span> Pregúntale a la IA</div>
   <div class="drawer-nav-item" onclick="showPage('importar');mbCloseDrawer()"><span class="d-icon">📥</span> Importar Datos</div>
+  <div class="drawer-nav-item" onclick="showPage('accesosweb');mbCloseDrawer()"><span class="d-icon">🌐</span> ARS Web</div>
 
   <div class="drawer-nav-section">Admisión</div>
   <div class="drawer-nav-item" onclick="showPage('documentos');mbCloseDrawer()"><span class="d-icon">🗂️</span> Documentación</div>
@@ -3851,6 +3852,12 @@ window.showPage = function(id) {
               <div style="font-size:11px;color:var(--muted);">Carga masiva de info</div>
             </div>
 
+            <div onclick="showPage('accesosweb')" style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;" onmouseover="this.style.borderColor='#60a5fa';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(96,165,250,.25)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';this.style.boxShadow=''">
+              <div style="font-size:28px;margin-bottom:8px;">🌐</div>
+              <div style="font-weight:700;font-size:13px;color:#1E293B;margin-bottom:3px;">ARS Web</div>
+              <div style="font-size:11px;color:var(--muted);">Portales de las ARS</div>
+            </div>
+
           </div>
         </div>
 
@@ -4063,14 +4070,22 @@ window.showPage = function(id) {
       <div class="arsw-dlg">
         <h3 id="arsw-modal-title">Agregar ARS</h3>
         <label>Nombre de la ARS</label>
-        <input type="text" id="arsw-f-nombre" placeholder="Ej: Mapfre Salud ARS" autocomplete="off">
+        <input type="text" id="arsw-f-nombre" oninput="arswPrev()" placeholder="Ej: Mapfre Salud ARS" autocomplete="off">
         <label>Link del portal</label>
-        <input type="text" id="arsw-f-url" placeholder="https://..." autocomplete="off">
+        <input type="text" id="arsw-f-url" oninput="arswPrev()" placeholder="https://..." autocomplete="off">
         <div class="arsw-row">
           <div><label>Usuario</label><input type="text" id="arsw-f-user" autocomplete="off"></div>
           <div><label>Contraseña</label>
             <div style="position:relative;"><input type="password" id="arsw-f-pass" autocomplete="new-password" style="padding-right:38px;">
             <span onclick="arswTogglePass()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:15px;" title="Mostrar / ocultar">👁</span></div>
+          </div>
+        </div>
+        <label>Logo de la ARS (foto del cuadro)</label>
+        <div class="arsw-logoedit">
+          <div class="arsw-logo" id="arsw-logo-prev"></div>
+          <div style="display:flex;flex-direction:column;gap:6px;">
+            <input type="file" id="arsw-f-logo" accept="image/*" style="font-size:12px;" onchange="arswLogoPick(this)">
+            <span style="font-size:11px;color:var(--muted);cursor:pointer;text-decoration:underline;" onclick="arswLogoClear()">Quitar foto (usar logo automático del sitio)</span>
           </div>
         </div>
         <label>Color de la tarjeta</label>
@@ -14453,7 +14468,7 @@ const PERMISOS_DEFAULT = {
       'atencion-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
       'documentos','compromiso','escaneo',
-      'importar','usuarios','auditoria',
+      'importar','accesosweb','usuarios','auditoria',
     ],
     acciones: [...ROL_CEILING.supervisor]
   },
@@ -14463,7 +14478,7 @@ const PERMISOS_DEFAULT = {
       'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
       'atencion-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
-      'documentos','compromiso','escaneo',
+      'documentos','compromiso','escaneo','accesosweb',
     ],
     acciones: [...ROL_CEILING.editor]
   },
@@ -14472,7 +14487,7 @@ const PERMISOS_DEFAULT = {
       'inicio','dashboard',
       'doctores','ars','extensiones',
       'atencion-emergencia',
-      'presupuestos','catalogo','documentos',
+      'presupuestos','catalogo','documentos','accesosweb',
     ],
     acciones: [...ROL_CEILING.viewer]
   },
@@ -14564,8 +14579,8 @@ function canAccessModule(pageId) {
   if (sysSession.rol === 'admin') return true;
   // medico-llamada accessible to all roles (editing restricted by canDo)
   if (sysSession.modulos && Array.isArray(sysSession.modulos)) return sysSession.modulos.includes(pageId);
-  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','turno-nocturno','oxigeno','catalogo','procedimientos-emergencia','presupuestos','documentos','compromiso','escaneo','importar','auditoria'];
-  const viewerMods = ['inicio','dashboard','doctores','ars','extensiones','atencion-emergencia','presupuestos','catalogo','procedimientos-emergencia','documentos','medico-llamada','med-especialista','turno-nocturno','extensiones'];
+  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','turno-nocturno','oxigeno','catalogo','procedimientos-emergencia','presupuestos','documentos','compromiso','escaneo','importar','auditoria','accesosweb'];
+  const viewerMods = ['inicio','dashboard','doctores','ars','extensiones','atencion-emergencia','presupuestos','catalogo','procedimientos-emergencia','documentos','medico-llamada','med-especialista','turno-nocturno','extensiones','accesosweb'];
   if (sysSession.rol === 'supervisor') return editorMods.includes(pageId) || ['usuarios','cargo-suministros','cargo-laboratorio','cargo-admision','medico-llamada'].includes(pageId);
   if (sysSession.rol === 'editor') return editorMods.includes(pageId);
   return viewerMods.includes(pageId);
@@ -39223,6 +39238,10 @@ console.log('[EECGESTIONES] ✅ Funciones ICS/Sync integradas en calendario MTN 
 .arsw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
 .arsw-card{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:22px 16px 16px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;animation:scaleIn .25s both;}
 .arsw-card:hover{transform:translateY(-3px);box-shadow:var(--shadow);}
+.arsw-logo img{width:100%;height:100%;object-fit:contain;border-radius:14px;background:#fff;}
+.arsw-logo.has-img{background:#fff!important;border:1px solid var(--border);}
+.arsw-logoedit{display:flex;align-items:center;gap:12px;}
+.arsw-logoedit .arsw-logo{margin:0;width:56px;height:56px;flex:none;font-size:20px;}
 .arsw-logo{width:64px;height:64px;border-radius:16px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;color:#fff;font:800 24px 'Outfit',sans-serif;box-shadow:0 4px 10px rgba(0,0,0,.18);}
 .arsw-name{font:700 15px 'Nunito',sans-serif;color:var(--text);word-break:break-word;}
 .arsw-host{font-size:11px;color:var(--muted);margin-top:2px;word-break:break-all;}
@@ -39269,7 +39288,7 @@ console.log('[EECGESTIONES] ✅ Funciones ICS/Sync integradas en calendario MTN 
 var KEY='eec_arsweb_v1';
 var COLORS=['#1B5FA8','#0A7B6E','#B01030','#B05010','#6A3FA0','#1E7A40','#C2185B','#37474F'];
 var USERSCRIPT="// ==UserScript==\n// @name         EEC ARS Auto-Login\n// @namespace    eecgestiones\n// @version      1.0\n// @description  Completa usuario y contrase\u00f1a en los portales de ARS cuando se abren desde EECGESTIONES > ARS Web\n// @match        *://*/*\n// @run-at       document-start\n// @grant        none\n// ==/UserScript==\n(function () {\n  'use strict';\n  var SK = '__eec_auto__', TTL = 120000, data = null;\n  try {\n    var m = location.hash.match(/[#&?]eecauto=([^&]+)/);\n    if (m) {\n      var o = JSON.parse(decodeURIComponent(escape(atob(decodeURIComponent(m[1])))));\n      sessionStorage.setItem(SK, JSON.stringify({ t: Date.now(), u: o.u, p: o.p }));\n      var h = location.hash.replace(/([#&?])eecauto=[^&]+&?/, '$1').replace(/[#&?]$/, '');\n      history.replaceState(null, '', location.pathname + location.search + h);\n    }\n    var raw = sessionStorage.getItem(SK);\n    if (raw) {\n      var d = JSON.parse(raw);\n      if (Date.now() - d.t < TTL) data = d; else sessionStorage.removeItem(SK);\n    }\n  } catch (e) { return; }\n  if (!data) return;\n\n  var done = false, tries = 0;\n  function vis(el) {\n    var r = el.getBoundingClientRect();\n    return r.width > 0 && r.height > 0 && getComputedStyle(el).visibility !== 'hidden';\n  }\n  function setVal(el, v) {\n    var desc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(el), 'value');\n    if (desc && desc.set) desc.set.call(el, v); else el.value = v;\n    ['input', 'change', 'blur'].forEach(function (ev) { el.dispatchEvent(new Event(ev, { bubbles: true })); });\n  }\n  function attempt() {\n    if (done) return;\n    var pw = [].slice.call(document.querySelectorAll('input[type=password]')).filter(vis)[0];\n    if (!pw) return;\n    var user = null;\n    [].slice.call(document.querySelectorAll('input')).forEach(function (i) {\n      if (vis(i) && /^(text|email|tel|number|)$/i.test(i.type || '') &&\n          (i.compareDocumentPosition(pw) & Node.DOCUMENT_POSITION_FOLLOWING)) user = i;\n    });\n    if (!user) return;\n    done = true;\n    sessionStorage.removeItem(SK);\n    user.focus(); setVal(user, data.u);\n    pw.focus();   setVal(pw, data.p);\n    setTimeout(function () {\n      var scope = pw.form || document, btn = scope.querySelector('button[type=submit],input[type=submit]');\n      if (!btn) {\n        [].slice.call(scope.querySelectorAll('button,input[type=button],a[role=button],div[role=button]')).some(function (b) {\n          if (vis(b) && /iniciar|entrar|login|log in|ingresar|acceder|sign in|continuar/i.test(b.innerText || b.value || '')) { btn = b; return true; }\n        });\n      }\n      if (btn) btn.click();\n      else if (pw.form && pw.form.requestSubmit) pw.form.requestSubmit();\n      else pw.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', keyCode: 13, bubbles: true }));\n    }, 400);\n  }\n  var iv = setInterval(function () { tries++; attempt(); if (done || tries > 60) clearInterval(iv); }, 500);\n})();\n";
-var st={key:null,salt:null,items:[],unlocked:false,editId:null,color:COLORS[0],q:''};
+var st={key:null,salt:null,items:[],unlocked:false,editId:null,logo:'',color:COLORS[0],q:''};
 var enc=new TextEncoder(),dec=new TextDecoder();
 
 function $(id){return document.getElementById(id);}
@@ -39291,6 +39310,17 @@ function persist(){
     localStorage.setItem(KEY,JSON.stringify({v:1,salt:b64(st.salt),iv:b64(iv),data:b64(ct)}));
   });
 }
+function seedMapfre(){return {id:'mapfre'+Date.now().toString(36),nombre:'Mapfre Salud ARS',url:'https://portal.mapfresaludars.com.do',usuario:'EDUAL',clave:'',color:'#B01030',auto:true};}
+function logoSrc(i){
+  if(i.logo)return i.logo;
+  var h=hostOf(i.url);return h?'https://www.google.com/s2/favicons?domain='+encodeURIComponent(h)+'&sz=128':'';
+}
+function logoHtml(i,idAttr){
+  var ini=esc(initials(i.nombre)),src=logoSrc(i),bg=esc(i.color||COLORS[0]);
+  var id=idAttr?' id="'+idAttr+'"':'';
+  if(!src)return '<div class="arsw-logo"'+id+' style="background:'+bg+'">'+ini+'</div>';
+  return '<div class="arsw-logo has-img"'+id+' style="background:'+bg+'"><img src="'+esc(src)+'" alt="" onerror="var d=this.parentNode;d.classList.remove(\'has-img\');d.textContent=\''+ini+'\';"></div>';
+}
 function hostOf(u){try{return new URL(u).hostname.replace(/^www\./,'');}catch(e){return u;}}
 function initials(n){var w=String(n).trim().split(/\s+/).filter(Boolean);return ((w[0]||'?')[0]+((w[1]||'')[0]||'')).toUpperCase();}
 function normUrl(u){u=String(u||'').trim();if(!u)return '';return /^[a-z][a-z0-9+.-]*:\/\//i.test(u)?u:'https://'+u;}
@@ -39309,10 +39339,11 @@ function render(){
   var cards=list.map(function(i){
     return '<div class="arsw-card" onclick="arswOpen(\''+i.id+'\')" title="Entrar a '+esc(i.nombre)+'">'
       +'<div class="arsw-tools"><span onclick="event.stopPropagation();arswEdit(\''+i.id+'\')" title="Editar">✏️</span><span onclick="event.stopPropagation();arswDelete(\''+i.id+'\')" title="Eliminar">🗑️</span></div>'
-      +'<div class="arsw-logo" style="background:'+esc(i.color||COLORS[0])+'">'+esc(initials(i.nombre))+'</div>'
+      +logoHtml(i)
       +'<div class="arsw-name">'+esc(i.nombre)+'</div>'
       +'<div class="arsw-host">'+esc(hostOf(i.url))+'</div>'
       +'<div class="arsw-user">👤 '+esc(i.usuario||'—')+'</div>'
+      +(i.clave?'':'<div class="arsw-user" style="color:var(--rose);font-weight:700;">⚠ Falta contraseña (✏️ editar)</div>')
       +'<div class="arsw-go">Entrar ➜</div></div>';
   }).join('');
   var empty=(!list.length&&st.items.length)?'<div class="arsw-empty">Sin resultados para esa búsqueda.</div>':'';
@@ -39358,7 +39389,7 @@ window.arswUnlock=function(){
     if(pin.length<4)return err('El PIN debe tener al menos 4 caracteres.');
     if(pin!==pin2)return err('Los PIN no coinciden.');
     st.salt=crypto.getRandomValues(new Uint8Array(16));
-    deriveKey(pin,st.salt).then(function(k){st.key=k;st.items=[];st.unlocked=true;return persist();})
+    deriveKey(pin,st.salt).then(function(k){st.key=k;st.items=[seedMapfre()];st.unlocked=true;return persist();})
       .then(function(){toast('🔐 PIN creado');render();}).catch(function(){err('No se pudo crear el PIN.');});
   }
 };
@@ -39386,7 +39417,7 @@ window.arswAdd=function(){
   st.editId=null;st.color=COLORS[st.items.length%COLORS.length];
   $('arsw-modal-title').textContent='Agregar ARS';
   ['nombre','url','user','pass'].forEach(function(f){$('arsw-f-'+f).value='';});
-  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=true;drawColors();
+  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=true;st.logo='';$('arsw-f-logo').value='';drawColors();drawLogoPrev();
   $('arsw-modal').style.display='block';setTimeout(function(){$('arsw-f-nombre').focus();},50);
 };
 window.arswEdit=function(id){
@@ -39394,15 +39425,38 @@ window.arswEdit=function(id){
   st.editId=id;st.color=i.color||COLORS[0];
   $('arsw-modal-title').textContent='Editar ARS';
   $('arsw-f-nombre').value=i.nombre;$('arsw-f-url').value=i.url;$('arsw-f-user').value=i.usuario||'';$('arsw-f-pass').value=i.clave||'';
-  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=i.auto!==false;drawColors();
+  $('arsw-f-pass').type='password';$('arsw-f-auto').checked=i.auto!==false;st.logo=i.logo||'';$('arsw-f-logo').value='';drawColors();drawLogoPrev();
   $('arsw-modal').style.display='block';
 };
+function drawLogoPrev(){
+  var el=$('arsw-logo-prev');if(!el)return;
+  var tmp={nombre:$('arsw-f-nombre').value||'?',url:normUrl($('arsw-f-url').value),color:st.color,logo:st.logo};
+  el.outerHTML=logoHtml(tmp,'arsw-logo-prev');
+}
+window.arswLogoPick=function(inp){
+  var f=inp.files&&inp.files[0];if(!f)return;
+  var fr=new FileReader();
+  fr.onload=function(){
+    var img=new Image();
+    img.onload=function(){
+      var m=128,k=Math.min(1,m/Math.max(img.width,img.height)),c=document.createElement('canvas');
+      c.width=Math.max(1,Math.round(img.width*k));c.height=Math.max(1,Math.round(img.height*k));
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      st.logo=c.toDataURL('image/png');drawLogoPrev();
+    };
+    img.onerror=function(){alert('No se pudo leer esa imagen.');};
+    img.src=fr.result;
+  };
+  fr.readAsDataURL(f);
+};
+window.arswPrev=function(){drawLogoPrev();};
+window.arswLogoClear=function(){st.logo='';$('arsw-f-logo').value='';drawLogoPrev();};
 window.arswCloseModal=function(){$('arsw-modal').style.display='none';};
 window.arswSave=function(){
   var nombre=$('arsw-f-nombre').value.trim(),url=normUrl($('arsw-f-url').value);
   if(!nombre)return alert('Escribe el nombre de la ARS.');
   if(!url)return alert('Pega el link del portal.');
-  var rec={nombre:nombre,url:url,usuario:$('arsw-f-user').value.trim(),clave:$('arsw-f-pass').value,color:st.color,auto:$('arsw-f-auto').checked};
+  var rec={nombre:nombre,url:url,usuario:$('arsw-f-user').value.trim(),clave:$('arsw-f-pass').value,color:st.color,auto:$('arsw-f-auto').checked,logo:st.logo};
   if(st.editId){st.items=st.items.map(function(x){return x.id===st.editId?Object.assign({},x,rec):x;});}
   else{rec.id=Date.now().toString(36)+Math.random().toString(36).slice(2,6);st.items.push(rec);}
   persist().then(function(){arswCloseModal();render();toast('✅ '+nombre+' guardada');audit((st.editId?'Editó':'Agregó')+' acceso ARS Web: '+nombre);})

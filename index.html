@@ -3990,6 +3990,8 @@ window.showPage = function(id) {
             <div class="search-input"><input type="text" id="search-doctor" placeholder="Buscar doctor..." oninput="renderDoctors()"></div>
             <button class="btn btn-secondary no-print" onclick="printDoctoresList()" style="padding:6px 14px;font-size:12px;">🖨️ Imprimir Lista</button>
             <button class="btn btn-primary no-print" onclick="projectDoctoresList()" title="Abrir diapositivas automáticas para TV / proyector" style="padding:6px 14px;font-size:12px;">📺 Proyectar</button>
+            <button class="btn btn-secondary no-print" onclick="gsSyncDoctors(true)" title="Actualizar la lista desde Google Sheets" style="padding:6px 14px;font-size:12px;">🔄 Sincronizar Sheets</button>
+            <span id="gs-sync-status" class="no-print" style="font-size:11px;color:var(--muted);"></span>
           </div>
         </div>
         <div id="doctors-table-body"></div>
@@ -39981,6 +39983,279 @@ window.arswScriptHelp=function(){
 };
 
 window.arswInit=function(){render();};
+})();
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════
+// SYNC DOCTORES ⇄ GOOGLE SHEETS  (el Sheet manda: agrega / quita; NO toca a los que ya existen)
+// ═══════════════════════════════════════════════════════════════════════
+(function () {
+"use strict";
+
+var SHEET_ID  = "1sn9kbIkR4iiCLGbk_98NgxL8D-u7oXB4Diw6wdm-Axw";
+var EVERY_MS  = 10 * 60 * 1000;   // re-sincroniza cada 10 min
+var MIN_GAP   = 2 * 60 * 1000;    // y al volver a la pestaña (máx. 1 vez cada 2 min)
+var MIN_ROWS  = 20;               // seguridad: si el Sheet trae menos doctores, no se toca nada
+var GRACE_MS  = 24 * 3600 * 1000; // doctores creados a mano hace <24 h no se quitan (da tiempo a ponerlos en el Sheet)
+
+var _running = false, _lastRun = 0, _started = false, _declinedSig = "";
+
+// ── Utilidades de nombres ─────────────────────────────────────────────
+function strip(s) { return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase(); }
+var STOP = { DE:1, DEL:1, LA:1, LAS:1, LOS:1, Y:1, E:1, DR:1, DRA:1, DRES:1, LIC:1, LICDA:1, ING:1, SR:1, SRA:1 };
+function tokens(s) {
+  var seen = {}, out = [];
+  strip(s).replace(/[^A-Z0-9 ]/g, " ").split(/\s+/).forEach(function (t) {
+    if (t.length > 1 && !STOP[t] && !seen[t]) { seen[t] = 1; out.push(t); }
+  });
+  return out;
+}
+function keyOf(toks) { return toks.slice().sort().join(" "); }
+function subset(a, b) { for (var i = 0; i < a.length; i++) if (b.indexOf(a[i]) < 0) return false; return true; }
+// Coincide si es el mismo nombre en cualquier orden, o si las palabras de uno (≥2) están todas en el otro
+// ("DRA. HILDA HERRERA" ≈ "HILDA BIENVENIDA HERRERA MEDRANO")
+function same(a, b) {
+  if (!a.toks.length || !b.toks.length) return false;
+  if (a.key === b.key) return true;
+  if (a.toks.length >= 2 && subset(a.toks, b.toks)) return true;
+  if (b.toks.length >= 2 && subset(b.toks, a.toks)) return true;
+  return false;
+}
+function hash36(s) { var h = 5381; for (var i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0; return (h >>> 0).toString(36); }
+function clean(s) { return String(s == null ? "" : s).replace(/\s+/g, " ").trim(); }
+function pushUnique(arr, v) { if (v && arr.map(strip).indexOf(strip(v)) < 0) arr.push(v); }
+
+// ── CSV ───────────────────────────────────────────────────────────────
+function parseCSV(text) {
+  var rows = [], row = [], cell = "", q = false, i = 0, c;
+  text = text.replace(/^\uFEFF/, "");
+  while (i < text.length) {
+    c = text[i];
+    if (q) {
+      if (c === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; }
+      else cell += c;
+    } else if (c === '"') q = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(cell); rows.push(row); row = []; cell = "";
+    } else cell += c;
+    i++;
+  }
+  if (cell !== "" || row.length) { row.push(cell); rows.push(row); }
+  return rows;
+}
+
+// ── Filas del Sheet → doctores únicos (une filas repetidas de la misma persona) ──
+function buildSheetDoctors(rows) {
+  var map = {}, list = [];
+  rows.forEach(function (r) {
+    var cat = clean(r[0]), esp = clean(r[1]), nom = clean(r[2]), ape = clean(r[3]);
+    var cons = clean(r[4]), tel = clean(r[5]);
+    if (/^CATEGOR/i.test(strip(cat))) return;           // encabezado
+    var full = clean(nom + " " + ape);
+    var toks = tokens(full);
+    if (!toks.length) return;
+    var key = keyOf(toks);
+    var d = map[key];
+    if (!d) { d = map[key] = { name: full, toks: toks, key: key, cats: [], esps: [], cons: [], tels: [] }; list.push(d); }
+    pushUnique(d.cats, cat);
+    pushUnique(d.esps, esp);
+    if (cons && cons !== "-") pushUnique(d.cons, cons);
+    pushUnique(d.tels, tel);
+  });
+  return list;
+}
+
+function createdMs(id) {      // uid() = 8 caracteres aleatorios + Date.now() en base36
+  if (typeof id !== "string" || id.length < 12 || id.indexOf("gs_") === 0) return 0;
+  var t = parseInt(id.slice(8), 36);
+  return (t > 1577836800000 && t < Date.now() + 86400000) ? t : 0;
+}
+
+function setStatus(txt, ok) {
+  var el = document.getElementById("gs-sync-status");
+  if (el) { el.textContent = txt; el.style.color = ok === false ? "#ef4444" : "var(--muted)"; }
+}
+function say(msg, kind) {
+  try { if (typeof toast === "function") toast(msg, kind || "success"); else if (typeof showToast === "function") showToast(msg); } catch (e) {}
+}
+function hhmm() { var d = new Date(); return ("0" + d.getHours()).slice(-2) + ":" + ("0" + d.getMinutes()).slice(-2); }
+
+// ── Aplicar diferencias al store ──────────────────────────────────────
+function applyDiff(sheetDocs, manual) {
+  if (typeof store === "undefined" || !store || !Array.isArray(store.doctors)) return;
+  var exist = store.doctors.map(function (d) { var t = tokens(d.name); return { d: d, toks: t, key: keyOf(t) }; });
+
+  // Emparejar 1 a 1: cada doctor del Sheet con un solo doctor del sistema (primero nombre idéntico, luego parecido)
+  var claimedE = {}, sClaim = {};
+  sheetDocs.forEach(function (s, si) {
+    for (var ei = 0; ei < exist.length; ei++)
+      if (!claimedE[ei] && exist[ei].key === s.key) { claimedE[ei] = true; sClaim[si] = ei; break; }
+  });
+  sheetDocs.forEach(function (s, si) {
+    if (sClaim[si] != null) return;
+    var best = -1, bestScore = 0;
+    for (var ei = 0; ei < exist.length; ei++) {
+      if (claimedE[ei] || !same(exist[ei], s)) continue;
+      var sc = exist[ei].toks.filter(function (t) { return s.toks.indexOf(t) >= 0; }).length;
+      if (sc > bestScore) { bestScore = sc; best = ei; }
+    }
+    if (best >= 0) { claimedE[best] = true; sClaim[si] = best; }
+  });
+
+  var toAdd    = sheetDocs.filter(function (s, si) { return sClaim[si] == null; });
+  var toRemove = exist.filter(function (e, ei) { return !claimedE[ei]; });   // solo en el sistema → se quitan
+  var removeNow = toRemove;
+
+  // Teléfono y consultorio: se igualan SIEMPRE a la lista. Especialidad/departamento: solo si están vacíos.
+  var filled = 0, matched = 0;
+  function blank(v) { v = clean(v); return !v || v === "-"; }
+  sheetDocs.forEach(function (s, si) {
+    if (sClaim[si] == null) return;
+    matched++;
+    var d = exist[sClaim[si]].d, ch = false;
+    var tel = s.tels.join(" / "), cons = s.cons.join(" / ");
+    if (clean(d.telefono) !== tel || clean(d.consultorio) !== cons) {
+      d.gsPrev = { telefono: d.telefono || "", consultorio: d.consultorio || "" };   // valor anterior (recuperable)
+      d.telefono = tel; d.consultorio = cons; ch = true;
+    }
+    if (blank(d.especialidad) && (s.cats[0] || s.esps[0])) { d.especialidad = s.cats[0] || s.esps[0]; ch = true; }
+    if (blank(d.departamento) && s.esps.length) { d.departamento = s.esps.join(" / "); ch = true; }
+    if (ch) filled++;
+  });
+
+  if (!toAdd.length && !removeNow.length && !filled) return { added: 0, removed: 0, filled: 0, matched: matched };
+
+  // Altas
+  var usedIds = {}; store.doctors.forEach(function (d) { usedIds[String(d.id)] = 1; });
+  toAdd.forEach(function (s) {
+    var id = "gs_" + hash36(s.key); while (usedIds[id]) id += "x"; usedIds[id] = 1;
+    store.doctors.push({
+      id: id, name: s.name,
+      especialidad: s.cats[0] || s.esps[0] || "",
+      departamento: s.esps.join(" / "),
+      consultorio: s.cons.join(" / "),
+      telefono: s.tels.join(" / "),
+      celular: "", email: "", secretaria: "", horario: "", informacion: "",
+      moduleId: null, sin_ars: false, notas: [], arsLinks: [], fuente: "gsheet"
+    });
+  });
+
+  // Bajas (con respaldo)
+  if (removeNow.length) {
+    try {
+      localStorage.setItem("cmm_gs_removed_v1", JSON.stringify({ fecha: new Date().toISOString(), doctores: removeNow.map(function (e) { return e.d; }) }));
+    } catch (e) {}
+    var rmSet = new Set(removeNow.map(function (e) { return e.d; })), rmIds = {};
+    removeNow.forEach(function (e) { rmIds[String(e.d.id)] = 1; });
+    store.doctors = store.doctors.filter(function (d) { return !rmSet.has(d); });
+    if (Array.isArray(store.links)) store.links = store.links.filter(function (l) { return !rmIds[String(l.doctorId)]; });
+  }
+
+  if (typeof saveStore === "function") saveStore();
+  try { if (typeof renderDoctors === "function") renderDoctors(); } catch (e) {}
+  try { if (typeof renderDashboard === "function") renderDashboard(); } catch (e) {}
+  try { if (typeof logAudit === "function") logAudit("SYNC", "Google Sheets: +" + toAdd.length + " / −" + removeNow.length + " / completados " + filled); } catch (e) {}
+  return { added: toAdd.length, removed: removeNow.length, filled: filled, matched: matched };
+}
+
+// ── Lectura del Sheet: 3 métodos en cascada (CSV gviz → CSV export → JSONP sin CORS) ──
+var BASE = "https://docs.google.com/spreadsheets/d/" + SHEET_ID;
+function fetchCSV(url) {
+  return fetch(url + (url.indexOf("?") > 0 ? "&" : "?") + "_=" + Date.now(), { cache: "no-store" })
+    .then(function (r) { if (!r.ok) throw new Error("HTTP " + r.status); return r.text(); })
+    .then(function (text) {
+      if (/^\s*<(!doctype|html)/i.test(text)) throw new Error("El Sheet no es público");
+      return parseCSV(text);
+    });
+}
+function fetchJSONP() {
+  return new Promise(function (resolve, reject) {
+    var cb = "__gsCb" + Date.now(), s = document.createElement("script"), done = false;
+    function cleanup() {
+      done = true; clearTimeout(t);
+      try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+      if (s.parentNode) s.parentNode.removeChild(s);
+    }
+    var t = setTimeout(function () { if (!done) { cleanup(); reject(new Error("tiempo agotado")); } }, 15000);
+    window[cb] = function (resp) {
+      if (done) return; cleanup();
+      if (!resp || resp.status !== "ok" || !resp.table) return reject(new Error("Google rechazó la lectura (¿Sheet privado?)"));
+      var rows = (resp.table.rows || []).map(function (r) {
+        var out = [];
+        for (var i = 0; i < 6; i++) { var c = r.c && r.c[i]; out.push(c ? (c.f != null ? c.f : (c.v != null ? c.v : "")) : ""); }
+        return out;
+      });
+      resolve(rows);
+    };
+    s.onerror = function () { if (!done) { cleanup(); reject(new Error("no se pudo cargar el Sheet")); } };
+    s.src = BASE + "/gviz/tq?tqx=out:json;responseHandler:" + cb + "&headers=1&_=" + Date.now();
+    document.head.appendChild(s);
+  });
+}
+function loadRows() {
+  return fetchCSV(BASE + "/gviz/tq?tqx=out:csv&headers=1")
+    .catch(function () { return fetchCSV(BASE + "/export?format=csv&gid=0"); })
+    .catch(function () { return fetchJSONP(); });
+}
+
+// ── Ciclo principal ───────────────────────────────────────────────────
+function run(manual) {
+  if (_running) return;
+  if (!manual && Date.now() - _lastRun < MIN_GAP) return;
+  _running = true; _lastRun = Date.now();
+  setStatus("⏳ Sheets…");
+
+  loadRows()
+    .then(function (rows) {
+      var docs = buildSheetDoctors(rows);
+      if (docs.length < MIN_ROWS) throw new Error("El Sheet trae solo " + docs.length + " doctores; no se aplicó nada");
+      // Antes de comparar, bajar lo último de Firebase para no pisar cambios de otros usuarios
+      var go = function () {
+        var res = applyDiff(docs, manual) || { added: 0, removed: 0, filled: 0, matched: 0 };
+        setStatus("📗 Sheets ✓ " + hhmm() + " · " + docs.length + " doctores · tel/consultorio verificados");
+        if (res.added || res.removed || res.filled) say("📥 Google Sheets: +" + res.added + " nuevos, −" + res.removed + " quitados, " + res.filled + " actualizados");
+        else if (manual) say("✅ Verificado: consultorio y teléfono de " + (res.matched || 0) + " doctores coinciden con la lista");
+        _running = false;
+      };
+      if (typeof window._sbPullAll === "function") {
+        window._sbPullAll(function (ok) {
+          if (!ok) { setStatus("☁️ Sin conexión a Firebase", false); _running = false; return; }
+          try { go(); } catch (e) { console.warn("[GS] apply error", e); setStatus("❌ Error al aplicar", false); _running = false; }
+        });
+      } else { go(); }
+    })
+    .catch(function (e) {
+      console.warn("[GS] sync falló:", e && e.message || e);
+      setStatus("❌ Sheets: " + (e && e.message || e), false);
+      if (manual) say("❌ No se pudo leer Google Sheets: " + (e && e.message || e), "error");
+      _running = false;
+    });
+}
+
+// Recupera los doctores quitados en la última sincronización (úsalo desde la consola: gsRestoreRemoved())
+window.gsRestoreRemoved = function () {
+  try {
+    var b = JSON.parse(localStorage.getItem("cmm_gs_removed_v1") || "null");
+    if (!b || !b.doctores || !b.doctores.length) { say("No hay respaldo de doctores quitados", "error"); return 0; }
+    var ids = {}; store.doctors.forEach(function (d) { ids[String(d.id)] = 1; });
+    var n = 0; b.doctores.forEach(function (d) { if (!ids[String(d.id)]) { store.doctors.push(d); n++; } });
+    saveStore(); try { renderDoctors(); renderDashboard(); } catch (e) {}
+    say("♻️ " + n + " doctor(es) restaurados"); return n;
+  } catch (e) { return 0; }
+};
+window.gsSyncDoctors = function (manual) { run(!!manual); };
+
+function start() {
+  setTimeout(function () { run(false); }, 1500);
+  if (_started) return; _started = true;
+  setInterval(function () { if (!document.hidden) run(false); }, EVERY_MS);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) run(false); });
+}
+document.addEventListener("cmmSyncReady", start);
+setTimeout(function () { if (!_started) start(); }, 20000);   // respaldo si el evento ya pasó
+
 })();
 </script>
 </body>

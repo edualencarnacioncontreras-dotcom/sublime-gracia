@@ -3989,11 +3989,250 @@ window.showPage = function(id) {
             </select>
             <div class="search-input"><input type="text" id="search-doctor" placeholder="Buscar doctor..." oninput="renderDoctors()"></div>
             <button class="btn btn-secondary no-print" onclick="printDoctoresList()" style="padding:6px 14px;font-size:12px;">🖨️ Imprimir Lista</button>
+            <button class="btn btn-primary no-print" onclick="projectDoctoresList()" title="Abrir diapositivas automáticas para TV / proyector" style="padding:6px 14px;font-size:12px;">📺 Proyectar</button>
           </div>
         </div>
         <div id="doctors-table-body"></div>
       </div>
     </div>
+
+<template id="tpl-proyector">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;overflow:hidden;font-family:'Segoe UI',Roboto,Arial,sans-serif;cursor:none}
+body.ui{cursor:default}
+#stage{width:1920px;height:1080px;position:absolute;left:50%;top:50%;transform-origin:center center;background:#eaf0fa;overflow:hidden}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;padding:26px 44px 0;opacity:0;transition:opacity .9s ease}
+.slide.on{opacity:1}
+.top{height:62px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.ttl{font-size:38px;font-weight:800;color:#0e2a73;letter-spacing:.5px;text-transform:uppercase}
+.pg{font-size:26px;font-weight:700;color:#1d4fa8}
+.card{flex:1;background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(14,42,115,.14);overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.rg{display:grid;grid-template-columns:100px 1fr 400px 340px 240px;align-items:center}
+.head{height:72px;background:#0e2a73;color:#fff;font-weight:800;font-size:24px;letter-spacing:.5px;text-align:center;flex:none}
+.head div{padding:0 14px}
+.head div:nth-child(2){text-align:center}
+.rows{flex:1;display:grid;min-height:0}
+.row{border-bottom:1px solid #e3e8f2;min-height:0}
+.row:last-child{border-bottom:0}
+.row>div{height:100%;display:flex;align-items:center;padding:0 14px;min-height:0}
+.row>div+div{border-left:1px solid #e8edf6}
+.row>div:first-child{border-left:0;justify-content:center}
+.num{width:54px;height:54px;border-radius:10px;background:#0e2a73;color:#fff;font-size:32px;font-weight:800;display:flex;align-items:center;justify-content:center}
+.nm{font-size:29px;font-weight:800;color:#0e2a73;line-height:1.15;text-transform:uppercase;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.sp{width:100%;text-align:center;font-size:23px;font-weight:700;color:#1d4fa8;line-height:1.2;text-transform:uppercase}
+.ph{display:flex;align-items:center;gap:14px;width:100%;justify-content:center}
+.ph svg{flex:none}
+.pht{font-size:27px;font-weight:600;color:#1b2a55;line-height:1.2}
+.co{display:flex;align-items:center;gap:20px;width:100%;justify-content:center}
+.con{font-size:42px;font-weight:800;color:#0e2a73;line-height:1.05;max-width:150px;text-align:center;overflow:hidden}
+.con.sm{font-size:24px}
+.strip{height:92px;flex:none;margin-top:16px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(14,42,115,.10);display:grid;grid-template-columns:repeat(4,1fr);align-items:center}
+.strip>div{display:flex;align-items:center;justify-content:center;gap:16px;height:56px;color:#0e2a73;font-weight:800;font-size:20px;line-height:1.15;text-transform:uppercase}
+.strip>div+div{border-left:2px solid #dfe6f3}
+.foot{height:150px;flex:none;margin:18px -44px 0;background:#0e2a73;color:#fff;display:grid;grid-template-columns:1.25fr 1fr 1fr;align-items:center;padding:0 60px;gap:30px}
+.foot .c{display:flex;align-items:center;gap:20px}
+.foot .c+.c{border-left:2px solid rgba(255,255,255,.25);padding-left:30px}
+.ico{width:58px;height:58px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;flex:none}
+.foot .dir{font-size:23px;line-height:1.3}
+.foot .big{font-size:44px;font-weight:800;letter-spacing:1px}
+.foot .web{font-size:38px;font-weight:700}
+.foot .nom{font-size:20px;opacity:.85;margin-top:2px}
+.foot img{max-height:70px;max-width:160px;object-fit:contain;background:#fff;border-radius:8px;padding:4px}
+.empty{flex:1;display:flex;align-items:center;justify-content:center;font-size:44px;color:#5a6a80;font-weight:700}
+#prog{position:absolute;left:0;bottom:0;height:7px;width:0;background:#64c8ff;z-index:5}
+#bar{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);background:rgba(10,20,45,.92);color:#fff;border-radius:14px;padding:10px 14px;display:flex;gap:10px;align-items:center;font-size:14px;z-index:20;opacity:0;pointer-events:none;transition:opacity .3s;flex-wrap:wrap;justify-content:center;max-width:96vw;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+body.ui #bar{opacity:1;pointer-events:auto}
+#bar button{background:#1b5fa8;color:#fff;border:0;border-radius:8px;padding:8px 13px;font-size:16px;cursor:pointer}
+#bar button:hover{background:#2a74c7}
+#bar select{background:#16284f;color:#fff;border:1px solid #3a5088;border-radius:8px;padding:7px 8px;font-size:14px;max-width:240px}
+#bar label{display:flex;align-items:center;gap:6px;opacity:.95}
+</style>
+<div id="stage"></div>
+<div id="bar">
+  <button id="bPrev" title="Anterior (←)">⏮</button>
+  <button id="bPlay" title="Pausar / Reanudar (Espacio)">⏸</button>
+  <button id="bNext" title="Siguiente (→)">⏭</button>
+  <label>Lista <select id="sList"></select></label>
+  <label>Filas <select id="sPP"><option>5</option><option>6</option><option selected>7</option><option>8</option></select></label>
+  <label>Cambiar cada <select id="sSec"><option value="5">5 s</option><option value="8">8 s</option><option value="10" selected>10 s</option><option value="15">15 s</option><option value="20">20 s</option><option value="30">30 s</option></select></label>
+  <button id="bFs" title="Pantalla completa (F)">⛶ Pantalla completa</button>
+  <button id="bClose" title="Cerrar">✕</button>
+</div>
+<script>
+(function(){
+  var DATA = window.PROJ_DATA || {docs:[],all:[],centro:{}};
+  var stage = document.getElementById('stage');
+  var state = {list:'__cur', pp:7, secs:10, idx:0, paused:false};
+  var timer = null, prog = null, lastSig = '';
+
+  function el(tag, cls, txt){ var e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+  function svg(html, w, h, vb){ var s=document.createElementNS('http://www.w3.org/2000/svg','svg'); s.setAttribute('width',w); s.setAttribute('height',h); s.setAttribute('viewBox',vb||'0 0 24 24'); s.innerHTML=html; return s; }
+  var P_PHONE='<circle cx="12" cy="12" r="12" fill="#1e55b8"/><path transform="translate(4.8 4.8) scale(.6)" fill="#fff" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>';
+  var P_DOOR='<rect x="7" y="3" width="20" height="32" rx="2" fill="none" stroke="#0e2a73" stroke-width="2.6"/><path d="M7 3l14 4v31L7 34z" fill="none" stroke="#0e2a73" stroke-width="2.6" stroke-linejoin="round"/><circle cx="17" cy="21" r="1.6" fill="#0e2a73"/>';
+  var G = {
+    heart:'<path fill="#0e2a73" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/><path d="M4 12h4l2-3 3 6 2-3h5" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>',
+    shield:'<path fill="#0e2a73" d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/><path d="M8 12l3 3 5-6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+    people:'<g fill="none" stroke="#0e2a73" stroke-width="1.8"><circle cx="8" cy="8" r="3.2"/><circle cx="17" cy="9" r="2.6"/><path d="M2 20c0-3.5 2.7-5.5 6-5.5s6 2 6 5.5M14.5 14.8c.8-.3 1.6-.4 2.5-.4 2.6 0 5 1.6 5 4.6"/></g>',
+    heart2:'<path fill="none" stroke="#0e2a73" stroke-width="2" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/><path d="M8 11l2.5 2.5L16 8" fill="none" stroke="#0e2a73" stroke-width="1.8" stroke-linecap="round"/>',
+    pin:'<path fill="#0e2a73" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>',
+    tel:'<path fill="#0e2a73" d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>',
+    globe:'<path fill="#0e2a73" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>'
+  };
+
+  function fmtPhone(s){
+    s = String(s||'').replace(/\((\d{3})\)\s*-?\s*/g,'$1-').replace(/\s+/g,' ').trim();
+    if(!s) return [];
+    return s.split(/\s*[*\/]\s*/).filter(function(x){return x}).slice(0,2);
+  }
+  function hasDigits(s){ return (String(s||'').match(/\d/g)||[]).length>=7; }
+  function pickPhone(d){
+    if(hasDigits(d.t)) return fmtPhone(d.t);
+    if(hasDigits(d.c)) return fmtPhone(d.c);
+    if(hasDigits(d.s)) return fmtPhone(d.s);
+    return [];
+  }
+
+  function currentDocs(){
+    if(state.list==='__cur') return DATA.docs||[];
+    if(state.list==='__all') return DATA.all||[];
+    return (DATA.all||[]).filter(function(d){ return (d.e||'').toUpperCase()===state.list.toUpperCase(); });
+  }
+  function currentTitle(){
+    if(state.list==='__cur') return DATA.titulo||'Listado de médicos';
+    if(state.list==='__all') return 'Listado de médicos';
+    return state.list;
+  }
+  function pageList(){
+    var docs=currentDocs(), out=[];
+    for(var i=0;i<docs.length;i+=state.pp) out.push(docs.slice(i,i+state.pp));
+    return out;
+  }
+
+  function strip(){
+    var s=el('div','strip');
+    [['heart','ATENCIÓN<br>ESPECIALIZADA'],['shield','TECNOLOGÍA<br>AVANZADA'],['people','TRATO HUMANO<br>Y PERSONALIZADO'],['heart2','TU SALUD,<br>NUESTRA PRIORIDAD']].forEach(function(x){
+      var d=el('div'); d.appendChild(svg(G[x[0]],46,46)); var t=el('span'); t.innerHTML=x[1]; d.appendChild(t); s.appendChild(d);
+    });
+    return s;
+  }
+  function footer(){
+    var c=DATA.centro||{}, f=el('div','foot');
+    var a=el('div','c');
+    if(c.logo){ var im=el('img'); im.src=c.logo; a.appendChild(im); }
+    else { var i1=el('div','ico'); i1.appendChild(svg(G.pin,34,34)); a.appendChild(i1); }
+    a.appendChild(el('div','dir',c.dir||''));
+    var b=el('div','c'); var i2=el('div','ico'); i2.appendChild(svg(G.tel,34,34)); b.appendChild(i2); b.appendChild(el('div','big',c.tel||''));
+    var w=el('div','c'); var i3=el('div','ico'); i3.appendChild(svg(G.globe,34,34)); w.appendChild(i3);
+    var wt=el('div'); wt.appendChild(el('div','web',c.web||'')); wt.appendChild(el('div','nom',c.nombre||'')); w.appendChild(wt);
+    f.appendChild(a); f.appendChild(b); f.appendChild(w);
+    return f;
+  }
+
+  function makeSlide(docs, pg, total, start){
+    var s=el('div','slide');
+    var top=el('div','top'); top.appendChild(el('div','ttl',currentTitle())); top.appendChild(el('div','pg', total>1?('Página '+pg+' de '+total):'')); s.appendChild(top);
+    var card=el('div','card');
+    if(!docs.length){ card.appendChild(el('div','empty','No hay médicos en esta lista')); }
+    else {
+      var head=el('div','rg head');
+      ['N°','MÉDICO(A)','ESPECIALIDAD','TELÉFONO','CONSULTORIO'].forEach(function(h){ head.appendChild(el('div',null,h)); });
+      card.appendChild(head);
+      var rows=el('div','rows'); rows.style.gridTemplateRows='repeat('+state.pp+',1fr)';
+      docs.forEach(function(d,i){
+        var r=el('div','rg row');
+        var c1=el('div'); c1.appendChild(el('div','num',String(start+i+1))); r.appendChild(c1);
+        var c2=el('div'); c2.appendChild(el('div','nm',(d.n||'').replace(/\s+/g,' ').trim())); r.appendChild(c2);
+        var c3=el('div'); var sp=el('div','sp');
+        var parts=(d.e||'—').split(/\s*\/\s*/); parts.forEach(function(p,k){ if(k) sp.appendChild(document.createElement('br')); sp.appendChild(document.createTextNode(p)); });
+        c3.appendChild(sp); r.appendChild(c3);
+        var c4=el('div'); var ph=el('div','ph'); var ls=pickPhone(d);
+        if(ls.length){ ph.appendChild(svg(P_PHONE,46,46)); var pt=el('div','pht'); ls.forEach(function(p,k){ if(k) pt.appendChild(document.createElement('br')); pt.appendChild(document.createTextNode(p)); }); ph.appendChild(pt); }
+        else ph.appendChild(el('div','pht','—'));
+        c4.appendChild(ph); r.appendChild(c4);
+        var c5=el('div'); var co=el('div','co'); var cv=(d.c||'').trim();
+        if(cv){ co.appendChild(svg(P_DOOR,36,42,'0 0 34 40')); var cn=el('div','con'+(cv.length>4?' sm':''),cv); co.appendChild(cn); }
+        else co.appendChild(el('div','pht','—'));
+        c5.appendChild(co); r.appendChild(c5);
+        rows.appendChild(r);
+      });
+      card.appendChild(rows);
+    }
+    s.appendChild(card); s.appendChild(strip()); s.appendChild(footer());
+    return s;
+  }
+
+  function resetProg(){ if(!prog){ prog=el('div'); prog.id='prog'; stage.appendChild(prog); } prog.style.transition='none'; prog.style.width='0'; }
+  function startProg(){ resetProg(); void prog.offsetWidth; prog.style.transition='width '+state.secs+'s linear'; prog.style.width='100%'; }
+
+  function show(i){
+    var pages=pageList(); var total=Math.max(pages.length,1);
+    state.idx=((i%total)+total)%total;
+    var docs=pages[state.idx]||[];
+    var s=makeSlide(docs, state.idx+1, total, state.idx*state.pp);
+    var old=stage.querySelectorAll('.slide');
+    stage.insertBefore(s, prog||null);
+    void s.offsetWidth; s.classList.add('on');
+    Array.prototype.forEach.call(old,function(o){ o.classList.remove('on'); setTimeout(function(){ if(o.parentNode) o.parentNode.removeChild(o); },1000); });
+    schedule(total);
+  }
+  function schedule(total){
+    clearTimeout(timer); resetProg();
+    if(state.paused || total<2) return;
+    startProg();
+    timer=setTimeout(function(){ show(state.idx+1); }, state.secs*1000);
+  }
+  function total(){ return Math.max(pageList().length,1); }
+
+  function fillLists(){
+    var sel=document.getElementById('sList'); var prev=state.list; sel.innerHTML='';
+    function opt(v,t){ var o=document.createElement('option'); o.value=v; o.textContent=t; sel.appendChild(o); }
+    opt('__cur','Selección actual ('+(DATA.docs||[]).length+')');
+    opt('__all','Todos los médicos ('+(DATA.all||[]).length+')');
+    var map={}; (DATA.all||[]).forEach(function(d){ if(d.e) map[d.e.toUpperCase()]=(map[d.e.toUpperCase()]||0)+1; });
+    Object.keys(map).sort().forEach(function(k){ opt(k,k+' ('+map[k]+')'); });
+    sel.value=prev; if(sel.value!==prev){ state.list='__cur'; sel.value='__cur'; }
+  }
+
+  function fit(){ var sc=Math.min(window.innerWidth/1920, window.innerHeight/1080); stage.style.transform='translate(-50%,-50%) scale('+sc+')'; }
+  window.addEventListener('resize', fit); fit();
+
+  function fs(){ var d=document, r=d.documentElement; if(!d.fullscreenElement){ (r.requestFullscreen||r.webkitRequestFullscreen||function(){}).call(r); } else { (d.exitFullscreen||d.webkitExitFullscreen||function(){}).call(d); } }
+  function setPaused(p){ state.paused=p; document.getElementById('bPlay').textContent=p?'▶':'⏸'; schedule(total()); }
+
+  document.getElementById('bPrev').onclick=function(){ show(state.idx-1); };
+  document.getElementById('bNext').onclick=function(){ show(state.idx+1); };
+  document.getElementById('bPlay').onclick=function(){ setPaused(!state.paused); };
+  document.getElementById('bFs').onclick=fs;
+  document.getElementById('bClose').onclick=function(){ window.close(); };
+  document.getElementById('sList').onchange=function(){ state.list=this.value; show(0); };
+  document.getElementById('sPP').onchange=function(){ state.pp=parseInt(this.value,10); show(0); };
+  document.getElementById('sSec').onchange=function(){ state.secs=parseInt(this.value,10); schedule(total()); };
+  document.addEventListener('keydown',function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown') show(state.idx+1);
+    else if(e.key==='ArrowLeft'||e.key==='PageUp') show(state.idx-1);
+    else if(e.key===' '){ e.preventDefault(); setPaused(!state.paused); }
+    else if(e.key==='f'||e.key==='F') fs();
+  });
+  var uiT=null;
+  function ui(){ document.body.classList.add('ui'); clearTimeout(uiT); uiT=setTimeout(function(){ document.body.classList.remove('ui'); },3500); }
+  document.addEventListener('mousemove',ui); document.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#bar')) return; ui(); });
+
+  // Actualización automática si el sistema (ventana principal) sigue abierto
+  setInterval(function(){
+    try{
+      if(window.opener && !window.opener.closed && typeof window.opener.getProyeccionData==='function'){
+        var nd=window.opener.getProyeccionData(); var sig=JSON.stringify(nd.all)+'|'+JSON.stringify(nd.docs);
+        if(sig!==lastSig){ lastSig=sig; var wasCur=state.list; DATA=nd; fillLists(); state.list=wasCur; document.getElementById('sList').value=state.list; show(Math.min(state.idx,total()-1)); }
+      }
+    }catch(e){}
+  },30000);
+
+  lastSig=JSON.stringify(DATA.all)+'|'+JSON.stringify(DATA.docs);
+  fillLists(); show(0); ui();
+})();
+</script>
+</template>
 
     <!-- DOCTOR DETAIL FLOATING OVERLAY -->
     <div id="doctor-float-overlay" style="display:none;position:fixed;inset:0;z-index:10000;background:var(--surface2);backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding-top:10px;overflow-y:auto;" onclick="if(event.target===this)closeDoctorFloat()">
@@ -23304,6 +23543,64 @@ function printARSList() {
 // ============================================================
 // IMPRIMIR LISTA DE DOCTORES (con comentarios/notas)
 // ============================================================
+// ============================
+// PROYECCIÓN EN PANTALLA / TV (diapositivas automáticas)
+// ============================
+function getProyeccionData() {
+  const espSel = document.getElementById('filter-especialidad');
+  const espFilter = espSel?.value || '';
+  const q = (document.getElementById('search-doctor')?.value || '').toLowerCase();
+  const map = d => ({
+    n: (d.name || '').trim(),
+    e: (d.especialidad || '').trim(),
+    t: d.telefono || '',
+    c: d.consultorio || '',
+    s: d.celular || ''
+  });
+  const filtered = store.doctors.filter(d => {
+    if (!d.name || !String(d.name).trim()) return false;
+    if (store.filterModule && store.filterModule !== 'all' && d.moduleId !== store.filterModule) return false;
+    if (espFilter && (d.especialidad||'').toUpperCase() !== espFilter.toUpperCase()) return false;
+    if (q && !d.name.toLowerCase().includes(q) && !(d.especialidad||'').toLowerCase().includes(q) && !(d.secretaria||'').toLowerCase().includes(q) && !(d.celular||'').toLowerCase().includes(q) && !(d.consultorio||'').toLowerCase().includes(q)) return false;
+    return true;
+  });
+  let titulo = 'Listado de médicos';
+  if (espFilter) titulo = espFilter;
+  else if (store.filterModule && store.filterModule !== 'all') {
+    const m = store.modules.find(x => x.id === store.filterModule);
+    if (m) titulo = m.name;
+  } else if (q) titulo = 'Búsqueda: ' + q;
+  const idc = (typeof cfgIdentidad !== 'undefined' && cfgIdentidad) ? cfgIdentidad : {};
+  return {
+    titulo,
+    docs: filtered.map(map),
+    all: store.doctors.filter(d => d.name && String(d.name).trim()).map(map),
+    centro: {
+      nombre: idc.nombre || 'Centro Médico Moderno',
+      dir: idc.dir || 'Avenida Charles Sumner Esq. C. José López 5, Santo Domingo, República Dominicana',
+      tel: idc.tel || '809-548-3131',
+      web: 'cmm.do',
+      logo: idc.logo || ''
+    }
+  };
+}
+
+function projectDoctoresList() {
+  const data = getProyeccionData();
+  if (!data.docs.length) { toast('No hay doctores en esta lista para proyectar', 'error'); return; }
+  const tpl = document.getElementById('tpl-proyector');
+  if (!tpl) { toast('No se encontró la plantilla de proyección', 'error'); return; }
+  const w = window.open('', 'cmm_proyeccion_doctores', 'width=1280,height=720');
+  if (!w) { toast('El navegador bloqueó la ventana. Permite las ventanas emergentes para este sitio.', 'error'); return; }
+  const json = JSON.stringify(data).replace(/</g, '\\u003c');
+  w.document.open();
+  w.document.write('<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Proyección — ' + String(data.titulo).replace(/[<>&]/g,'') + '</title></head><body>'
+    + '<scr' + 'ipt>window.PROJ_DATA=' + json + ';</scr' + 'ipt>'
+    + tpl.innerHTML + '</body></html>');
+  w.document.close();
+  w.focus();
+}
+
 function printDoctoresList() {
   const list = store.doctors;
   if (!list.length) { toast('No hay doctores registrados para imprimir', 'error'); return; }

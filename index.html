@@ -4078,6 +4078,8 @@ body.ui #bar{opacity:1;pointer-events:auto}
 #bar button{background:#1b5fa8;color:#fff;border:0;border-radius:8px;padding:8px 13px;font-size:16px;cursor:pointer}
 #bar button:hover{background:#2a74c7}
 #bar select{background:#16284f;color:#fff;border:1px solid #3a5088;border-radius:8px;padding:7px 8px;font-size:14px;max-width:240px}
+#cfgBox{display:none;flex-wrap:wrap;gap:10px;align-items:center;justify-content:center;width:100%;padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid #2b3a63}
+#bar.cfg #cfgBox{display:flex}
 #bar label{display:flex;align-items:center;gap:6px;opacity:.95}
 #selPanel{position:fixed;right:16px;top:16px;bottom:84px;width:380px;max-width:92vw;background:rgba(10,20,45,.96);color:#fff;border-radius:14px;padding:12px;display:none;flex-direction:column;gap:8px;z-index:30;cursor:default;box-shadow:0 10px 40px rgba(0,0,0,.5);font-size:14px}
 #selPanel.open{display:flex}
@@ -4220,6 +4222,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
   </div>
 </div>
 <div id="bar">
+  <div id="cfgBox">
   <button id="bPrev" title="Anterior (←)">⏮</button>
   <button id="bPlay" title="Pausar / Reanudar (Espacio)">⏸</button>
   <button id="bNext" title="Siguiente (→)">⏭</button>
@@ -4231,8 +4234,10 @@ body.ui #bar{opacity:1;pointer-events:auto}
   <label>Letra (general) <select id="sFont"><option value="sans">Normal</option><option value="serif">Clásica</option><option value="round">Redondeada</option><option value="bold">Marcada</option><option value="script">Manuscrita</option><option value="mono">Máquina</option></select></label>
   <label>Tamaño <select id="sFsz"><option value="0.8">Pequeña</option><option value="1" selected>Normal</option><option value="1.25">Grande</option></select></label>
   <button id="bSel" title="Elegir qué médicos se muestran">☑ Médicos</button>
+  <button id="bClose" title="Cerrar">✕ Cerrar proyección</button>
+  </div>
   <button id="bFs" title="Pantalla completa (F)">⛶ Pantalla completa</button>
-  <button id="bClose" title="Cerrar">✕</button>
+  <button id="bCfg" title="Mostrar / ocultar la configuración">⚙ Configuración</button>
 </div>
 <script>
 (function(){
@@ -4282,7 +4287,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
   function dkey(d){ return String(d.n||'').replace(/\s+/g,' ').trim().toUpperCase(); }
   function saveHidden(){ try{ localStorage.setItem('cmm_proj_hidden', JSON.stringify(Object.keys(state.hidden))); }catch(e){} }
   function loadHidden(){ try{ (JSON.parse(localStorage.getItem('cmm_proj_hidden')||'[]')).forEach(function(k){ state.hidden[k]=1; }); }catch(e){} }
-  loadHidden();
+  try{ localStorage.removeItem('cmm_proj_hidden'); }catch(e){}
   var PLAN_KEY='cmm_proj_plan_v1', OPT_KEY='cmm_proj_opts_v1';
   function uid(){ return 'p'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
   function loadPlan(){ try{ var p=JSON.parse(localStorage.getItem(PLAN_KEY)||'null'); if(Array.isArray(p)&&p.length) return p; }catch(e){} return [{id:uid(),t:'cur',on:true}]; }
@@ -4770,6 +4775,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
   document.getElementById('pgWAll').onchange=function(){ webSet(webGrp('all'),this.checked); };
   document.getElementById('pgWImg').onchange=function(){ webSet(webGrp('img'),this.checked); };
   document.getElementById('pgWInf').onchange=function(){ webSet(webGrp('inf'),this.checked); };
+  document.getElementById('bCfg').onclick=function(){ var b=document.getElementById('bar'); b.classList.toggle('cfg'); this.textContent=b.classList.contains('cfg')?'⚙ Ocultar configuración':'⚙ Configuración'; };
   document.getElementById('sAnim').onchange=function(){ state.anim=this.value; applyStyle(); saveOpts(); rerender(); };
   document.getElementById('sFont').onchange=function(){ state.font=this.value; applyStyle(); saveOpts(); rerender(); };
   document.getElementById('sFsz').onchange=function(){ state.fsz=parseFloat(this.value); saveOpts(); rerender(); };
@@ -4848,7 +4854,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
     else if(e.key==='f'||e.key==='F') fs();
   });
   var uiT=null;
-  function ui(){ document.body.classList.add('ui'); clearTimeout(uiT); uiT=setTimeout(function(){ if(selPanel.classList.contains('open')||pgPanel.classList.contains('open')){ ui(); return; } document.body.classList.remove('ui'); },3500); }
+  function ui(){ document.body.classList.add('ui'); clearTimeout(uiT); uiT=setTimeout(function(){ if(selPanel.classList.contains('open')||pgPanel.classList.contains('open')||document.getElementById('bar').classList.contains('cfg')){ ui(); return; } document.body.classList.remove('ui'); },3500); }
   document.addEventListener('mousemove',ui); document.addEventListener('click',function(e){ if(e.target.closest&&e.target.closest('#bar,#selPanel,#pgPanel')) return; ui(); });
 
   // Actualización automática si el sistema (ventana principal) sigue abierto
@@ -4859,10 +4865,10 @@ body.ui #bar{opacity:1;pointer-events:auto}
         if(sig!==lastSig){ lastSig=sig; DATA=nd; show(Math.min(state.idx,total()-1)); if(selPanel.classList.contains('open')) renderSel(); if(pgPanel.classList.contains('open')) renderPlan(); }
       }
     }catch(e){}
-  },30000);
+  },4000);
 
   lastSig=JSON.stringify(DATA.all)+'|'+JSON.stringify(DATA.docs);
-  loadOpts(); state.lib=loadLib(); state.plan=loadPlan(); state.plan.forEach(function(x){ if(x.libId && /dominant-baseline/.test(x.src||'')) state.lib.forEach(function(p){ if(p.id===x.libId) x.src=p.src; }); }); if(MIG) state.plan.forEach(function(x){ if(x.libId && !x.title && !x.text) state.lib.forEach(function(p){ if(p.id===x.libId){ x.title=p.title; x.text=p.text; } }); }); saveLib(); savePlan(); document.getElementById('sPP').value=String(state.pp); document.getElementById('sSec').value=String(state.secs); document.getElementById('sAnim').value=state.anim; document.getElementById('sFont').value=state.font; document.getElementById('sFsz').value=String(state.fsz); applyStyle(); renderProgs(); show(0); ui(); setTimeout(function(){ scanWeb(true); },2500);
+  loadOpts(); state.lib=loadLib(); state.plan=[{id:uid(),t:'cur',on:true}]; state.plan.forEach(function(x){ if(x.libId && /dominant-baseline/.test(x.src||'')) state.lib.forEach(function(p){ if(p.id===x.libId) x.src=p.src; }); }); if(MIG) state.plan.forEach(function(x){ if(x.libId && !x.title && !x.text) state.lib.forEach(function(p){ if(p.id===x.libId){ x.title=p.title; x.text=p.text; } }); }); saveLib(); savePlan(); document.getElementById('sPP').value=String(state.pp); document.getElementById('sSec').value=String(state.secs); document.getElementById('sAnim').value=state.anim; document.getElementById('sFont').value=state.font; document.getElementById('sFsz').value=String(state.fsz); applyStyle(); renderProgs(); show(0); ui(); setTimeout(function(){ scanWeb(true); },2500);
 })();
 </script>
 </template>

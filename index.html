@@ -4010,7 +4010,7 @@ body.ui{cursor:default}
 .ttl{font-size:38px;font-weight:800;color:#0e2a73;letter-spacing:.5px;text-transform:uppercase}
 .pg{font-size:26px;font-weight:700;color:#1d4fa8}
 .card{flex:1;background:#fff;border-radius:18px;box-shadow:0 6px 24px rgba(14,42,115,.14);overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.rg{display:grid;grid-template-columns:100px 1fr 400px 340px 240px;align-items:center}
+.rg{display:grid;grid-template-columns:360px 1fr 1fr 200px 210px 340px;align-items:center}
 .head{height:72px;background:#0e2a73;color:#fff;font-weight:800;font-size:24px;letter-spacing:.5px;text-align:center;flex:none}
 .head div{padding:0 14px}
 .head div:nth-child(2){text-align:center}
@@ -4029,6 +4029,7 @@ body.ui{cursor:default}
 .co{display:flex;align-items:center;gap:20px;width:100%;justify-content:center}
 .con{font-size:42px;font-weight:800;color:#0e2a73;line-height:1.05;max-width:150px;text-align:center;overflow:hidden}
 .con.sm{font-size:24px}
+.pi{width:100%;text-align:center;font-size:27px;font-weight:800;color:#0e2a73;line-height:1.15;text-transform:uppercase}
 .strip{height:92px;flex:none;margin-top:16px;background:#fff;border-radius:16px;box-shadow:0 4px 16px rgba(14,42,115,.10);display:grid;grid-template-columns:repeat(4,1fr);align-items:center}
 .strip>div{display:flex;align-items:center;justify-content:center;gap:16px;height:56px;color:#0e2a73;font-weight:800;font-size:20px;line-height:1.15;text-transform:uppercase}
 .strip>div+div{border-left:2px solid #dfe6f3}
@@ -4418,24 +4419,25 @@ body.ui #bar{opacity:1;pointer-events:auto}
     if(!docs.length){ card.appendChild(el('div','empty','No hay médicos en esta lista')); }
     else {
       var head=el('div','rg head');
-      ['N°','MÉDICO(A)','ESPECIALIDAD','TELÉFONO','CONSULTORIO'].forEach(function(h){ head.appendChild(el('div',null,h)); });
+      ['ESPECIALIDAD','NOMBRE','APELLIDO','PISO','CONSULTORIO','TELÉFONO'].forEach(function(h){ head.appendChild(el('div',null,h)); });
       card.appendChild(head);
       var rows=el('div','rows'); rows.style.gridTemplateRows='repeat('+sl.pp+',1fr)';
       docs.forEach(function(d,i){
         var r=el('div','rg row');
-        var c1=el('div'); c1.appendChild(el('div','num',String(start+i+1))); r.appendChild(c1);
-        var c2=el('div'); c2.appendChild(el('div','nm',(d.n||'').replace(/\s+/g,' ').trim())); r.appendChild(c2);
-        var c3=el('div'); var sp=el('div','sp');
+        var c1=el('div'); var sp=el('div','sp');
         var parts=(d.e||'—').split(/\s*\/\s*/); parts.forEach(function(p,k){ if(k) sp.appendChild(document.createElement('br')); sp.appendChild(document.createTextNode(p)); });
-        c3.appendChild(sp); r.appendChild(c3);
-        var c4=el('div'); var ph=el('div','ph'); var ls=pickPhone(d);
-        if(ls.length){ ph.appendChild(svg(P_PHONE,46,46)); var pt=el('div','pht'); ls.forEach(function(p,k){ if(k) pt.appendChild(document.createElement('br')); pt.appendChild(document.createTextNode(p)); }); ph.appendChild(pt); }
-        else ph.appendChild(el('div','pht','—'));
-        c4.appendChild(ph); r.appendChild(c4);
+        c1.appendChild(sp); r.appendChild(c1);
+        var c2=el('div'); c2.appendChild(el('div','nm',(d.nm||'').replace(/\s+/g,' ').trim()||'—')); r.appendChild(c2);
+        var c3=el('div'); c3.appendChild(el('div','nm',(d.ap||'').replace(/\s+/g,' ').trim()||'—')); r.appendChild(c3);
+        var c4=el('div'); c4.appendChild(el('div','pi',(d.p||'').replace(/\s+/g,' ').trim()||'—')); r.appendChild(c4);
         var c5=el('div'); var co=el('div','co'); var cv=(d.c||'').trim();
         if(cv){ co.appendChild(svg(P_DOOR,36,42,'0 0 34 40')); var cn=el('div','con'+(cv.length>4?' sm':''),cv); co.appendChild(cn); }
         else co.appendChild(el('div','pht','—'));
         c5.appendChild(co); r.appendChild(c5);
+        var c6=el('div'); var ph=el('div','ph'); var ls=pickPhone(d);
+        if(ls.length){ ph.appendChild(svg(P_PHONE,46,46)); var pt=el('div','pht'); ls.forEach(function(p,k){ if(k) pt.appendChild(document.createElement('br')); pt.appendChild(document.createTextNode(p)); }); ph.appendChild(pt); }
+        else ph.appendChild(el('div','pht','—'));
+        c6.appendChild(ph); r.appendChild(c6);
         rows.appendChild(r);
       });
       card.appendChild(rows);
@@ -24185,12 +24187,32 @@ function printARSList() {
 // ============================
 // PROYECCIÓN EN PANTALLA / TV (diapositivas automáticas)
 // ============================
+// Consultorio válido = no vacío, ni "-", ni "sin contacto / sin consultorio / n/a"
+function projHasCons(v) {
+  v = String(v == null ? '' : v).replace(/\s+/g, ' ').trim();
+  if (!v || v === '-' || v === '—') return false;
+  if (/^(sin\b|n\/?a$|no\s+tiene|ninguno|pendiente)/i.test(v.normalize('NFD').replace(/[\u0300-\u036f]/g, ''))) return false;
+  return true;
+}
+// Nombre / Apellido: vienen del Sheet; si falta, se separa el nombre completo
+function projSplit(d) {
+  let nm = String(d.nombre || '').replace(/\s+/g, ' ').trim();
+  let ap = String(d.apellido || '').replace(/\s+/g, ' ').trim();
+  if (nm || ap) return { nm, ap };
+  const w = String(d.name || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+  if (w.length <= 1) return { nm: w.join(' '), ap: '' };
+  const k = w.length === 2 ? 1 : w.length === 3 ? 1 : 2;
+  return { nm: w.slice(0, k).join(' '), ap: w.slice(k).join(' ') };
+}
 function getProyeccionData() {
   const espSel = document.getElementById('filter-especialidad');
   const espFilter = espSel?.value || '';
   const q = (document.getElementById('search-doctor')?.value || '').toLowerCase();
   const map = d => ({
     n: (d.name || '').trim(),
+    nm: projSplit(d).nm,
+    ap: projSplit(d).ap,
+    p: (d.piso || '').trim(),
     e: (d.especialidad || '').trim(),
     t: d.telefono || '',
     c: d.consultorio || '',
@@ -24198,6 +24220,7 @@ function getProyeccionData() {
   });
   const filtered = store.doctors.filter(d => {
     if (!d.name || !String(d.name).trim()) return false;
+    if (!projHasCons(d.consultorio)) return false;   // sin consultorio en el Sheet → no se proyecta
     if (store.filterModule && store.filterModule !== 'all' && d.moduleId !== store.filterModule) return false;
     if (espFilter && (d.especialidad||'').toUpperCase() !== espFilter.toUpperCase()) return false;
     if (q && !d.name.toLowerCase().includes(q) && !(d.especialidad||'').toLowerCase().includes(q) && !(d.secretaria||'').toLowerCase().includes(q) && !(d.celular||'').toLowerCase().includes(q) && !(d.consultorio||'').toLowerCase().includes(q)) return false;
@@ -24213,7 +24236,7 @@ function getProyeccionData() {
   return {
     titulo,
     docs: filtered.map(map),
-    all: store.doctors.filter(d => d.name && String(d.name).trim()).map(map),
+    all: store.doctors.filter(d => d.name && String(d.name).trim() && projHasCons(d.consultorio)).map(map),
     centro: {
       nombre: idc.nombre || 'Centro Médico Moderno',
       dir: idc.dir || 'Avenida Charles Sumner Esq. C. José López 5, Santo Domingo, República Dominicana',
@@ -40454,7 +40477,7 @@ window.arswInit=function(){render();};
 (function () {
 "use strict";
 
-var SHEET_ID  = "1sn9kbIkR4iiCLGbk_98NgxL8D-u7oXB4Diw6wdm-Axw";
+var SHEET_ID  = "1iGadyHUsCeTMbSLtA2Ax9-lzjaHUm2UJ";   // STAFF MEDICOS CENTRO MEDICO MODERNO 2026
 var EVERY_MS  = 10 * 60 * 1000;   // re-sincroniza cada 10 min
 var MIN_GAP   = 2 * 60 * 1000;    // y al volver a la pestaña (máx. 1 vez cada 2 min)
 var MIN_ROWS  = 20;               // seguridad: si el Sheet trae menos doctores, no se toca nada
@@ -40509,23 +40532,37 @@ function parseCSV(text) {
 }
 
 // ── Filas del Sheet → doctores únicos (une filas repetidas de la misma persona) ──
+function findCol(hr, re) { for (var k = 0; k < hr.length; k++) if (re.test(hr[k])) return k; return -1; }
 function buildSheetDoctors(rows) {
   var map = {}, list = [];
-  rows.forEach(function (r) {
-    var cat = clean(r[0]), esp = clean(r[1]), nom = clean(r[2]), ape = clean(r[3]);
-    var cons = clean(r[4]), tel = clean(r[5]);
-    if (/^CATEGOR/i.test(strip(cat))) return;           // encabezado
+  // Columnas por defecto (formato viejo) — si se encuentra la fila de encabezados, se usan sus nombres
+  var C = { cat: 0, esp: 1, nom: 2, ape: 3, piso: -1, cons: 4, tel: 5 }, start = 0;
+  for (var h = 0; h < rows.length && h < 30; h++) {
+    var hr = (rows[h] || []).map(function (x) { return strip(clean(x)); });
+    var iN = hr.indexOf("NOMBRE"), iA = hr.indexOf("APELLIDO");
+    if (iN >= 0 && iA >= 0) {
+      C = { cat: findCol(hr, /^CATEGOR/), esp: findCol(hr, /^ESPECIALIDAD/), nom: iN, ape: iA,
+            piso: findCol(hr, /^PISO/), cons: findCol(hr, /^CONSULTORIO/), tel: findCol(hr, /^TEL/) };
+      start = h + 1; break;
+    }
+  }
+  function g(r, i) { return i >= 0 && r ? clean(r[i]) : ""; }
+  for (var n = start; n < rows.length; n++) {
+    var r = rows[n];
+    var cat = g(r, C.cat), esp = g(r, C.esp), nom = g(r, C.nom), ape = g(r, C.ape);
+    var piso = g(r, C.piso), cons = g(r, C.cons), tel = g(r, C.tel);
+    if (/^CATEGOR/i.test(strip(cat))) continue;           // encabezado
     var full = clean(nom + " " + ape);
     var toks = tokens(full);
-    if (!toks.length) return;
+    if (!toks.length) continue;
     var key = keyOf(toks);
     var d = map[key];
-    if (!d) { d = map[key] = { name: full, toks: toks, key: key, cats: [], esps: [], cons: [], tels: [] }; list.push(d); }
+    if (!d) { d = map[key] = { name: full, nom: nom, ape: ape, toks: toks, key: key, cats: [], esps: [], cons: [], tels: [], pisos: [] }; list.push(d); }
     pushUnique(d.cats, cat);
     pushUnique(d.esps, esp);
-    if (cons && cons !== "-") pushUnique(d.cons, cons);
+    if (cons && cons !== "-") { pushUnique(d.cons, cons); if (piso && piso !== "-") pushUnique(d.pisos, piso); }
     pushUnique(d.tels, tel);
-  });
+  }
   return list;
 }
 
@@ -40577,10 +40614,10 @@ function applyDiff(sheetDocs, manual) {
     if (sClaim[si] == null) return;
     matched++;
     var d = exist[sClaim[si]].d, ch = false;
-    var tel = s.tels.join(" / "), cons = s.cons.join(" / ");
-    if (clean(d.telefono) !== tel || clean(d.consultorio) !== cons) {
-      d.gsPrev = { telefono: d.telefono || "", consultorio: d.consultorio || "" };   // valor anterior (recuperable)
-      d.telefono = tel; d.consultorio = cons; ch = true;
+    var tel = s.tels.join(" / "), cons = s.cons.join(" / "), piso = s.pisos.join(" / ");
+    if (clean(d.telefono) !== tel || clean(d.consultorio) !== cons || clean(d.piso) !== piso || clean(d.nombre) !== s.nom || clean(d.apellido) !== s.ape) {
+      d.gsPrev = { telefono: d.telefono || "", consultorio: d.consultorio || "", piso: d.piso || "" };   // valor anterior (recuperable)
+      d.telefono = tel; d.consultorio = cons; d.piso = piso; d.nombre = s.nom; d.apellido = s.ape; ch = true;
     }
     if (blank(d.especialidad) && (s.cats[0] || s.esps[0])) { d.especialidad = s.cats[0] || s.esps[0]; ch = true; }
     if (blank(d.departamento) && s.esps.length) { d.departamento = s.esps.join(" / "); ch = true; }
@@ -40598,6 +40635,7 @@ function applyDiff(sheetDocs, manual) {
       especialidad: s.cats[0] || s.esps[0] || "",
       departamento: s.esps.join(" / "),
       consultorio: s.cons.join(" / "),
+      piso: s.pisos.join(" / "), nombre: s.nom, apellido: s.ape,
       telefono: s.tels.join(" / "),
       celular: "", email: "", secretaria: "", horario: "", informacion: "",
       moduleId: null, sin_ars: false, notas: [], arsLinks: [], fuente: "gsheet"
@@ -40646,9 +40684,10 @@ function fetchJSONP() {
       if (!resp || resp.status !== "ok" || !resp.table) return reject(new Error("Google rechazó la lectura (¿Sheet privado?)"));
       var rows = (resp.table.rows || []).map(function (r) {
         var out = [];
-        for (var i = 0; i < 6; i++) { var c = r.c && r.c[i]; out.push(c ? (c.f != null ? c.f : (c.v != null ? c.v : "")) : ""); }
+        for (var i = 0; i < 12; i++) { var c = r.c && r.c[i]; out.push(c ? (c.f != null ? c.f : (c.v != null ? c.v : "")) : ""); }
         return out;
       });
+      rows.unshift((resp.table.cols || []).map(function (c) { return c && c.label || ""; }));
       resolve(rows);
     };
     s.onerror = function () { if (!done) { cleanup(); reject(new Error("no se pudo cargar el Sheet")); } };
@@ -40659,6 +40698,7 @@ function fetchJSONP() {
 function loadRows() {
   return fetchCSV(BASE + "/gviz/tq?tqx=out:csv&headers=1")
     .catch(function () { return fetchCSV(BASE + "/export?format=csv&gid=0"); })
+    .catch(function () { return fetchCSV(BASE + "/export?format=csv"); })
     .catch(function () { return fetchJSONP(); });
 }
 

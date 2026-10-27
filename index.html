@@ -4200,6 +4200,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
       <div style="border-top:1px solid #2b3a63;margin:12px 0 8px"></div>
       <h4>1 · Especialidades (marca las que se proyectan)</h4>
       <div id="pgSpecs"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button id="pgSpAll" class="g">☑ Marcar todas</button><button id="pgSpNone" class="g">☐ Desmarcar todas</button></div>
       <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap"><button id="pgAddCur" class="g">＋ Selección actual</button><button id="pgAddAll" class="g">＋ Todos los médicos</button></div>
     </div>
     <div class="pg-sec">
@@ -4855,6 +4856,8 @@ body.ui #bar{opacity:1;pointer-events:auto}
   document.getElementById('pgWebScan').onclick=function(){ scanWeb(false); };
   document.getElementById('pgLibNew').onclick=function(){ openForm(null,'lib'); };
   document.getElementById('pgLibReset').onclick=function(){ if(confirm('¿Restaurar los predeterminados originales? Se perderán los que creaste o corregiste.')){ state.lib=defLib().concat(webSeed()); state.plan=state.plan.filter(function(x){ return !x.libId; }); closeForm(); commit(true); } };
+  document.getElementById('pgSpAll').onclick=function(){ var have={}; state.plan.forEach(function(it){ if(it.t==='spec') have[String(it.name).toUpperCase()]=1; }); var seen={}; (DATA.all||[]).forEach(function(d){ var k=(d.e||'').trim().toUpperCase(); if(!k||seen[k]) return; seen[k]=1; if(!have[k]) state.plan.push({id:uid(),t:'spec',name:k,on:true,secs:0,max:0,pp:0}); }); commit(true); };
+  document.getElementById('pgSpNone').onclick=function(){ state.plan=state.plan.filter(function(it){ return it.t!=='spec'; }); commit(true); };
   document.getElementById('pgAddCur').onclick=function(){ state.plan.push({id:uid(),t:'cur',on:true}); commit(true); };
   document.getElementById('pgAddAll').onclick=function(){ state.plan.push({id:uid(),t:'all',on:true}); commit(true); };
   document.getElementById('pgReset').onclick=function(){ if(confirm('¿Restablecer el programa a la selección actual?')){ state.plan=[{id:uid(),t:'cur',on:true}]; closeForm(); commit(true); } };

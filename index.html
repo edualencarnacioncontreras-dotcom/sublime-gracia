@@ -20317,20 +20317,22 @@ function renderDoctors() {
   if (!docs.length) { el.innerHTML = `<div class="empty-state"><div class="empty-icon">👨‍⚕️</div><p>No hay doctores para estos filtros.</p></div>`; return; }
   el.innerHTML = `<table style="table-layout:fixed;width:100%;">
     <colgroup>
-      <col style="width:19%">
-      <col style="width:9%">
-      <col style="width:12%">
+      <col style="width:18%">
+      <col style="width:8%">
+      <col style="width:11%">
+      <col style="width:5%">
       <col style="width:7%">
-      <col style="width:11%">
-      <col style="width:11%">
-      <col style="width:13%">
-      <col style="width:6%">
+      <col style="width:10%">
+      <col style="width:10%">
       <col style="width:12%">
+      <col style="width:6%">
+      <col style="width:13%">
     </colgroup>
     <thead><tr>
       <th style="padding:8px 10px;">Nombre</th>
       <th style="padding:8px 10px;">Categoría</th>
       <th style="padding:8px 10px;">Especialidad</th>
+      <th style="padding:8px 10px;">Piso</th>
       <th style="padding:8px 10px;">Consultorio</th>
       <th style="padding:8px 10px;">Teléfono</th>
       <th style="padding:8px 10px;">Celular</th>
@@ -20355,6 +20357,7 @@ function renderDoctors() {
       <td style="padding:7px 10px;">
         <span style="background:rgba(59,130,246,0.12);color:var(--accent);border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:inline-block;max-width:100%;">${d.especialidad||'—'}</span>
       </td>
+      <td style="padding:7px 10px;font-size:11px;white-space:normal;word-break:break-word;">${d.piso||'<span style="color:var(--muted)">—</span>'}</td>
       <td style="padding:7px 10px;font-size:11px;white-space:normal;word-break:break-word;">${d.consultorio?`🏥 ${d.consultorio}`:'<span style="color:var(--muted)">—</span>'}</td>
       <td style="padding:7px 10px;">
         <div style="font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.telefono||'—'}</div>
@@ -40616,7 +40619,7 @@ window.arswInit=function(){render();};
 (function () {
 "use strict";
 
-var DEF_SRC = { id: "1_5Y5ZFOAGqjXdhXxvvNQY3hPan_419e7", gid: "1353326825" };   // hoja de médicos (enlace de Google Sheets)
+var DEF_SRC = { id: "1iGadyHUsCeTMbSLtA2Ax9-lzjaHUm2UJ", gid: "1542328018" };   // hoja de médicos (enlace de Google Sheets)
 function getSrc() { try { var x = JSON.parse(localStorage.getItem("cmm_gs_src_v1") || "null"); if (x && x.id) return x; } catch (e) {} return DEF_SRC; }
 function srcKey() { var x = getSrc(); return x.id + "|" + (x.gid || ""); }
 var EVERY_MS  = 10 * 60 * 1000;   // re-sincroniza cada 10 min

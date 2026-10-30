@@ -24518,8 +24518,17 @@ function waBuildMessage() {
   return L.join('\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-// Botón de WhatsApp: toma los médicos de la búsqueda actual y abre WhatsApp directo
-// (sin ventana intermedia y sin número: el contacto se elige en WhatsApp).
+// Botón de WhatsApp: toma los médicos de la búsqueda actual y los envía directo.
+// 1) Si ya hay una pestaña de WhatsApp Web abierta por este sistema, la reutiliza (no abre otra).
+// 2) Si no, intenta abrir la aplicación de WhatsApp instalada (whatsapp://).
+// 3) Si la aplicación no responde, abre WhatsApp Web en una sola pestaña reutilizable.
+var _waWin = null;
+function waOpenWeb(msg) {
+  const url = 'https://web.whatsapp.com/send?text=' + encodeURIComponent(msg);
+  _waWin = window.open(url, 'cmm_whatsapp_web');
+  try { _waWin && _waWin.focus(); } catch (e) {}
+  if (!_waWin && typeof toast === 'function') toast('El navegador bloqueó la ventana. Permite las ventanas emergentes para este sitio.', 'error');
+}
 function openWaShare() {
   const docs = waGetFiltered();
   if (!docs.length) { (typeof toast === 'function') && toast('No hay doctores en la lista para enviar', 'error'); return; }
@@ -24527,14 +24536,31 @@ function openWaShare() {
   _waState.sel = {};
   docs.forEach((d, i) => { _waState.sel[i] = true; });
   const msg = waBuildMessage();
+
+  // Lista demasiado larga para un enlace: se copia y se abre WhatsApp para pegarla
   if (encodeURIComponent(msg).length > 6000) {
-    // Mensaje demasiado largo para un enlace: se copia y se abre WhatsApp para pegarlo
-    const abrir = () => { (typeof toast === 'function') && toast('Lista larga: mensaje copiado. Pégalo en WhatsApp ✔'); window.open('https://wa.me/', '_blank', 'noopener'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(msg).then(abrir, abrir); }
-    else { abrir(); }
+    const abrir = () => { (typeof toast === 'function') && toast('Lista larga: mensaje copiado. Pégalo en WhatsApp ✔'); waOpenWeb(''); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(msg).then(abrir, abrir); } else { abrir(); }
     return;
   }
-  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+
+  // Ya hay una pestaña de WhatsApp Web abierta desde aquí → reutilizarla
+  if (_waWin && !_waWin.closed) { waOpenWeb(msg); return; }
+
+  // Intentar la aplicación de WhatsApp; si la página no pierde el foco, no hay app → WhatsApp Web
+  let appAbrio = false;
+  const marcar = () => { appAbrio = true; };
+  window.addEventListener('blur', marcar, { once: true });
+  const onVis = () => { if (document.hidden) appAbrio = true; };
+  document.addEventListener('visibilitychange', onVis);
+  const a = document.createElement('a');
+  a.href = 'whatsapp://send?text=' + encodeURIComponent(msg);
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => {
+    window.removeEventListener('blur', marcar);
+    document.removeEventListener('visibilitychange', onVis);
+    if (!appAbrio) waOpenWeb(msg);
+  }, 1800);
 }
 
 function printDoctoresList() {

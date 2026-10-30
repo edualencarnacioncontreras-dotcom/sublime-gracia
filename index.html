@@ -3989,7 +3989,6 @@ window.showPage = function(id) {
             </select>
             <div class="search-input"><input type="text" id="search-doctor" placeholder="Buscar doctor..." oninput="renderDoctors()"></div>
             <button class="btn no-print" onclick="openWaShare()" title="Enviar la lista que ves (con tu búsqueda) por WhatsApp al paciente" style="padding:6px 14px;font-size:12px;background:#25d366;border:1px solid #1da851;color:#fff;font-weight:700;border-radius:8px;cursor:pointer;">📲 WhatsApp</button>
-            <button class="btn btn-secondary no-print" id="btn-instalar-app" onclick="instalarApp()" title="Instalar este sistema como aplicación en tu computadora o celular" style="padding:6px 14px;font-size:12px;">📥 Instalar app</button>
             <button class="btn btn-secondary no-print" onclick="printDoctoresList()" style="padding:6px 14px;font-size:12px;">🖨️ Imprimir Lista</button>
             <button class="btn btn-primary no-print" onclick="projectDoctoresList()" title="Abrir diapositivas automáticas para TV / proyector" style="padding:6px 14px;font-size:12px;">📺 Proyectar</button>
             <button class="btn btn-secondary no-print" onclick="gsSyncDoctors(true)" title="Actualizar la lista desde Google Sheets" style="padding:6px 14px;font-size:12px;">🔄 Sincronizar Sheets</button>
@@ -24574,49 +24573,6 @@ function openWaShare() {
     document.removeEventListener('visibilitychange', onVis);
     if (!appAbrio) copiadoP.then(ok => waSinApp(msg, ok));
   }, 1800);
-}
-
-
-// ═══════════════════════════════════════════════════════════════
-// 📥 INSTALAR EL SISTEMA COMO APLICACIÓN (PWA)
-// ═══════════════════════════════════════════════════════════════
-var _pwaPrompt = null;
-(function () {
-  const yaApp = () => (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
-  function icono(n) {
-    const c = document.createElement('canvas'); c.width = c.height = n;
-    const x = c.getContext('2d');
-    x.fillStyle = '#1e3a5f'; x.fillRect(0, 0, n, n);
-    x.fillStyle = '#fff'; x.font = 'bold ' + Math.round(n * 0.38) + 'px Arial'; x.textAlign = 'center'; x.textBaseline = 'middle';
-    x.fillText('EEC', n / 2, n / 2);
-    return c.toDataURL('image/png');
-  }
-  try {
-    if (!document.querySelector('link[rel=manifest]') && location.protocol !== 'file:') {
-      const man = {
-        name: 'EECGESTIONES', short_name: 'EEC', start_url: location.href.split('#')[0], scope: location.origin + '/',
-        display: 'standalone', background_color: '#1e3a5f', theme_color: '#1e3a5f',
-        icons: [{ src: icono(192), sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: icono(512), sizes: '512x512', type: 'image/png', purpose: 'any' }]
-      };
-      const l = document.createElement('link'); l.rel = 'manifest';
-      l.href = URL.createObjectURL(new Blob([JSON.stringify(man)], { type: 'application/manifest+json' }));
-      document.head.appendChild(l);
-    }
-  } catch (e) {}
-  window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _pwaPrompt = e; });
-  window.addEventListener('appinstalled', () => { _pwaPrompt = null; const b = document.getElementById('btn-instalar-app'); if (b) b.style.display = 'none'; (typeof toast === 'function') && toast('Aplicación instalada ✔'); });
-  window.addEventListener('DOMContentLoaded', () => { if (yaApp()) { const b = document.getElementById('btn-instalar-app'); if (b) b.style.display = 'none'; } });
-})();
-function instalarApp() {
-  if (_pwaPrompt) {
-    _pwaPrompt.prompt();
-    _pwaPrompt.userChoice.then(() => { _pwaPrompt = null; });
-    return;
-  }
-  const msg = location.protocol === 'file:'
-    ? 'Para instalarla como aplicación, el sistema debe estar abierto desde una dirección web (https://…), no desde un archivo del disco.'
-    : 'En Chrome: menú ⋮ → "Guardar y compartir" → "Instalar página como aplicación". En Edge: menú ··· → Aplicaciones → "Instalar este sitio como aplicación". En iPhone (Safari): Compartir → "Añadir a pantalla de inicio".';
-  alert(msg);
 }
 
 function printDoctoresList() {

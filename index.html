@@ -24519,27 +24519,23 @@ function waBuildMessage() {
 }
 
 // Botón de WhatsApp: toma los médicos de la búsqueda actual y los envía directo.
-// 1) Si ya hay una pestaña de WhatsApp Web abierta por este sistema, la reutiliza (no abre otra).
-// 2) Si no, intenta abrir la aplicación de WhatsApp instalada (whatsapp://).
-// 3) Si la aplicación no responde, abre WhatsApp Web en una sola pestaña reutilizable.
-var _waWin = null;
-function waOpenWeb(msg) {
-  const url = 'https://web.whatsapp.com/send?text=' + encodeURIComponent(msg);
-  _waWin = window.open(url, 'cmm_whatsapp_web');
-  try { _waWin && _waWin.focus(); } catch (e) {}
-  if (!_waWin && typeof toast === 'function') toast('El navegador bloqueó la ventana. Permite las ventanas emergentes para este sitio.', 'error');
-}
-// ¿Existe ya la pestaña de WhatsApp Web abierta desde este sistema? (sobrevive a recargas de la página)
-function waTabExiste() {
-  if (_waWin && !_waWin.closed) return true;
+// 1) Intenta abrir la aplicación de WhatsApp instalada (whatsapp://).
+// 2) Si no hay aplicación, copia el mensaje y pregunta si abrir WhatsApp Web
+//    (así, si ya tienes una pestaña de WhatsApp abierta, solo pegas ahí y no se abre otra).
+function waCopiar(msg) {
+  if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(msg).then(() => true, () => false);
   try {
-    const w = window.open('', 'cmm_whatsapp_web');
-    if (!w) return false;
-    let vacia = false;
-    try { vacia = (w.location.href === 'about:blank'); } catch (e) { vacia = false; } // cross-origin = ya es WhatsApp
-    if (vacia) { w.close(); return false; }
-    _waWin = w; return true;
-  } catch (e) { return false; }
+    const t = document.createElement('textarea'); t.value = msg; document.body.appendChild(t); t.select();
+    const ok = document.execCommand('copy'); t.remove(); return Promise.resolve(!!ok);
+  } catch (e) { return Promise.resolve(false); }
+}
+function waSinApp(msg) {
+  waCopiar(msg).then(ok => {
+    const copiado = ok ? 'El mensaje ya está copiado.\n\n' : '';
+    const abrir = confirm(copiado + 'No se encontró la aplicación de WhatsApp.\n\nAceptar = abrir WhatsApp Web en una pestaña nueva.\nCancelar = ya tengo WhatsApp abierto (pega el mensaje con Ctrl+V).');
+    if (abrir) window.open('https://web.whatsapp.com/send?text=' + encodeURIComponent(msg), '_blank');
+    else if (ok && typeof toast === 'function') toast('Mensaje copiado ✔ Pégalo en tu WhatsApp');
+  });
 }
 function openWaShare() {
   const docs = waGetFiltered();
@@ -24549,29 +24545,21 @@ function openWaShare() {
   docs.forEach((d, i) => { _waState.sel[i] = true; });
   const msg = waBuildMessage();
 
-  // Lista demasiado larga para un enlace: se copia y se abre WhatsApp para pegarla
-  if (encodeURIComponent(msg).length > 6000) {
-    const abrir = () => { (typeof toast === 'function') && toast('Lista larga: mensaje copiado. Pégalo en WhatsApp ✔'); waOpenWeb(''); };
-    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(msg).then(abrir, abrir); } else { abrir(); }
-    return;
-  }
-
-  // Ya hay una pestaña de WhatsApp Web abierta desde aquí → reutilizarla
-  if (waTabExiste()) { waOpenWeb(msg); return; }
-
-  // Intentar la aplicación de WhatsApp; si la página no pierde el foco, no hay app → WhatsApp Web
+  // Intentar la aplicación; si la página no pierde el foco, no hay app
   let appAbrio = false;
   const marcar = () => { appAbrio = true; };
   window.addEventListener('blur', marcar, { once: true });
   const onVis = () => { if (document.hidden) appAbrio = true; };
   document.addEventListener('visibilitychange', onVis);
+  const largo = encodeURIComponent(msg).length > 6000;
   const a = document.createElement('a');
-  a.href = 'whatsapp://send?text=' + encodeURIComponent(msg);
+  a.href = largo ? 'whatsapp://send' : 'whatsapp://send?text=' + encodeURIComponent(msg);
   document.body.appendChild(a); a.click(); a.remove();
+  if (largo) waCopiar(msg).then(ok => ok && typeof toast === 'function' && toast('Lista larga: mensaje copiado. Pégalo en WhatsApp ✔'));
   setTimeout(() => {
     window.removeEventListener('blur', marcar);
     document.removeEventListener('visibilitychange', onVis);
-    if (!appAbrio) waOpenWeb(msg);
+    if (!appAbrio) waSinApp(msg);
   }, 1800);
 }
 

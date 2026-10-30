@@ -3988,6 +3988,7 @@ window.showPage = function(id) {
               <option value="">Todas las especialidades</option>
             </select>
             <div class="search-input"><input type="text" id="search-doctor" placeholder="Buscar doctor..." oninput="renderDoctors()"></div>
+            <button class="btn no-print" onclick="openWaShare()" title="Enviar la lista que ves (con tu búsqueda) por WhatsApp al paciente" style="padding:6px 14px;font-size:12px;background:#25d366;border:1px solid #1da851;color:#fff;font-weight:700;border-radius:8px;cursor:pointer;">📲 WhatsApp</button>
             <button class="btn btn-secondary no-print" onclick="printDoctoresList()" style="padding:6px 14px;font-size:12px;">🖨️ Imprimir Lista</button>
             <button class="btn btn-primary no-print" onclick="projectDoctoresList()" title="Abrir diapositivas automáticas para TV / proyector" style="padding:6px 14px;font-size:12px;">📺 Proyectar</button>
             <button class="btn btn-secondary no-print" onclick="gsSyncDoctors(true)" title="Actualizar la lista desde Google Sheets" style="padding:6px 14px;font-size:12px;">🔄 Sincronizar Sheets</button>
@@ -5802,6 +5803,9 @@ body.ui #bar{opacity:1;pointer-events:auto}
 
         <!-- Sugerencias rápidas -->
         <div id="ia-sugerencias" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;flex-shrink:0;">
+          <button onclick="iaPregunta('¿Qué cardiólogos tenemos y cuándo atienden?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">🫀 Cardiólogos y horarios</button>
+          <button onclick="iaPregunta('¿Qué médicos aceptan SENASA?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">🛡️ Médicos que aceptan SENASA</button>
+          <button onclick="iaPregunta('¿Qué especialidades hay disponibles y cuántos médicos tiene cada una?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">📋 Especialidades disponibles</button>
           <button onclick="iaPregunta('¿Cómo agrego un doctor nuevo al sistema?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">➕ Agregar doctor</button>
           <button onclick="iaPregunta('¿Cómo funciona el módulo de Médico de Emergencia?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">🚨 Médico Emergencia</button>
           <button onclick="iaPregunta('¿Cómo calculo el oxígeno para un paciente?')" style="background:rgba(99,102,241,0.08);color:#a5b4fc;border:1px solid rgba(99,102,241,0.2);border-radius:20px;padding:5px 13px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;" onmouseover="this.style.background='rgba(99,102,241,0.18)'" onmouseout="this.style.background='rgba(99,102,241,0.08)'">🫁 Cálculo Oxígeno</button>
@@ -5812,7 +5816,7 @@ body.ui #bar{opacity:1;pointer-events:auto}
 
         <!-- Input -->
         <div style="display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:var(--surface);border:2px solid #1e2d4a;border-radius:14px;padding:10px 12px;transition:border-color .2s;" id="ia-input-wrap" onfocusin="this.style.borderColor='#6366f1'" onfocusout="this.style.borderColor='#1e2d4a'">
-          <textarea id="ia-input" placeholder="Pregunta cualquier cosa sobre el sistema..." rows="1" style="flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;color:#1E293B;resize:none;line-height:1.5;max-height:120px;overflow-y:auto;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();iaEnviar();}"></textarea>
+          <textarea id="ia-input" placeholder="Pregunta sobre médicos, horarios, consultorios, ARS o el sistema..." rows="1" style="flex:1;background:none;border:none;outline:none;font-family:inherit;font-size:14px;color:#1E293B;resize:none;line-height:1.5;max-height:120px;overflow-y:auto;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();iaEnviar();}"></textarea>
           <button onclick="iaEnviar()" style="background:linear-gradient(135deg,#6366f1,#4f46e5);color:white;border:none;border-radius:10px;width:40px;height:40px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .2s;box-shadow:0 4px 12px rgba(99,102,241,0.3);" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='none'">➤</button>
         </div>
         <div style="text-align:center;margin-top:6px;font-size:10px;color:#374151;flex-shrink:0;">Powered by Gemini AI · Enter para enviar · Shift+Enter para nueva línea</div>
@@ -24414,6 +24418,125 @@ function projectDoctoresList() {
   w.focus();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// 📲 ENVIAR LISTA DE MÉDICOS POR WHATSAPP (vista previa + envío)
+// Toma los médicos que se están viendo en la lista (búsqueda/filtros)
+// y arma un mensaje ordenado: médico, especialidad, piso, consultorio y teléfono.
+// ═══════════════════════════════════════════════════════════════
+var _waState = { docs: [], sel: {} };
+
+function waClean(v) { return String(v == null ? '' : v).replace(/\s+/g, ' ').trim(); }
+
+// Mismos filtros que la tabla (búsqueda + especialidad + módulo)
+function waGetFiltered() {
+  const espFilter = document.getElementById('filter-especialidad')?.value || '';
+  const q = (document.getElementById('search-doctor')?.value || '').toLowerCase();
+  return store.doctors.filter(d => {
+    if (!d.name || !String(d.name).trim()) return false;
+    if (store.filterModule !== 'all' && d.moduleId !== store.filterModule) return false;
+    if (espFilter && (d.especialidad || '').toUpperCase() !== espFilter.toUpperCase()) return false;
+    if (q && !d.name.toLowerCase().includes(q) && !(d.especialidad || '').toLowerCase().includes(q) && !(d.secretaria || '').toLowerCase().includes(q) && !(d.celular || '').toLowerCase().includes(q) && !(d.consultorio || '').toLowerCase().includes(q) && !(d.categoria || '').toLowerCase().includes(q) && !(d.comentario || '').toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+// Número del paciente → solo dígitos; 10 dígitos (809/829/849…) → antepone 1 (RD/EE.UU.)
+function waNormPhone(raw) {
+  let n = String(raw || '').replace(/\D/g, '');
+  if (n.length === 10) n = '1' + n;
+  return n;
+}
+function waValidPhone(n) { return n.length >= 11 && n.length <= 15; }
+function waFmtPhone(n) {
+  if (n.length === 11 && n[0] === '1') return '+1 (' + n.slice(1, 4) + ') ' + n.slice(4, 7) + '-' + n.slice(7);
+  return '+' + n;
+}
+
+// Datos "limpios" de cada médico para el mensaje
+function waDocInfo(d) {
+  let piso = waClean(d.piso);
+  if (/^\d+$/.test(piso)) piso = 'Piso ' + piso;
+  let cons = waClean(d.consultorio);
+  if (typeof projHasCons === 'function' && !projHasCons(cons)) cons = '';
+  if (cons && !/consult/i.test(cons)) cons = 'Consultorio ' + cons;
+  let tel = waClean(d.telefono);
+  if (tel.replace(/\D/g, '').length < 7) {
+    const cel = waClean(d.celular);
+    tel = cel.replace(/\D/g, '').length >= 7 ? cel : '';
+  }
+  return {
+    name: waClean(d.name),
+    esp: waClean(d.especialidad) || 'Sin especialidad',
+    piso: piso, cons: cons, tel: tel
+  };
+}
+
+function waCentro() {
+  const idc = (typeof cfgIdentidad !== 'undefined' && cfgIdentidad) ? cfgIdentidad : {};
+  return { nombre: idc.nombre || 'Centro Médico Moderno', tel: idc.tel || '809-548-3131' };
+}
+
+function waBuildMessage() {
+  const st = _waState;
+  const picked = st.docs.filter((d, i) => st.sel[i]);
+  const saludo = '';
+  const pie = '';
+  const agrupar = true;
+  const ico = true;
+  const I = ico ? { doc: '\u{1F468}\u200D\u2695\uFE0F ', esp: '\u{1FA7A} ', piso: '\u{1F3E2} ', cons: '\u{1F6AA} ', tel: '\u{1F4DE} ' }
+                : { doc: '', esp: '', piso: '', cons: '', tel: 'Tel: ' };
+  const L = [];
+  if (saludo) { L.push(saludo); L.push(''); }
+
+  // Cada médico: una línea por dato (nombre, especialidad, piso, consultorio, teléfono)
+  const docBlock = (d, conEsp) => {
+    const x = waDocInfo(d);
+    const b = [I.doc + '*' + x.name + '*'];
+    if (conEsp) b.push(I.esp + x.esp);
+    if (x.piso) b.push(I.piso + x.piso);
+    if (x.cons) b.push(I.cons + x.cons);
+    if (x.tel) b.push(I.tel + x.tel);
+    return b.join('\n');
+  };
+
+  if (agrupar) {
+    const groups = new Map();
+    picked.forEach(d => {
+      const k = waDocInfo(d).esp.toUpperCase();
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(d);
+    });
+    [...groups.keys()].sort((a, b) => a.localeCompare(b, 'es')).forEach(k => {
+      L.push(I.esp + '*' + k + '*');
+      L.push('');
+      groups.get(k).forEach(d => { L.push(docBlock(d, false)); L.push(''); });
+    });
+  } else {
+    picked.forEach(d => { L.push(docBlock(d, true)); L.push(''); });
+  }
+  if (pie) L.push(pie);
+  return L.join('\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// Botón de WhatsApp: toma los médicos de la búsqueda actual y abre WhatsApp directo
+// (sin ventana intermedia y sin número: el contacto se elige en WhatsApp).
+function openWaShare() {
+  const docs = waGetFiltered();
+  if (!docs.length) { (typeof toast === 'function') && toast('No hay doctores en la lista para enviar', 'error'); return; }
+  _waState.docs = docs;
+  _waState.sel = {};
+  docs.forEach((d, i) => { _waState.sel[i] = true; });
+  const msg = waBuildMessage();
+  if (encodeURIComponent(msg).length > 6000) {
+    // Mensaje demasiado largo para un enlace: se copia y se abre WhatsApp para pegarlo
+    const abrir = () => { (typeof toast === 'function') && toast('Lista larga: mensaje copiado. Pégalo en WhatsApp ✔'); window.open('https://wa.me/', '_blank', 'noopener'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(msg).then(abrir, abrir); }
+    else { abrir(); }
+    return;
+  }
+  window.open('https://wa.me/?text=' + encodeURIComponent(msg), '_blank', 'noopener');
+}
+
 function printDoctoresList() {
   const list = store.doctors;
   if (!list.length) { toast('No hay doctores registrados para imprimir', 'error'); return; }
@@ -32964,6 +33087,152 @@ window.iaEnviar = async function(){
   iaPregunta(txt);
 };
 
+/* ══════════════════════════════════════════════════════════════
+   CONSULTA AUTOMÁTICA DE MÉDICOS EN EL CHAT IA
+   Lee store.doctors en vivo (incluye lo que sincroniza Google Sheets),
+   selecciona los médicos relevantes a la pregunta y se los entrega
+   a Gemini como contexto. No hay que copiar datos a mano.
+   ══════════════════════════════════════════════════════════════ */
+(function(){
+  var MAX_DOCS = 40;
+  var STOP = new Set(('que los las del por con para una uno unos unas como esta este estos estas son hay tiene tienen '+
+    'tengo tenemos quien quienes cual cuales cuando donde horario horarios atiende atienden atencion consulta consultas '+
+    'dra doctor doctora doctores medico medica medicos dame dime necesito quiero favor sobre todos todas aceptan acepta '+
+    'puedo puede pueden hora telefono numero info informacion datos lista listado mas muy sus del al en el la de y o es se me mi').split(' '));
+  var lastSel = [];
+
+  function norm(s){
+    return String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-z0-9\s]/g,' ').replace(/\s+/g,' ').trim();
+  }
+  function getDocs(){
+    try { return (typeof store!=='undefined' && Array.isArray(store.doctors)) ? store.doctors : []; }
+    catch(e){ return []; }
+  }
+  function canon(n){
+    try { return (typeof getCanonical==='function') ? getCanonical(n) : n; } catch(e){ return n; }
+  }
+  function arsNames(d){
+    return (d.arsLinks||[]).map(function(a){ return canon(a.ars||a.name||a.nombre||''); }).filter(Boolean);
+  }
+  function notasTxt(d){
+    return (d.notas||[]).map(function(n){
+      return typeof n==='string' ? n : (n.texto||n.text||n.nota||n.comentario||'');
+    }).filter(Boolean).join('; ');
+  }
+
+  function linea(d, conCodigos){
+    var p = [];
+    p.push((d.name||'(sin nombre)') + (d.especialidad ? ' — '+d.especialidad : ''));
+    if(d.exequatur)    p.push('Exequátur: '+d.exequatur);
+    if(d.consultorio)  p.push('Consultorio: '+d.consultorio);
+    if(d.departamento) p.push('Departamento: '+d.departamento);
+    if(d.horario)      p.push('Horario: '+d.horario);
+    if(d.dias && d.dias.length) p.push('Días: '+d.dias.join(', '));
+    if(d.horaInicio || d.horaFin) p.push('Horas: '+(d.horaInicio||'?')+' a '+(d.horaFin||'?'));
+    if(d.agendaObs)    p.push('Obs. agenda: '+d.agendaObs);
+    if(d.telefono)     p.push('Tel: '+d.telefono);
+    if(d.celular)      p.push('Cel/Ref: '+d.celular);
+    if(d.secretaria)   p.push('Secretaria: '+d.secretaria);
+    if(d.telSecretaria)p.push('Tel. secretaria: '+d.telSecretaria);
+    if(d.telEmergencia)p.push('Tel. emergencia: '+d.telEmergencia);
+    if(d.email)        p.push('Correo: '+d.email);
+    if(d.direccion)    p.push('Dirección: '+d.direccion);
+    if(d.web)          p.push('Web: '+d.web);
+    if(d.informacion)  p.push('Info: '+d.informacion);
+    if(d.comentario)   p.push('Comentario: '+d.comentario);
+    var nt = notasTxt(d); if(nt) p.push('Notas: '+nt);
+    if(d.sin_ars) {
+      p.push('ARS: no trabaja con ARS');
+    } else {
+      var links = d.arsLinks||[];
+      if(links.length){
+        p.push('ARS: ' + links.map(function(a){
+          var n = canon(a.ars||a.name||a.nombre||'');
+          return (conCodigos && a.codigo) ? n+' (cód. '+a.codigo+')' : n;
+        }).join(', '));
+      }
+    }
+    return '• ' + p.join(' | ');
+  }
+
+  function seleccionar(pregunta){
+    var docs = getDocs();
+    var q = norm(pregunta);
+    var toks = q.split(' ').filter(function(t){ return t.length>=3 && !STOP.has(t); })
+                 .map(function(t){ return t.length>6 ? t.slice(0,5) : t; });
+    var scored = [];
+    if(toks.length){
+      docs.forEach(function(d){
+        var nm = norm(d.name), es = norm(d.especialidad), ar = norm(arsNames(d).join(' ')),
+            ot = norm([d.consultorio,d.departamento,d.horario,(d.dias||[]).join(' '),d.secretaria,d.direccion,d.informacion,d.comentario].join(' '));
+        var s = 0;
+        toks.forEach(function(t){
+          if(nm.indexOf(t)>-1) s+=5;
+          if(es.indexOf(t)>-1) s+=4;
+          if(ar.indexOf(t)>-1) s+=3;
+          if(ot.indexOf(t)>-1) s+=1;
+        });
+        if(s>0) scored.push({d:d,s:s});
+      });
+      scored.sort(function(a,b){ return b.s-a.s; });
+    }
+    if(scored.length){
+      // Si hay un claro ganador (ej. búsqueda por nombre), quedarse solo con los mejores
+      var top = scored[0].s;
+      var keep = scored.filter(function(x){ return x.s >= Math.max(1, top*0.5); });
+      lastSel = keep.slice(0,MAX_DOCS).map(function(x){ return x.d; });
+      return { docs: lastSel, total: keep.length };
+    }
+    // Sin coincidencias: solo reutilizar la selección previa si parece una pregunta de seguimiento
+    var seguimiento = lastSel.length && q.split(' ').length<=12 &&
+      (!toks.length || /\b(su|sus|el|ella|ese|esa|esos|esas|ellos|ellas|mismo|misma|tambien)\b/.test(q));
+    if(seguimiento) return { docs: lastSel.slice(0,15), total: lastSel.length };
+    return { docs: [], total: 0 };
+  }
+
+  window.iaConstruirContexto = function(pregunta){
+    var base = (typeof SYSTEM_CONOCIMIENTO!=='undefined') ? SYSTEM_CONOCIMIENTO : '';
+    var docs = getDocs();
+    if(!docs.length) return base;
+
+    var esp = {}, arsSet = {};
+    docs.forEach(function(d){
+      var e = (d.especialidad||'SIN ESPECIALIDAD').trim();
+      esp[e] = (esp[e]||0)+1;
+      arsNames(d).forEach(function(a){ arsSet[a]=1; });
+    });
+    var espTxt = Object.keys(esp).sort().map(function(k){ return k+' ('+esp[k]+')'; }).join(', ');
+    var arsTxt = Object.keys(arsSet).sort().join(', ');
+
+    var sel = seleccionar(pregunta);
+    var conCodigos = /codigo|código|cod\./i.test(pregunta);
+    var hoy = new Date().toLocaleDateString('es-DO');
+
+    var t = base +
+      '\n\n══ BASE DE DATOS DE MÉDICOS (datos reales del sistema, leídos hoy '+hoy+') ══' +
+      '\nTotal de médicos registrados: '+docs.length +
+      '\nEspecialidades y cantidad: '+espTxt +
+      '\nARS con las que trabaja el centro: '+arsTxt;
+
+    if(sel.docs.length){
+      t += '\n\nMÉDICOS RELEVANTES PARA ESTA CONSULTA ('+sel.docs.length+
+           (sel.total>sel.docs.length ? ' de '+sel.total+' coincidencias — lista recortada' : '')+'):\n' +
+           sel.docs.map(function(d){ return linea(d, conCodigos); }).join('\n');
+    }
+
+    t += '\n\nREGLAS PARA CONSULTAS SOBRE MÉDICOS:' +
+      '\n- Responde SOLO con los datos de arriba. Nunca inventes horarios, teléfonos, consultorios, correos ni ARS.' +
+      '\n- Si un dato está vacío o no aparece, di que "no está registrado" y sugiere confirmar con la secretaria o el consultorio.' +
+      '\n- Si la lista fue recortada, dilo y pide al usuario que afine la búsqueda (especialidad, ARS o nombre).' +
+      '\n- Si no hay ningún médico que coincida, dilo claramente y ofrece alternativas de la misma especialidad.' +
+      '\n- Presenta cada médico así: nombre, especialidad, consultorio, horario, teléfono/secretaria y ARS. Sé breve.' +
+      '\n- Los horarios pueden cambiar: recomienda confirmar antes de asistir, sobre todo si dice "por citas".' +
+      '\n- Si la pregunta no trata de médicos, ignora esta sección y responde normalmente.';
+    return t;
+  };
+})();
+
 window.iaPregunta = async function(texto){
   if(!texto.trim()) return;
 
@@ -32984,7 +33253,7 @@ window.iaPregunta = async function(texto){
   try {
     const msgs = [];
     // System as first user/model exchange
-    msgs.push({ role:'user', parts:[{text: SYSTEM_CONOCIMIENTO + '\n\nConfirma que entiendes tu rol.'}] });
+    msgs.push({ role:'user', parts:[{text: iaConstruirContexto(texto) + '\n\nConfirma que entiendes tu rol.'}] });
     msgs.push({ role:'model', parts:[{text:'Entendido. Soy el asistente de EECDATOS CMM, listo para ayudar.'}] });
 
     // Chat history (last 10)
@@ -32996,7 +33265,7 @@ window.iaPregunta = async function(texto){
     const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${iaGetModel()}:generateContent?key=${key}`, {
       method:'POST',
       headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ contents: msgs, generationConfig:{ maxOutputTokens:1024, temperature:0.7 } })
+      body: JSON.stringify({ contents: msgs, generationConfig:{ maxOutputTokens:2048, temperature:0.3 } })
     });
     const data = await resp.json();
     if(data.error) throw new Error(data.error.message);
@@ -33004,6 +33273,7 @@ window.iaPregunta = async function(texto){
     let respText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'No obtuve respuesta.';
     // Format response
     respText = respText
+      .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
       .replace(/\n\n/g,'<br><br>')
       .replace(/\n/g,'<br>');
 

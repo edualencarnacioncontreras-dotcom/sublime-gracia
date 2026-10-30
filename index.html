@@ -24529,6 +24529,18 @@ function waOpenWeb(msg) {
   try { _waWin && _waWin.focus(); } catch (e) {}
   if (!_waWin && typeof toast === 'function') toast('El navegador bloqueó la ventana. Permite las ventanas emergentes para este sitio.', 'error');
 }
+// ¿Existe ya la pestaña de WhatsApp Web abierta desde este sistema? (sobrevive a recargas de la página)
+function waTabExiste() {
+  if (_waWin && !_waWin.closed) return true;
+  try {
+    const w = window.open('', 'cmm_whatsapp_web');
+    if (!w) return false;
+    let vacia = false;
+    try { vacia = (w.location.href === 'about:blank'); } catch (e) { vacia = false; } // cross-origin = ya es WhatsApp
+    if (vacia) { w.close(); return false; }
+    _waWin = w; return true;
+  } catch (e) { return false; }
+}
 function openWaShare() {
   const docs = waGetFiltered();
   if (!docs.length) { (typeof toast === 'function') && toast('No hay doctores en la lista para enviar', 'error'); return; }
@@ -24545,7 +24557,7 @@ function openWaShare() {
   }
 
   // Ya hay una pestaña de WhatsApp Web abierta desde aquí → reutilizarla
-  if (_waWin && !_waWin.closed) { waOpenWeb(msg); return; }
+  if (waTabExiste()) { waOpenWeb(msg); return; }
 
   // Intentar la aplicación de WhatsApp; si la página no pierde el foco, no hay app → WhatsApp Web
   let appAbrio = false;

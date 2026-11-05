@@ -3525,6 +3525,7 @@ window.showPage = function(id) {
     <div class="nav-item" onclick="showPage('escaneo')"><span class="icon">🤖</span> Pregúntale a la IA</div>
     <div class="nav-item" onclick="showPage('importar')"><span class="icon">📥</span> Importar Datos</div>
     <div class="nav-item" onclick="showPage('accesosweb')"><span class="icon">🌐</span> ARS Web</div>
+    <div class="nav-item" onclick="showPage('asistentewa')"><span class="icon">💬</span> Asistente WhatsApp</div>
 
     <div class="nav-section">Admisión</div>
     <div class="nav-item" onclick="showPage('documentos')"><span class="icon">🗂️</span> Documentación</div>
@@ -3607,6 +3608,7 @@ window.showPage = function(id) {
   <div class="drawer-nav-item" onclick="showPage('escaneo');mbCloseDrawer()"><span class="d-icon">🤖</span> Pregúntale a la IA</div>
   <div class="drawer-nav-item" onclick="showPage('importar');mbCloseDrawer()"><span class="d-icon">📥</span> Importar Datos</div>
   <div class="drawer-nav-item" onclick="showPage('accesosweb');mbCloseDrawer()"><span class="d-icon">🌐</span> ARS Web</div>
+  <div class="drawer-nav-item" onclick="showPage('asistentewa');mbCloseDrawer()"><span class="d-icon">💬</span> Asistente WhatsApp</div>
 
   <div class="drawer-nav-section">Admisión</div>
   <div class="drawer-nav-item" onclick="showPage('documentos');mbCloseDrawer()"><span class="d-icon">🗂️</span> Documentación</div>
@@ -3856,6 +3858,12 @@ window.showPage = function(id) {
               <div style="font-size:28px;margin-bottom:8px;">🌐</div>
               <div style="font-weight:700;font-size:13px;color:#1E293B;margin-bottom:3px;">ARS Web</div>
               <div style="font-size:11px;color:var(--muted);">Portales de las ARS</div>
+            </div>
+
+            <div onclick="showPage('asistentewa')" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center;" onmouseover="this.style.borderColor='#25D366';this.style.transform='translateY(-3px)';this.style.boxShadow='0 8px 24px rgba(37,211,102,.25)'" onmouseout="this.style.borderColor='var(--border)';this.style.transform='';this.style.boxShadow=''">
+              <div style="font-size:28px;margin-bottom:8px;">💬</div>
+              <div style="font-weight:700;font-size:13px;color:#1E293B;margin-bottom:3px;">Asistente WhatsApp</div>
+              <div style="font-size:11px;color:var(--muted);">Asistente virtual y mensajes</div>
             </div>
 
           </div>
@@ -5053,6 +5061,11 @@ body.ui #bar{opacity:1;pointer-events:auto}
       <div style="max-width:680px;margin:60px auto 0;background:var(--surface);border:1px solid var(--border);border-radius:16px;box-shadow:0 32px 80px rgba(0,0,0,0.6);overflow:hidden;max-height:85vh;display:flex;flex-direction:column;">
         <div id="ars-detail-inner" style="overflow-y:auto;flex:1;"></div>
       </div>
+    </div>
+
+    <!-- ASISTENTE WHATSAPP -->
+    <div class="page" id="page-asistentewa">
+      <div id="wa-root"></div>
     </div>
 
     <!-- ARS WEB -->
@@ -15342,6 +15355,7 @@ const SYS_MODULES = [
   // ── Admin / Sistema ────────────────────────────────────────
   { id: 'importar',             label: '📥 Importar Datos',            grupo: 'Admin'       },
   { id: 'accesosweb',              label: '🌐 ARS Web (accesos y claves)', grupo: 'Admin'       },
+  { id: 'asistentewa',             label: '💬 Asistente WhatsApp',         grupo: 'Admin'       },
   { id: 'modulos',              label: '📦 Módulos',                   grupo: 'Admin'       },
   { id: 'usuarios',             label: '👥 Usuarios',                  grupo: 'Admin'       },
   { id: 'auditoria',            label: '🔍 Auditoría',                 grupo: 'Admin'       },
@@ -15474,7 +15488,7 @@ const PERMISOS_DEFAULT = {
       'atencion-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
       'documentos','compromiso','escaneo',
-      'importar','accesosweb','usuarios','auditoria',
+      'importar','accesosweb','asistentewa','usuarios','auditoria',
     ],
     acciones: [...ROL_CEILING.supervisor]
   },
@@ -15484,7 +15498,7 @@ const PERMISOS_DEFAULT = {
       'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
       'atencion-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
-      'documentos','compromiso','escaneo','accesosweb',
+      'documentos','compromiso','escaneo','accesosweb','asistentewa',
     ],
     acciones: [...ROL_CEILING.editor]
   },
@@ -19097,7 +19111,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
   });
-  const titles = { accesosweb: '🌐 ARS Web', inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
+  const titles = { asistentewa: '💬 Asistente WhatsApp', accesosweb: '🌐 ARS Web', inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
   document.getElementById('page-title').textContent = titles[id] || id;
   // ── Historial de navegación para botón Atrás ──────────────────────────────
   if (!window._navHistory) window._navHistory = [];
@@ -19113,6 +19127,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   if (id === 'doctores') renderDoctors();
   if (id === 'ars') renderARS();
   if (id === 'accesosweb') { if (typeof arswInit==='function') arswInit(); }
+  if (id === 'asistentewa') { if (typeof waInit==='function') waInit(); }
   if (id === 'enlace') renderLinks();
   if (id === 'oxigeno') renderOxyHistory();
   if (id === 'catalogo') { setTimeout(()=>{ renderCatalog(); updateCatStats(); }, 50); }
@@ -40645,6 +40660,154 @@ console.log('[EECGESTIONES] ✅ Funciones ICS/Sync integradas en calendario MTN 
 })();
 </script>
 
+<style id="wa-style">
+#wa-root{padding:4px 2px 60px;max-width:900px;}
+.wa-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}
+.wa-bar h2{font-family:'Outfit',sans-serif;font-size:20px;color:var(--text);margin-right:auto;}
+.wa-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:16px 18px;margin-bottom:18px;}
+.wa-box h4{font:700 12px 'Nunito',sans-serif;color:var(--slate);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.wa-linkrow{display:flex;gap:8px;flex-wrap:wrap;}
+.wa-linkrow input{flex:1;min-width:220px;}
+.wa-box input[type=text],.wa-box input[type=password]{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r-md);background:#fff;font:inherit;font-size:13px;}
+.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;}
+.wa-card{background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--c,#25D366);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:20px 18px;animation:scaleIn .25s both;}
+.wa-ico{width:56px;height:56px;border-radius:16px;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:28px;background:var(--c,#25D366);box-shadow:0 4px 10px rgba(0,0,0,.18);}
+.wa-card h3{font-family:'Outfit',sans-serif;text-align:center;font-size:17px;color:var(--text);}
+.wa-card p{text-align:center;font-size:12px;color:var(--muted);margin:2px 0 12px;}
+.wa-card label{display:block;font:700 12px 'Nunito',sans-serif;color:var(--slate);margin:10px 0 4px;}
+.wa-card input[type=text],.wa-card input[type=password]{width:100%;padding:9px 11px;border:1px solid var(--border2);border-radius:var(--r-md);background:#fff;font:inherit;font-size:13px;}
+.wa-passw{position:relative;}.wa-passw span{position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:15px;}
+.wa-chk{display:flex;gap:8px;font:600 12px 'Nunito',sans-serif;margin-top:12px;cursor:pointer;}
+.wa-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;}
+.wa-actions .arsw-btn{flex:1;white-space:nowrap;}
+.wa-go{background:#25D366;border-color:#1da851;color:#fff;}
+.wa-go:hover{background:#1da851;}
+.wa-ok{text-align:center;background:#e8f8ee;border:1px solid #b7e4c7;color:#1e7a40;border-radius:var(--r-md);padding:10px;font:700 13px 'Nunito',sans-serif;margin-top:6px;}.wa-ok small{font-weight:600;opacity:.8;}.wa-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,260px));gap:18px;}.wa-tile{position:relative;background:var(--surface);border:1px solid var(--border);border-top:4px solid var(--c,#25D366);border-radius:var(--r-xl);box-shadow:var(--shadow-sm);padding:26px 16px 20px;text-align:center;cursor:pointer;transition:transform .15s,box-shadow .15s;animation:scaleIn .25s both;}.wa-tile:hover{transform:translateY(-3px);box-shadow:var(--shadow);}.wa-tile h3{font-family:'Outfit',sans-serif;font-size:16px;color:var(--text);margin-top:4px;}.wa-pen{position:absolute;top:6px;right:6px;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border-radius:6px;font-size:13px;background:var(--surface2);opacity:.75;}.wa-pen:hover{background:var(--accent-lt);opacity:1;}.wa-hint{font-size:12px;color:var(--muted);margin-top:8px;}
+</style>
+<script id="wa-script">
+/* ═══ MÓDULO ASISTENTE WHATSAPP — dos tarjetas (Revisión / Servicio al Cliente), cada una con su propio link.
+   Tocar la tarjeta abre el link. El link y las credenciales quedan ocultos; solo un Supervisor/Admin con su clave puede editarlos. */
+(function(){
+'use strict';
+var KEY='eec_wa_v3';
+var DEF={perfiles:[
+  {id:'revision',nombre:'Revisión',ico:'🔎',color:'#1B5FA8',url:'',usuario:'',clave:'',auto:true},
+  {id:'servicio',nombre:'Servicio al Cliente',ico:'🎧',color:'#25D366',url:'',usuario:'',clave:'',auto:true}
+]};
+var data=null;
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function toast(m,t){try{showToast(m,t);}catch(e){}}
+function audit(m){try{logAudit('ASISTENTEWA',m);}catch(e){}}
+function load(){
+  var r=null;try{r=JSON.parse(localStorage.getItem(KEY)||'null');}catch(e){}
+  if(!r){
+    try{var o=JSON.parse(localStorage.getItem('eec_wa_v2')||'null');
+      if(o&&o.perfiles){r=o;r.perfiles.forEach(function(p){p.url=p.url||o.url||'';});}}catch(e){}
+  }
+  data=(r&&r.perfiles)?r:JSON.parse(JSON.stringify(DEF));
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
+function normUrl(u){u=String(u||'').trim();if(!u)return '';return /^[a-z][a-z0-9+.-]*:\/\//i.test(u)?u:'https://'+u;}
+function perfil(id){return data.perfiles.filter(function(p){return p.id===id;})[0];}
+function canEditNow(){var r=(typeof sysSession!=='undefined'&&sysSession)?sysSession.rol:'';return r==='admin'||r==='supervisor';}
+function sesUser(){try{return (canEditNow()&&sysSession.username)?sysSession.username:'';}catch(e){return '';}}
+function checkSup(user,clave){
+  user=String(user||'').trim().toLowerCase();clave=String(clave||'');
+  if(!user||!clave)return false;
+  try{
+    var lista=(typeof sysUsuarios!=='undefined'&&sysUsuarios)?sysUsuarios:[];
+    for(var i=0;i<lista.length;i++){
+      var u=lista[i];
+      if(u.activo===false||(u.rol!=='admin'&&u.rol!=='supervisor'))continue;
+      var nom=String(u.username||'').toLowerCase(),nm2=String(u.nombre||'').toLowerCase();
+      if(user!==nom&&user!==nm2)continue;
+      var st=u.password||'';
+      if(clave===st||((st===''||st==='12345'||st==='admin123')&&clave==='12345'))return true;
+    }
+    var mk='';try{mk=localStorage.getItem('cmm_master_key')||'';}catch(e){}
+    if(mk&&clave===mk&&(user==='admin'||user==='administrador'))return true;
+  }catch(e){}
+  return false;
+}
+
+function render(){
+  var root=$('wa-root');if(!root)return;
+  load();
+  root.innerHTML='<div class="wa-bar"><h2>💬 Asistente WhatsApp</h2></div><div class="wa-grid">'
+   +data.perfiles.map(function(p){
+     return '<div class="wa-tile" style="--c:'+esc(p.color)+'" onclick="waGo(\''+p.id+'\')" title="'+(p.url?'Entrar como '+esc(p.nombre):'Configurar link')+'">'
+      +'<span class="wa-pen" onclick="event.stopPropagation();waEdit(\''+p.id+'\')" title="Editar (Supervisor)">✏️</span>'
+      +'<div class="wa-ico">'+p.ico+'</div><h3>'+esc(p.nombre)+'</h3>'
+      +(p.url?'':'<div class="wa-hint">Toca para poner el link</div>')+'</div>';
+   }).join('')+'</div>';
+}
+function openLink(p){
+  var url=normUrl(p.url);if(!url)return false;
+  if(p.auto!==false&&(p.usuario||p.clave)){
+    var d=encodeURIComponent(btoa(unescape(encodeURIComponent(JSON.stringify({u:p.usuario||'',p:p.clave||''})))));
+    url+=(url.indexOf('#')>-1?'&':'#')+'eecauto='+d;
+  }
+  var w=window.open(url,'_blank');
+  if(!w)toast('⚠️ El navegador bloqueó la ventana. Permite ventanas emergentes para este sistema.','yellow');
+  audit('Entró al Asistente WhatsApp como '+p.nombre);
+  return true;
+}
+function closeModal(){var m=$('wa-modal');if(m)m.remove();}
+function modal(html){
+  closeModal();
+  var m=document.createElement('div');m.id='wa-modal';
+  m.style.cssText='position:fixed;inset:0;z-index:10050;background:rgba(10,30,70,.45);backdrop-filter:blur(3px);';
+  m.onclick=function(e){if(e.target===m)closeModal();};
+  m.innerHTML='<div class="arsw-dlg">'+html+'</div>';
+  document.body.appendChild(m);
+  var f=m.querySelector('input');if(f)f.focus();
+}
+function formHtml(p){
+  return '<h3>'+p.ico+' '+esc(p.nombre)+'</h3>'
+   +'<label>Link del asistente</label><input type="text" id="wa-l" value="'+esc(p.url)+'" placeholder="https://..." autocomplete="off">'
+   +'<label>Usuario</label><input type="text" id="wa-u" value="'+esc(p.usuario)+'" autocomplete="off">'
+   +'<label>Contraseña</label><div style="position:relative;"><input type="password" id="wa-p" value="'+esc(p.clave)+'" autocomplete="new-password" style="padding-right:38px;">'
+   +'<span onclick="var i=document.getElementById(\'wa-p\');i.type=i.type===\'password\'?\'text\':\'password\'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);cursor:pointer;font-size:15px;" title="Mostrar / ocultar">👁</span></div>'
+   +'<label class="arsw-chk"><input type="checkbox" id="wa-a"'+(p.auto!==false?' checked':'')+'> Entrar automáticamente (usa el script de auto-login de ARS Web)</label>'
+   +'<div class="arsw-actions"><button class="arsw-btn" onclick="waClose()">Cancelar</button><button class="arsw-btn arsw-btn-p" onclick="waSave(\''+p.id+'\')">💾 Guardar</button></div>';
+}
+window.waClose=closeModal;
+/* Tocar la tarjeta: abre el link; si no hay link todavía, pide ponerlo */
+window.waGo=function(id){
+  load();var p=perfil(id);
+  if(!normUrl(p.url)){modal(formHtml(p));return;}
+  openLink(p);
+};
+/* Lápiz: Admin/Supervisor con sesión abierta edita directo; los demás necesitan la clave de un Supervisor */
+window.waEdit=function(id){
+  load();var p=perfil(id);
+  if(!normUrl(p.url)||canEditNow()){modal(formHtml(p));return;}
+  modal('<h3>🔒 '+esc(p.nombre)+'</h3><p style="font-size:12.5px;color:var(--muted);">Solo un Supervisor o Admin puede editar. Escribe su usuario y clave.</p>'
+   +'<label>Usuario Supervisor / Admin</label><input type="text" id="wa-su" value="'+esc(sesUser())+'" autocomplete="off">'
+   +'<label>Clave</label><input type="password" id="wa-k" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')waConfirm(\''+id+'\')">'
+   +'<div class="arsw-err" id="wa-e" style="margin-top:8px;"></div>'
+   +'<div class="arsw-actions"><button class="arsw-btn" onclick="waClose()">Cancelar</button><button class="arsw-btn arsw-btn-p" onclick="waConfirm(\''+id+'\')">Confirmar</button></div>');
+  var k=$('wa-su');if(k&&k.value){var kk=$('wa-k');if(kk)kk.focus();}
+};
+window.waConfirm=function(id){
+  if(!checkSup(($('wa-su')||{}).value,($('wa-k')||{}).value)){
+    var e=$('wa-e');if(e)e.textContent='❌ Usuario o clave incorrectos (solo Supervisor/Admin)';
+    audit('Intento fallido de editar Asistente WhatsApp: '+perfil(id).nombre);return;
+  }
+  audit('Supervisor abrió edición del Asistente WhatsApp: '+perfil(id).nombre);
+  modal(formHtml(perfil(id)));
+};
+window.waSave=function(id){
+  var p=perfil(id),u=normUrl($('wa-l').value);
+  if(!u){toast('⚠️ Escribe el link del asistente','yellow');return;}
+  p.url=u;p.usuario=$('wa-u').value.trim();p.clave=$('wa-p').value;p.auto=$('wa-a').checked;
+  save();closeModal();render();
+  toast('✅ Guardado');audit('Guardó link/usuario del Asistente WhatsApp: '+p.nombre);
+};
+window.waInit=function(){render();};
+})();
+</script>
 <style id="arsw-style">
 #arsw-root{padding:4px 2px 60px;}
 .arsw-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px;}

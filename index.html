@@ -5394,6 +5394,11 @@ body.ui #bar{opacity:1;pointer-events:auto}
             <input type="text" id="oxy-note" class="o2-note-input" placeholder="Paciente, diagnóstico, cama…">
           </div>
 
+          <!-- Detalle -->
+          <div style="margin:16px 28px 0;">
+            <button class="o2-btn-detail" onclick="openOxyDetail()">DETALLE</button>
+          </div>
+
           <!-- Acciones -->
           <div class="o2-actions">
             <button class="o2-btn-save" data-perm="oxy.crear"  onclick="saveOxyCalc()">💾 Guardar cálculo</button>
@@ -21420,6 +21425,131 @@ function deleteLink(id) {
 // ============================
 // OXYGEN
 // ============================
+// ── O2 DETALLE + IMPRIMIR ────────────────────
+(function(){
+  var css = `
+  .o2-btn-detail{width:100%;padding:15px;border-radius:14px;border:none;cursor:pointer;background:#0b1624;color:#22d3ee;
+    font-weight:800;font-size:14px;letter-spacing:4px;font-family:'DM Sans',sans-serif;transition:all .2s;box-shadow:0 6px 18px rgba(0,0,0,.25);}
+  .o2-btn-detail:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(34,211,238,.25);}
+  #o2-detail-overlay{position:fixed;inset:0;z-index:99999;background:rgba(8,15,26,.6);backdrop-filter:blur(3px);
+    display:none;align-items:center;justify-content:center;padding:16px;overflow:auto;}
+  #o2-detail-overlay.open{display:flex;}
+  .o2d-card{width:100%;max-width:440px;background:#0c1623;color:#e6f1ff;border-radius:26px;padding:24px 22px 22px;
+    border:1px solid rgba(148,163,184,.22);box-shadow:0 24px 70px rgba(0,0,0,.55);font-family:'DM Sans',sans-serif;position:relative;}
+  .o2d-head{display:flex;justify-content:space-between;align-items:center;padding-bottom:12px;border-bottom:1px dashed rgba(148,163,184,.25);}
+  .o2d-title{font-size:13px;font-weight:800;letter-spacing:4px;color:#22d3ee;}
+  .o2d-note{font-size:11px;color:#7f9bbd;max-width:55%;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .o2d-row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(148,163,184,.14);}
+  .o2d-k{font-size:10.5px;letter-spacing:2px;text-transform:uppercase;color:#5f7fa6;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;}
+  .o2d-v{font-size:14px;font-weight:700;color:#d6ecff;text-align:right;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;}
+  .o2d-formula{margin:18px 0 16px;padding:18px 12px;border-radius:16px;text-align:center;background:linear-gradient(160deg,#10283a,#0e1f30);
+    border:1px solid rgba(34,211,238,.28);}
+  .o2d-f1{font-size:14px;color:#cfe3f7;font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;}
+  .o2d-f2{margin-top:8px;font-size:28px;font-weight:800;color:#38d9f5;text-shadow:0 0 18px rgba(56,217,245,.55);
+    font-family:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;}
+  .o2d-btns{display:flex;gap:10px;}
+  .o2d-print{flex:1;padding:14px;border-radius:14px;cursor:pointer;background:transparent;color:#22d3ee;border:1.5px solid rgba(34,211,238,.7);
+    font-weight:800;font-size:14px;letter-spacing:4px;font-family:'DM Sans',sans-serif;transition:all .2s;}
+  .o2d-print:hover{background:rgba(34,211,238,.12);}
+  .o2d-close{padding:14px 18px;border-radius:14px;cursor:pointer;background:rgba(255,255,255,.06);color:#9fb6d3;
+    border:1px solid rgba(148,163,184,.25);font-size:14px;font-family:'DM Sans',sans-serif;}
+  .o2d-close:hover{background:rgba(255,255,255,.1);}
+  .o2d-print-only{display:none;}
+  @media print{
+    @page{size:A5 portrait;margin:12mm;}
+    body.o2-printing > *:not(#o2-detail-overlay){display:none !important;}
+    body.o2-printing{background:#fff !important;}
+    body.o2-printing #o2-detail-overlay{position:static;display:block;background:none;backdrop-filter:none;padding:0;overflow:visible;}
+    body.o2-printing .o2d-card{max-width:none;background:#fff !important;color:#000 !important;box-shadow:none;border:1.5px solid #000;border-radius:10px;padding:18px;}
+    body.o2-printing .o2d-title{color:#000 !important;}
+    body.o2-printing .o2d-note,body.o2-printing .o2d-k{color:#444 !important;}
+    body.o2-printing .o2d-v{color:#000 !important;}
+    body.o2-printing .o2d-head,body.o2-printing .o2d-row{border-color:#999 !important;}
+    body.o2-printing .o2d-formula{background:#fff !important;border:1.5px solid #000;}
+    body.o2-printing .o2d-f1{color:#000 !important;}
+    body.o2-printing .o2d-f2{color:#000 !important;text-shadow:none;}
+    body.o2-printing .o2d-btns{display:none !important;}
+    body.o2-printing .o2d-print-only{display:block;text-align:center;font-size:11px;color:#444;margin-top:14px;}
+    body.o2-printing .o2d-print-sign{display:flex !important;gap:24px;margin-top:38px;}
+  }
+  .o2d-print-sign{display:none;}
+  .o2d-print-sign div{flex:1;border-top:1px solid #000;padding-top:4px;text-align:center;font-size:10px;color:#333;}
+  `;
+  function inject(){
+    if(document.getElementById('o2-detail-style')) return;
+    var st=document.createElement('style'); st.id='o2-detail-style'; st.textContent=css; document.head.appendChild(st);
+    var ov=document.createElement('div'); ov.id='o2-detail-overlay';
+    ov.addEventListener('click',function(e){ if(e.target===ov) closeOxyDetail(); });
+    document.body.appendChild(ov);
+  }
+  function to24(h,m,ap){
+    var t=h*60+m;
+    if(ap==='PM'&&h!==12) t+=720;
+    if(ap==='AM'&&h===12) t=m;
+    return t;
+  }
+  function fmt(h,m,ap){ return h+':'+String(m).padStart(2,'0')+' '+ap; }
+  function esc(x){ return String(x).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // data opcional: un registro del historial para reabrir su detalle
+  window.openOxyDetail = function(rec){
+    inject();
+    var lm,hI,mI,aI,hF,mF,aF,note,fecha;
+    if(rec && rec.horaIni!=null){
+      lm=rec.litrosMin; hI=rec.horaIni; mI=rec.minIni; aI=rec.ampmIni;
+      hF=rec.horaFin; mF=rec.minFin; aF=rec.ampmFin; note=rec.note||''; fecha=rec.date||'';
+    } else {
+      lm=parseFloat(document.getElementById('oxy-litros').value)||0;
+      hI=parseInt(document.getElementById('oxy-hh-ini').value)||0;
+      mI=parseInt(document.getElementById('oxy-mm-ini').value)||0;
+      aI=document.getElementById('oxy-ampm-ini').value;
+      hF=parseInt(document.getElementById('oxy-hh-fin').value)||0;
+      mF=parseInt(document.getElementById('oxy-mm-fin').value)||0;
+      aF=document.getElementById('oxy-ampm-fin').value;
+      note=(document.getElementById('oxy-note').value||'').trim(); fecha='';
+    }
+    if(hI<1||hI>12||hF<1||hF>12||mI<0||mI>59||mF<0||mF>59||!lm){
+      if(typeof toast==='function') toast('Verifica los datos antes de ver el detalle','error'); return;
+    }
+    var diff=to24(hF,mF,aF)-to24(hI,mI,aI); if(diff<0) diff+=1440;
+    var h=Math.floor(diff/60), m=diff%60;
+    var total=Math.round(diff*lm);
+    var f=function(n){return n.toLocaleString('es-DO');};
+    var tiempo = h>0 ? (h+' h '+m+' min') : (m+' min');
+    var fechaTxt = fecha || new Date().toLocaleString('es-DO',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});
+    var lmTxt = f(lm);
+    var row=function(k,v){return '<div class="o2d-row"><span class="o2d-k">'+k+'</span><span class="o2d-v">'+v+'</span></div>';};
+    document.getElementById('o2-detail-overlay').innerHTML =
+      '<div class="o2d-card" role="dialog" aria-label="Detalle del cálculo de oxígeno">'+
+        '<div class="o2d-head"><span class="o2d-title">DETALLE</span><span class="o2d-note">'+(note?esc(note):'Sin nota')+'</span></div>'+
+        row('Hora inicio',fmt(hI,mI,aI))+
+        row('Hora final',fmt(hF,mF,aF))+
+        row('Tiempo',tiempo)+
+        row('En minutos','('+h+' × 60) + '+m+' = '+diff+' min')+
+        row('Flujo',lmTxt+' L/min')+
+        row('Fecha',esc(fechaTxt))+
+        '<div class="o2d-formula"><div class="o2d-f1">'+diff+' min × '+lmTxt+' L/min</div>'+
+        '<div class="o2d-f2">= '+f(total)+' litros</div></div>'+
+        '<div class="o2d-print-sign"><div>Enfermería</div><div>Supervisor</div></div>'+
+        '<div class="o2d-print-only">Oxígeno Medicinal · Cálculo de consumo</div>'+
+        '<div class="o2d-btns"><button class="o2d-print" onclick="printOxyDetail()">IMPRIMIR</button>'+
+        '<button class="o2d-close" onclick="closeOxyDetail()">✕</button></div>'+
+      '</div>';
+    document.getElementById('o2-detail-overlay').classList.add('open');
+  };
+  window.closeOxyDetail = function(){
+    var ov=document.getElementById('o2-detail-overlay'); if(ov) ov.classList.remove('open');
+  };
+  window.printOxyDetail = function(){
+    document.body.classList.add('o2-printing');
+    var done=function(){ document.body.classList.remove('o2-printing'); window.removeEventListener('afterprint',done); };
+    window.addEventListener('afterprint',done);
+    window.print();
+    setTimeout(function(){ if(document.body.classList.contains('o2-printing') && !window.matchMedia('print').matches) done(); },1500);
+  };
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeOxyDetail(); });
+})();
+
 // ── O2 CALC PRO ──────────────────────────────
 function setAmpm(which, val) {
   document.getElementById('oxy-ampm-' + which).value = val;
@@ -22121,7 +22251,7 @@ function renderOxyHistory() {
       <div style="font-size:12px;color:var(--muted);"><strong style="color:var(--text);">${d}</strong> min<br><span style="font-size:11px;">${hd}h ${String(md).padStart(2,'0')}m</span></div>
       <div><span class="badge badge-yellow" style="font-size:12px;">${lm} L/min</span></div>
       <div><span class="o2-liters-big">${(c.result||0).toLocaleString('es-DO')}</span><span style="font-size:11px;color:var(--muted);margin-left:3px;">L</span></div>
-      <div>${(typeof canDo==='function'&&canDo('oxy.borrar'))?`<button class="btn btn-sm btn-danger" onclick="deleteOxy('${c.id}')">🗑️</button>`:''}</div>
+      <div style="display:flex;gap:6px;"><button class="btn btn-sm" title="Ver detalle / imprimir" onclick="openOxyDetail(store.oxyHistory.find(x=>x.id==='${c.id}'))">🧾</button>${(typeof canDo==='function'&&canDo('oxy.borrar'))?`<button class="btn btn-sm btn-danger" onclick="deleteOxy('${c.id}')">🗑️</button>`:''}</div>
     </div>`;
   }).join('');
 }

@@ -3506,6 +3506,7 @@ window.showPage = function(id) {
       <div class="nav-item" onclick="showPage('medico-llamada')" id="nav-medico-llamada"><span class="icon">📞</span> Médico por Llamada</div>
       <div class="nav-item" onclick="showPage('med-especialista')" id="nav-med-especialista"><span class="icon">🚑</span> Médico de Emergencia</div>
       <div class="nav-item" onclick="showPage('atencion-emergencia')" id="nav-atencion-emergencia"><span class="icon">🩺</span> Atención de Emergencia</div>
+      <div class="nav-item" onclick="showPage('monitoreo-emergencia')" id="nav-monitoreo-emergencia"><span class="icon">🚨</span> Monitoreo de Emergencia</div>
     </div>
     <div class="nav-item" onclick="showPage('turno-nocturno')"><span class="icon">🏥</span> Personal de Admisión</div>
 
@@ -3593,6 +3594,7 @@ window.showPage = function(id) {
   <div class="drawer-nav-item" onclick="showPage('medico-llamada');mbCloseDrawer()"><span class="d-icon">📞</span> Médico por Llamada</div>
   <div class="drawer-nav-item" onclick="showPage('med-especialista');mbCloseDrawer()"><span class="d-icon">🚑</span> Médico de Emergencia</div>
   <div class="drawer-nav-item" onclick="showPage('atencion-emergencia');mbSetActive('atencion-emergencia');mbCloseDrawer()"><span class="d-icon">🩺</span> Atención de Emergencia</div>
+  <div class="drawer-nav-item" onclick="showPage('monitoreo-emergencia');mbSetActive('monitoreo-emergencia');mbCloseDrawer()"><span class="d-icon">🚨</span> Monitoreo de Emergencia</div>
   <div class="drawer-nav-item" onclick="showPage('turno-nocturno');mbCloseDrawer()"><span class="d-icon">🏥</span> Personal de Admisión</div>
 
   <div class="drawer-nav-section">Órdenes</div>
@@ -14278,6 +14280,212 @@ Sigue estas reglas:
 </div>
 
   <!-- ATENCIÓN DE EMERGENCIA -->
+<!-- ══════════ MÓDULO: MONITOREO DE EMERGENCIA ══════════ -->
+<div class="page" id="page-monitoreo-emergencia" style="padding:24px 28px 200px;">
+<style>
+  #page-monitoreo-emergencia .moe-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+  #page-monitoreo-emergencia .moe-head h2{font-family:'Outfit',sans-serif;font-size:24px;font-weight:800;color:var(--text)}
+  #page-monitoreo-emergencia .moe-head p{font-size:13px;color:var(--muted);margin-top:2px}
+  .moe-btn-err{background:#d32f2f;color:#fff;border:none;border-radius:8px;padding:11px 20px;font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;cursor:pointer;box-shadow:0 3px 12px rgba(211,47,47,.4);transition:transform .15s,box-shadow .15s}
+  .moe-btn-err:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(211,47,47,.55)}
+  .moe-tabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  .moe-tab{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 16px;border-radius:20px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+  .moe-tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .moe-tabs input[type=date]{background:var(--surface);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:6px 8px;font-size:12px}
+  .moe-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:16px}
+  .moe-kpi{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;box-shadow:var(--shadow-sm);border-left:4px solid var(--accent)}
+  .moe-kpi.red{border-left-color:#d32f2f}.moe-kpi.amber{border-left-color:#e08a00}.moe-kpi.green{border-left-color:#1e7a40}
+  .moe-kpi .v{font-family:'Outfit',sans-serif;font-size:28px;font-weight:800;color:var(--text);line-height:1.1}
+  .moe-kpi .v.sm{font-size:17px;line-height:1.3}
+  .moe-kpi .l{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:4px}
+  .moe-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:14px;margin-bottom:16px}
+  .moe-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:var(--shadow-sm);overflow:hidden}
+  .moe-card.wide{grid-column:1/-1}
+  .moe-card h3{font-family:'Outfit',sans-serif;font-size:15px;font-weight:700;color:var(--text);padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+  .moe-card h3 small{font-weight:600;color:var(--muted);font-size:11px}
+  .moe-card .body{padding:12px 16px}
+  .moe-xs{overflow-x:auto}
+  .moe-tbl{width:100%;border-collapse:collapse;font-size:13px}
+  .moe-tbl th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 10px;border-bottom:1px solid var(--border);white-space:nowrap}
+  .moe-tbl td{padding:9px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle}
+  .moe-tbl tr:hover td{background:var(--surface2)}
+  .moe-tbl td.n{text-align:center;font-weight:700}
+  .moe-bar{background:var(--surface2);border-radius:20px;height:10px;min-width:90px;overflow:hidden}
+  .moe-bar>div{height:100%;background:linear-gradient(90deg,#e57373,#d32f2f);border-radius:20px}
+  .moe-bar.blue>div{background:linear-gradient(90deg,#64a8e8,var(--accent))}
+  .moe-bar.amber>div{background:linear-gradient(90deg,#f5b85c,#e08a00)}
+  .moe-hbar{display:grid;grid-template-columns:minmax(90px,38%) 1fr 34px;gap:10px;align-items:center;padding:5px 0;font-size:13px;color:var(--text)}
+  .moe-hbar .t{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .moe-hbar .c{text-align:right;font-weight:800}
+  .moe-trend{display:flex;align-items:flex-end;gap:4px;height:150px;padding-top:18px;overflow-x:auto}
+  .moe-col{flex:1;min-width:22px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;font-size:10px;color:var(--muted)}
+  .moe-col .b{width:100%;max-width:34px;background:linear-gradient(180deg,#e57373,#d32f2f);border-radius:4px 4px 0 0;min-height:2px}
+  .moe-col .n{font-size:11px;font-weight:800;color:var(--text);margin-bottom:2px}
+  .moe-col .d{margin-top:4px;white-space:nowrap}
+  .moe-tag{display:inline-block;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:800;white-space:nowrap}
+  .moe-tag.dev{background:#fde0e0;color:#b01030}
+  .moe-tag.ok{background:#c8f0d8;color:#1e7a40}
+  .moe-tag.top{background:#fff0c8;color:#9a5a00;margin-left:6px}
+  .moe-ico{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;cursor:pointer;font-size:13px;margin-right:3px}
+  .moe-ico:hover{background:var(--accent-lt)}
+  .moe-tools{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px;border-bottom:1px solid var(--border)}
+  .moe-tools input,.moe-tools select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:8px 10px;font-size:13px;font-family:'Nunito',sans-serif}
+  .moe-tools input[type=text]{flex:1;min-width:180px}
+  .moe-empty{text-align:center;color:var(--muted);padding:26px 10px;font-size:13px}
+  /* Modal (se crea a nivel body) */
+  .moe-bg{position:fixed;inset:0;background:rgba(10,20,40,.6);z-index:9999;display:none;align-items:center;justify-content:center;padding:14px}
+  .moe-bg.open{display:flex}
+  .moe-dlg{background:var(--surface,#fff);color:var(--text);border-radius:12px;width:100%;max-width:560px;max-height:94vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+  .moe-dlg-h{background:#d32f2f;color:#fff;padding:15px 20px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+  .moe-dlg-h h3{font-family:'Outfit',sans-serif;font-size:17px;font-weight:800;color:#fff}
+  .moe-dlg-h button{background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1}
+  .moe-dlg-b{padding:18px 20px;display:grid;grid-template-columns:1fr 1fr;gap:13px}
+  .moe-f{display:flex;flex-direction:column;gap:5px}.moe-f.full{grid-column:1/-1}
+  .moe-f label{font-size:12px;font-weight:800;color:var(--slate,#4a5a70);text-transform:uppercase;letter-spacing:.3px}
+  .moe-f input,.moe-f textarea{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:9px 11px;font-size:14px;font-family:'Nunito',sans-serif;width:100%}
+  .moe-f input:focus,.moe-f textarea:focus{outline:2px solid var(--accent);border-color:var(--accent)}
+  .moe-prev{grid-column:1/-1;background:#fde0e0;color:#b01030;border-radius:8px;padding:10px 13px;font-size:13px;font-weight:700}
+  .moe-dlg-f{padding:14px 20px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px}
+  .moe-fab{position:fixed;left:50%;transform:translateX(-50%);bottom:76px;z-index:9000;background:#1e293b;color:#fff;border-radius:30px;padding:10px 12px 10px 20px;display:none;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(0,0,0,.35);font-size:14px;font-weight:700}
+  .moe-fab.show{display:flex}
+  .moe-fab button{border:none;border-radius:20px;padding:9px 16px;font-weight:800;font-size:13px;cursor:pointer}
+  .moe-pl{max-height:50vh;overflow:auto;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .moe-pl label{display:flex;gap:10px;align-items:flex-start;padding:9px 16px;border-bottom:1px solid var(--border);cursor:pointer;font-size:13px}
+  .moe-pl label:hover{background:var(--surface2)}
+  .moe-pl .t{font-weight:800}.moe-pl .s{font-size:11px;color:var(--muted)}
+  .moe-chk{width:17px;height:17px;cursor:pointer;accent-color:var(--accent)}
+  .moe-tbl td.c0,.moe-tbl th.c0{width:34px;text-align:center;padding-left:8px;padding-right:4px}
+  .moe-tbl tr.sel td{background:var(--accent-lt)}
+  .moe-btn-pr{background:var(--accent);color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Nunito',sans-serif}
+  .moe-btn-pr:disabled{opacity:.45;cursor:not-allowed}
+  .moe-printopt{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:var(--text);margin-right:auto;cursor:pointer}
+  .moe-printopt input{width:17px;height:17px;accent-color:#d32f2f;cursor:pointer}
+
+  /* ── Secciones con botones + scroll interno (todo visible en pantalla) ── */
+  #page-monitoreo-emergencia{padding:18px 24px 90px!important}
+  #page-monitoreo-emergencia .moe-head{margin-bottom:12px}
+  #page-monitoreo-emergencia .moe-tabs{margin-bottom:12px}
+  #page-monitoreo-emergencia .moe-kpis{margin-bottom:12px}
+  #page-monitoreo-emergencia .moe-kpi{padding:10px 14px}
+  #page-monitoreo-emergencia .moe-kpi .v{font-size:24px}
+  .moe-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:4px 0}
+  .moe-navb{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:9px 16px;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif;box-shadow:var(--shadow-sm);transition:all .15s}
+  .moe-navb:hover{border-color:var(--accent);color:var(--accent)}
+  .moe-navb.active{background:var(--accent);border-color:var(--accent);color:#fff}
+  .moe-panel{display:none}
+  .moe-panel.active{display:block}
+  .moe-scroll{max-height:calc(100vh - 480px);min-height:220px;overflow:auto}
+  .moe-scroll .moe-tbl thead th{position:sticky;top:0;background:var(--surface);z-index:2}
+  @media(max-width:600px){#page-monitoreo-emergencia{padding:16px 12px 90px!important}.moe-dlg-b{grid-template-columns:1fr}}
+  /* ── Errores predeterminados / Seguridad / Estadística ── */
+  .moe-bg.top{z-index:10001}
+  .moe-inp,.moe-f select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);border-radius:6px;padding:8px 10px;font-size:13px;font-family:'Nunito',sans-serif}
+  .moe-f select{width:100%;padding:9px 11px;font-size:14px}
+  .moe-lnk{font-size:11px;font-weight:700;color:var(--accent);text-transform:none;letter-spacing:0;margin-left:6px;text-decoration:none;cursor:pointer}
+  .moe-crow{display:flex;gap:6px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--border);font-size:13px}
+  .moe-crow .t{flex:1;font-weight:700}
+  .moe-st-ctl{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px 18px 8px}
+  .moe-st-q{padding:0 18px 10px;display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .moe-st-out{padding:0 18px 12px;max-height:48vh;overflow:auto;border-top:1px solid var(--border)}
+  .stk{display:flex;gap:10px;margin:10px 0 6px}
+  .stk div{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:8px;text-align:center;padding:7px;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase}
+  .stk b{display:block;font-size:22px;color:var(--text);font-family:'Outfit',sans-serif}
+  .sth{font-family:'Outfit',sans-serif;font-size:14px;margin:14px 0 6px;color:var(--text)}
+  .stt{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px}
+  .stt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:7px 9px;border-bottom:2px solid var(--border)}
+  .stt td{padding:7px 9px;border-bottom:1px solid var(--border);color:var(--text)}
+  .stt .c{text-align:center}.stt tr.tot td{background:var(--surface2)}
+  .stb{margin-bottom:10px}.stbh{font-weight:800;font-size:13px;margin-bottom:2px}.stbh span{font-weight:600;color:var(--muted)}.stbh em{font-style:normal;color:var(--muted);font-weight:600;font-size:11px;margin-left:6px}
+  @media(max-width:600px){.moe-st-ctl{grid-template-columns:1fr 1fr}}
+</style>
+
+  <div class="moe-head">
+    <div>
+      <h2>🚨 Monitoreo de Emergencia</h2>
+      <p>Registro de expedientes devueltos para corrección y métricas por empleado, área y período.</p>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="moe-btn-err" onclick="moeOpen()">🚨 Error de emergencia</button>
+      <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px" onclick="moePrintDlg()">🖨️ Imprimir comprobantes</button>
+      <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px;background:#4f5fd5" onclick="moeStOpen()">📊 Estadística de errores</button>
+      <button class="btn btn-secondary" onclick="moeCatOpen()">⚙️ Errores predeterminados</button>
+      <button class="btn btn-secondary" onclick="moeExport()">⬇️ Exportar CSV</button>
+    </div>
+  </div>
+
+  <div class="moe-tabs" id="moe-tabs">
+    <button class="moe-tab" data-p="hoy" onclick="moeSetPeriod('hoy')">Hoy</button>
+    <button class="moe-tab" data-p="semana" onclick="moeSetPeriod('semana')">Esta semana</button>
+    <button class="moe-tab" data-p="mes" onclick="moeSetPeriod('mes')">Este mes</button>
+    <button class="moe-tab" data-p="todo" onclick="moeSetPeriod('todo')">Todo</button>
+    <button class="moe-tab" data-p="rango" onclick="moeSetPeriod('rango')">📅 Rango</button>
+    <span id="moe-rango-box" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
+      Desde <input type="date" id="moe-desde" onchange="moeRender()"> hasta <input type="date" id="moe-hasta" onchange="moeRender()">
+    </span>
+  </div>
+
+  <div class="moe-kpis" id="moe-kpis"></div>
+
+  <!-- Botones para acceder a cada sección -->
+  <div class="moe-nav" id="moe-nav">
+    <button class="moe-navb active" data-v="lista" onclick="moeView('lista')">📋 Expedientes devueltos</button>
+    <button class="moe-navb" data-v="rank" onclick="moeView('rank')">👤 ¿A quién se devuelven más?</button>
+    <button class="moe-navb" data-v="areas" onclick="moeView('areas')">🏢 Por área</button>
+    <button class="moe-navb" data-v="errores" onclick="moeView('errores')">⚠️ Errores frecuentes</button>
+    <button class="moe-navb" data-v="trend" onclick="moeView('trend')">📈 Tendencia</button>
+  </div>
+
+  <div class="moe-panel active" id="moe-pv-lista">
+    <div class="moe-card">
+      <h3>📋 Expedientes devueltos <small id="moe-list-sub"></small></h3>
+    <div class="moe-tools">
+      <input type="text" id="moe-q" placeholder="Buscar paciente, orden, error, área o empleado…" oninput="moeRender()">
+      <select id="moe-estado" onchange="moeRender()">
+        <option value="">Todos los estados</option>
+        <option value="pendiente">En corrección (pendientes)</option>
+        <option value="corregido">Corregidos</option>
+      </select>
+      <button class="btn btn-secondary" onclick="moeSelPend()" title="Marcar todos los pendientes de la lista">☑ Seleccionar pendientes</button>
+      <button class="moe-btn-pr" id="moe-print-sel" onclick="moePrintSel()" disabled>🖨️ Imprimir seleccionados (0)</button>
+    </div>
+      <div class="moe-xs moe-scroll" id="moe-list"></div>
+    </div>
+  </div>
+
+  <div class="moe-panel" id="moe-pv-rank">
+    <div class="moe-card">
+      <h3>👤 ¿A quién se le devuelven más expedientes? <small id="moe-rank-sub"></small></h3>
+      <div class="moe-xs moe-scroll" id="moe-rank"></div>
+    </div>
+  </div>
+
+  <div class="moe-panel" id="moe-pv-areas">
+    <div class="moe-card"><h3>🏢 Por área</h3><div class="body moe-scroll" id="moe-areas"></div></div>
+  </div>
+
+  <div class="moe-panel" id="moe-pv-errores">
+    <div class="moe-card"><h3>⚠️ Errores más frecuentes</h3><div class="body moe-scroll" id="moe-errores"></div></div>
+  </div>
+
+  <div class="moe-panel" id="moe-pv-trend">
+    <div class="moe-card"><h3>📈 Tendencia <small id="moe-trend-sub"></small></h3><div class="body moe-scroll"><div class="moe-trend" id="moe-trend"></div></div></div>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  window.moeView=function(v){
+    try{
+      Array.prototype.forEach.call(document.querySelectorAll('#moe-nav .moe-navb'),function(b){b.classList.toggle('active',b.getAttribute('data-v')===v);});
+      Array.prototype.forEach.call(document.querySelectorAll('#page-monitoreo-emergencia .moe-panel'),function(p){p.classList.toggle('active',p.id==='moe-pv-'+v);});
+      try{sessionStorage.setItem('moe_view',v);}catch(e){}
+    }catch(e){}
+  };
+  try{var v=sessionStorage.getItem('moe_view');if(v)window.moeView(v);}catch(e){}
+})();
+</script>
+
   <div class="page" id="page-atencion-emergencia">
   <div style="padding:24px 28px;width:100%;box-sizing:border-box;">
 
@@ -15345,6 +15553,7 @@ const SYS_MODULES = [
   { id: 'med-especialista',     label: '🚑 Médico de Emergencia',      grupo: 'Médico'      },
   // ── Emergencia ─────────────────────────────────────────────
   { id: 'atencion-emergencia',  label: '🩺 Atención de Emergencia',    grupo: 'Emergencia'  },
+  { id: 'monitoreo-emergencia', label: '🚨 Monitoreo de Emergencia',   grupo: 'Emergencia'  },
   { id: 'turno-nocturno',       label: '🏥 Personal de Admisión',      grupo: 'Emergencia'  },
   // ── Clínico / Herramientas ─────────────────────────────────
   { id: 'oxigeno',              label: '🫁 Cálculo de Oxígeno',        grupo: 'Clínico'     },
@@ -15490,7 +15699,7 @@ const PERMISOS_DEFAULT = {
     modulos: [
       'inicio','dashboard',
       'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
-      'atencion-emergencia','turno-nocturno',
+      'atencion-emergencia','monitoreo-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
       'documentos','compromiso','escaneo',
       'importar','accesosweb','asistentewa','usuarios','auditoria',
@@ -15501,7 +15710,7 @@ const PERMISOS_DEFAULT = {
     modulos: [
       'inicio','dashboard',
       'doctores','ars','enlace','extensiones','medico-llamada','med-especialista',
-      'atencion-emergencia','turno-nocturno',
+      'atencion-emergencia','monitoreo-emergencia','turno-nocturno',
       'oxigeno','catalogo','presupuestos',
       'documentos','compromiso','escaneo','accesosweb','asistentewa',
     ],
@@ -15604,7 +15813,7 @@ function canAccessModule(pageId) {
   if (sysSession.rol === 'admin') return true;
   // medico-llamada accessible to all roles (editing restricted by canDo)
   if (sysSession.modulos && Array.isArray(sysSession.modulos)) return sysSession.modulos.includes(pageId);
-  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','turno-nocturno','oxigeno','catalogo','procedimientos-emergencia','presupuestos','documentos','compromiso','escaneo','importar','auditoria','accesosweb'];
+  const editorMods = ['inicio','dashboard','doctores','ars','enlace','extensiones','med-especialista','atencion-emergencia','monitoreo-emergencia','turno-nocturno','oxigeno','catalogo','procedimientos-emergencia','presupuestos','documentos','compromiso','escaneo','importar','auditoria','accesosweb'];
   const viewerMods = ['inicio','dashboard','doctores','ars','extensiones','atencion-emergencia','presupuestos','catalogo','procedimientos-emergencia','documentos','medico-llamada','med-especialista','turno-nocturno','extensiones','accesosweb'];
   if (sysSession.rol === 'supervisor') return editorMods.includes(pageId) || ['usuarios','cargo-suministros','cargo-laboratorio','cargo-admision','medico-llamada'].includes(pageId);
   if (sysSession.rol === 'editor') return editorMods.includes(pageId);
@@ -19116,7 +19325,7 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   document.querySelectorAll('.nav-item').forEach(n => {
     if (n.getAttribute('onclick')?.includes(id)) n.classList.add('active');
   });
-  const titles = { asistentewa: '💬 Asistente WhatsApp', accesosweb: '🌐 ARS Web', inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
+  const titles = { 'monitoreo-emergencia': '🚨 Monitoreo de Emergencia', asistentewa: '💬 Asistente WhatsApp', accesosweb: '🌐 ARS Web', inicio: 'Menú Principal', dashboard: 'Dashboard', modulos: 'Módulos', doctores: 'Doctores', ars: 'ARS', enlace: 'Enlace ARS – Médicos', oxigeno: 'Cálculo de Oxígeno', importar: 'Importar Datos', presupuestos: 'Presupuestos', escaneo: '🤖 Pregúntale a la IA', ingreso: '🏨 Ingreso de Pacientes', compromiso: '📋 Carta de Compromiso', documentos: '🗂️ Documentación', usuarios: '👥 Usuarios del Sistema', auditoria: '🔍 Auditoría del Sistema', extensiones: '📞 Extensiones del Centro', configuracion: '⚙️ Configuración del Sistema', catalogo: '🔬 Catálogo de Estudios', 'procedimientos-emergencia': '📋 Procedimientos de Emergencia', 'turno-nocturno': '🏥 Personal de Admisión', 'med-especialista': '🚨 Médico de Emergencia', 'medico-llamada': '📞 Médico por Llamada', 'atencion-emergencia': '🚑 Atención de Emergencia', cargos: '🧾 Órdenes del Paciente', 'cargo-suministros': '💊 Suministros / Farmacia', 'cargo-laboratorio': '🧪 Laboratorio', 'cargo-admision': '🏥 Admisión' };
   document.getElementById('page-title').textContent = titles[id] || id;
   // ── Historial de navegación para botón Atrás ──────────────────────────────
   if (!window._navHistory) window._navHistory = [];
@@ -19161,8 +19370,9 @@ window.encImprimirSeleccion = function() { encImpTipo('seleccion'); encAbrirModa
   }
   if (id === 'atencion-emergencia') { document.body.classList.remove('enc-fullscreen'); setTimeout(function(){ if(window.syncEncPacientesToCamasState) syncEncPacientesToCamasState(); if(window.initAtencionEmergencia) initAtencionEmergencia(); if(window.encActualizarBadge) encActualizarBadge(); if(window.encRefreshLista) encRefreshLista(); if(window.encCfgTab) encCfgTab('mgral'); if(window.encRefreshAlertas) encRefreshAlertas(); }, 80); }
   if (id === 'cargos') { setTimeout(()=>{ if(typeof renderCargos==='function') renderCargos(); }, 80); }
+  if (id === 'monitoreo-emergencia') { setTimeout(function(){ if(window.moeInit) moeInit(); }, 50); }
   // Auto-abrir submenú Emergencia si se navega a uno de sus módulos
-  var emerPages = ['medico-llamada','med-especialista','atencion-emergencia'];
+  var emerPages = ['medico-llamada','med-especialista','atencion-emergencia','monitoreo-emergencia'];
   if (emerPages.indexOf(id) >= 0) {
     var grp = document.getElementById('nav-group-emergencia');
     var sub = document.getElementById('nav-submenu-emergencia');
@@ -41544,5 +41754,597 @@ setTimeout(function () { if (!_started) start(); }, 20000);   // respaldo si el 
 
 })();
 </script>
+<script>
+/* ══════════ MONITOREO DE EMERGENCIA — lógica ══════════
+   Datos en localStorage (clave cmm_moe_v1); el sistema de sincronización
+   existente los envía a Firebase automáticamente. */
+(function(){
+'use strict';
+var KEY='cmm_moe_v1', PKEY='cmm_moe_printpref', period='hoy', editId=null, lastSig='', sel={}, curIds=[];
+var AREAS=['Admisión','Facturación','Caja','Seguros / ARS','Laboratorio','Imagenología','Farmacia','Enfermería','Médico de emergencia','Archivo','Otra'];
+var DEF_ERR=['Falta firma','Falta sello','Falta autorización de ARS','Autorización vencida','Datos del paciente incorrectos','Cobertura / ARS incorrecta','Falta documentación','Código de procedimiento incorrecto','Monto incorrecto','Orden duplicada'];
+var EKEY='cmm_moe_errores_v1';
+
+function $(id){return document.getElementById(id);}
+function val(id){var e=$(id);return e?e.value:'';}
+function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+function norm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim();}
+function pad(n){return n<10?'0'+n:''+n;}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function load(){try{var a=JSON.parse(localStorage.getItem(KEY)||'[]');return Array.isArray(a)?a:[];}catch(e){return [];}}
+function save(a){try{localStorage.setItem(KEY,JSON.stringify(a));return true;}catch(e){return false;}}
+function toast(m,c){if(typeof showToast==='function')try{showToast(m,c||'green');}catch(e){}}
+function audit(a,d){if(typeof logAudit==='function')try{logAudit(a,d);}catch(e){}}
+function who(){try{return (typeof sysSession!=='undefined'&&sysSession)?(sysSession.nombre||sysSession.username||''):'';}catch(e){return '';}}
+function canDelete(){try{return typeof sysSession!=='undefined'&&sysSession&&(sysSession.rol==='admin'||sysSession.rol==='supervisor');}catch(e){return false;}}
+function fmt(ts){var d=new Date(ts);return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+' '+pad(d.getHours())+':'+pad(d.getMinutes());}
+function localDT(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes());}
+
+/* ── Rangos de fecha ── */
+function rangeOf(p){
+  var now=new Date(), d0=new Date(now.getFullYear(),now.getMonth(),now.getDate()), s=null, e=null;
+  if(p==='hoy'){s=d0;e=addDays(d0,1);}
+  else if(p==='semana'){s=addDays(d0,-((d0.getDay()+6)%7));e=addDays(s,7);}
+  else if(p==='mes'){s=new Date(now.getFullYear(),now.getMonth(),1);e=new Date(now.getFullYear(),now.getMonth()+1,1);}
+  else if(p==='rango'){var f=val('moe-desde'),t=val('moe-hasta');s=f?new Date(f+'T00:00:00'):null;e=t?addDays(new Date(t+'T00:00:00'),1):null;}
+  return {s:s,e:e};
+}
+function inR(r,rg){var t=new Date(r.ts).getTime();if(rg.s&&t<rg.s.getTime())return false;if(rg.e&&t>=rg.e.getTime())return false;return true;}
+
+/* ── Periodo ── */
+window.moeSetPeriod=function(p){period=p;var b=$('moe-rango-box');if(b)b.style.display=(p==='rango')?'inline-flex':'none';moeRender();};
+
+/* ── Render ── */
+function group(arr,keyFn,labelFn){
+  var m={};arr.forEach(function(r){var k=norm(keyFn(r));if(!k)return;(m[k]=m[k]||{n:labelFn(r),c:0}).c++;});
+  return Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return b.c-a.c;});
+}
+function hbars(list,cls){
+  if(!list.length)return '<div class="moe-empty">Sin datos en este período</div>';
+  var max=list[0].c||1;
+  return list.slice(0,8).map(function(x){return '<div class="moe-hbar"><span class="t" title="'+esc(x.n)+'">'+esc(x.n)+'</span><div class="moe-bar '+(cls||'')+'"><div style="width:'+Math.max(4,Math.round(x.c/max*100))+'%"></div></div><span class="c">'+x.c+'</span></div>';}).join('');
+}
+window.moeRender=function(){
+  if(!$('moe-kpis'))return;
+  var all=load(), cur=rangeOf(period), per=all.filter(function(r){return inR(r,cur);});
+  Array.prototype.forEach.call(document.querySelectorAll('#moe-tabs .moe-tab'),function(b){b.classList.toggle('active',b.getAttribute('data-p')===period);});
+
+  /* KPIs */
+  var pend=per.filter(function(r){return r.estado!=='corregido';}).length;
+  var emps=group(per,function(r){return r.empleado;},function(r){return r.empleado;});
+  var areas=group(per,function(r){return r.area;},function(r){return r.area;});
+  $('moe-kpis').innerHTML=
+    '<div class="moe-kpi red"><div class="v">'+per.length+'</div><div class="l">Expedientes devueltos</div></div>'+
+    '<div class="moe-kpi amber"><div class="v">'+pend+'</div><div class="l">Pendientes de corrección</div></div>'+
+    '<div class="moe-kpi green"><div class="v">'+(per.length-pend)+'</div><div class="l">Corregidos</div></div>'+
+    '<div class="moe-kpi"><div class="v sm">'+(emps.length?esc(emps[0].n)+' ('+emps[0].c+')':'—')+'</div><div class="l">Empleado con más devoluciones</div></div>'+
+    '<div class="moe-kpi"><div class="v sm">'+(areas.length?esc(areas[0].n)+' ('+areas[0].c+')':'—')+'</div><div class="l">Área con más devoluciones</div></div>';
+
+  /* Ranking por empleado: Hoy / Semana / Mes / período */
+  var R={hoy:rangeOf('hoy'),sem:rangeOf('semana'),mes:rangeOf('mes')}, M={};
+  all.forEach(function(r){
+    var k=norm(r.empleado);if(!k)return;
+    var o=M[k]=M[k]||{n:r.empleado,area:r.area,last:0,hoy:0,sem:0,mes:0,per:0,pend:0};
+    var t=new Date(r.ts).getTime();if(t>=o.last){o.last=t;o.area=r.area;o.n=r.empleado;}
+    if(inR(r,R.hoy))o.hoy++; if(inR(r,R.sem))o.sem++; if(inR(r,R.mes))o.mes++;
+    if(inR(r,cur)){o.per++;if(r.estado!=='corregido')o.pend++;}
+  });
+  var rk=Object.keys(M).map(function(k){return M[k];}).filter(function(o){return o.per>0;}).sort(function(a,b){return b.per-a.per||b.mes-a.mes;});
+  var mx=rk.length?rk[0].per:1;
+  $('moe-rank-sub').textContent=rk.length?rk.length+' empleado(s)':'';
+  $('moe-rank').innerHTML=rk.length?
+    '<table class="moe-tbl"><thead><tr><th>#</th><th>Empleado</th><th>Área</th><th style="text-align:center">Hoy</th><th style="text-align:center">Semana</th><th style="text-align:center">Mes</th><th style="min-width:170px">Período seleccionado</th><th style="text-align:center">Pend.</th></tr></thead><tbody>'+
+    rk.map(function(o,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(o.n)+'</b>'+(i===0&&o.per>1?'<span class="moe-tag top">⚠️ más devoluciones</span>':'')+'</td><td>'+esc(o.area)+'</td><td class="n">'+o.hoy+'</td><td class="n">'+o.sem+'</td><td class="n">'+o.mes+'</td><td><div style="display:flex;align-items:center;gap:8px"><div class="moe-bar" style="flex:1"><div style="width:'+Math.max(4,Math.round(o.per/mx*100))+'%"></div></div><b>'+o.per+'</b></div></td><td class="n">'+o.pend+'</td></tr>';}).join('')+
+    '</tbody></table>':'<div class="moe-empty">No hay expedientes devueltos en este período.</div>';
+
+  $('moe-areas').innerHTML=hbars(areas,'blue');
+  $('moe-errores').innerHTML=hbars(group(per,function(r){return r.error;},function(r){return r.error;}),'amber');
+  renderTrend(all,cur);
+
+  /* Listado */
+  var q=norm(val('moe-q')), st=val('moe-estado');
+  var lst=per.filter(function(r){
+    if(st&&(r.estado||'pendiente')!==st)return false;
+    if(!q)return true;
+    return norm([r.paciente,r.orden,r.error,r.detalle,r.area,r.empleado,r.por].join(' ')).indexOf(q)>=0;
+  }).sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+  $('moe-list-sub').textContent=lst.length+' registro(s)';
+  curIds=lst.map(function(r){return r.id;});
+  Object.keys(sel).forEach(function(k){if(curIds.indexOf(k)<0)delete sel[k];});
+  var allSel=lst.length&&lst.every(function(r){return sel[r.id];});
+  $('moe-list').innerHTML=lst.length?
+    '<table class="moe-tbl"><thead><tr><th class="c0"><input type="checkbox" class="moe-chk" title="Seleccionar todos" '+(allSel?'checked ':'')+'onchange="moeSelAll(this.checked)"></th><th>Fecha</th><th>Paciente</th><th>N.º orden</th><th>Error</th><th>Devuelto a</th><th>Estado</th><th style="text-align:center">Recibida</th><th></th></tr></thead><tbody>'+
+    lst.map(function(r){
+      var ok=r.estado==='corregido';
+      return '<tr class="'+(sel[r.id]?'sel':'')+'"><td class="c0"><input type="checkbox" class="moe-chk" '+(sel[r.id]?'checked ':'')+'onchange="moeSelOne(\''+r.id+'\',this.checked)"></td><td style="white-space:nowrap">'+fmt(r.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.por||'')+'</div></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.orden)+'</td>'+
+        '<td>'+esc(r.error)+(r.detalle?'<div style="font-size:11px;color:var(--muted)">'+esc(r.detalle)+'</div>':'')+'</td>'+
+        '<td><span class="moe-tag dev">↩ Devuelto para corrección para '+esc(r.empleado)+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(r.area)+'</div></td>'+
+        '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span><div style="font-size:11px;color:var(--muted)">pendiente por entregar</div>')+'</td>'+
+        '<td class="n"><label title="Marcar como recibida / corregida" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox" class="moe-chk" '+(ok?'checked ':'')+'onchange="moeToggle(\''+r.id+'\')"> '+(ok?'Sí':'No')+'</label></td><td style="white-space:nowrap"><button class="moe-ico" title="Imprimir comprobante" onclick="moePrint([\''+r.id+'\'])">🖨️</button><button class="moe-ico" title="'+(ok?'Reabrir':'Marcar como corregido')+'" onclick="moeToggle(\''+r.id+'\')">'+(ok?'↩':'✔')+'</button><button class="moe-ico" title="Editar" onclick="moeOpen(\''+r.id+'\')">✏️</button>'+(canDelete()?'<button class="moe-ico" title="Eliminar" onclick="moeDel(\''+r.id+'\')">🗑️</button>':'')+'</td></tr>';
+    }).join('')+'</tbody></table>':'<div class="moe-empty">No hay registros para mostrar.</div>';
+  lastSig=localStorage.getItem(KEY)||'';
+  moeSelUpd();
+};
+
+function renderTrend(all,cur){
+  var B=[],byMonth=false,s=cur.s,e=cur.e,now=new Date(),d0=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if(period==='hoy'){s=addDays(d0,-6);e=addDays(d0,1);}
+  if(!s||!e){ /* todo o rango abierto: usar datos */
+    var ts=all.map(function(r){return new Date(r.ts).getTime();});
+    if(!ts.length){$('moe-trend').innerHTML='<div class="moe-empty" style="width:100%">Sin datos</div>';$('moe-trend-sub').textContent='';return;}
+    s=s||new Date(Math.min.apply(null,ts));e=e||addDays(new Date(Math.max.apply(null,ts)),1);
+    s=new Date(s.getFullYear(),s.getMonth(),s.getDate());
+  }
+  if((e-s)/864e5>62)byMonth=true;
+  if(byMonth){
+    var m=new Date(s.getFullYear(),s.getMonth(),1);
+    while(m<e){B.push({a:m,b:new Date(m.getFullYear(),m.getMonth()+1,1),l:pad(m.getMonth()+1)+'/'+String(m.getFullYear()).slice(2),c:0});m=new Date(m.getFullYear(),m.getMonth()+1,1);}
+  }else{
+    for(var d=new Date(s);d<e;d=addDays(d,1))B.push({a:d,b:addDays(d,1),l:pad(d.getDate())+'/'+pad(d.getMonth()+1),c:0});
+  }
+  all.forEach(function(r){var t=new Date(r.ts).getTime();for(var i=0;i<B.length;i++){if(t>=B[i].a.getTime()&&t<B[i].b.getTime()){B[i].c++;break;}}});
+  var mx=Math.max.apply(null,B.map(function(x){return x.c;}).concat([1]));
+  $('moe-trend-sub').textContent=byMonth?'por mes':(period==='hoy'?'últimos 7 días':'por día');
+  $('moe-trend').innerHTML=B.map(function(x){return '<div class="moe-col" title="'+x.l+': '+x.c+'"><span class="n">'+(x.c||'')+'</span><div class="b" style="height:'+(x.c?Math.max(6,Math.round(x.c/mx*100)):0)+'%"></div><span class="d">'+x.l+'</span></div>';}).join('');
+}
+
+/* ── Modal ── */
+function ensureModal(){
+  if($('moe-bg'))return;
+  var h='<div class="moe-bg" id="moe-bg"><div class="moe-dlg">'+
+  '<div class="moe-dlg-h"><h3 id="moe-dlg-t">🚨 Registrar error de emergencia</h3><button onclick="moeClose()" aria-label="Cerrar">×</button></div>'+
+  '<div class="moe-dlg-b">'+
+   '<div class="moe-f"><label>Nombre del paciente *</label><input id="moe-f-pac" type="text" autocomplete="off" placeholder="Nombre completo"></div>'+
+   '<div class="moe-f"><label>N.º de orden *</label><input id="moe-f-ord" type="text" autocomplete="off" placeholder="Ej. 123456"></div>'+
+   '<div class="moe-f full"><label>Error por el cual se devuelve * <a class="moe-lnk" onclick="moeCatOpen()">⚙️ administrar lista</a></label><select id="moe-f-errsel" onchange="moeErrChange()"></select><input id="moe-f-err" type="text" autocomplete="off" placeholder="Escriba el error" style="display:none;margin-top:6px"><label id="moe-f-errsv" class="moe-printopt" style="display:none;margin:6px 0 0;font-size:12px"><input type="checkbox" id="moe-f-errsave"> Guardar como error predeterminado</label></div>'+
+   '<div class="moe-f full"><label>Detalle (opcional)</label><textarea id="moe-f-det" rows="2" placeholder="Observación adicional"></textarea></div>'+
+   '<div class="moe-f"><label>Área a la que se devuelve *</label><input id="moe-f-area" type="text" list="moe-dl-area" autocomplete="off" placeholder="Área" oninput="moeFillEmps();moePrev()"></div>'+
+   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" oninput="moePrev()"></div>'+
+   '<div class="moe-f full"><label>Fecha y hora</label><input id="moe-f-fecha" type="datetime-local"></div>'+
+   '<div class="moe-prev" id="moe-prev"></div>'+
+  '</div>'+
+  '<div class="moe-dlg-f"><label class="moe-printopt" title="Al guardar se abrirá la impresión del comprobante"><input type="checkbox" id="moe-f-print"> 🖨️ Imprimir comprobante al guardar</label><button class="btn btn-secondary" onclick="moeClose()">Cancelar</button><button class="moe-btn-err" onclick="moeSave()">💾 Guardar devolución</button></div>'+
+    '<datalist id="moe-dl-area">'+AREAS.map(function(x){return '<option value="'+esc(x)+'">';}).join('')+'</datalist>'+
+  '<datalist id="moe-dl-emp"></datalist></div></div>';
+  document.body.insertAdjacentHTML('beforeend',h);
+  $('moe-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeClose();});
+}
+window.moeFillEmps=function(){
+  var a=norm(val('moe-f-area')),seen={},out=[];
+  load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;if(a&&norm(r.area)!==a)return;seen[k]=1;out.push(r.empleado);});
+  if(!out.length&&a){load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;seen[k]=1;out.push(r.empleado);});}
+  var dl=$('moe-dl-emp');if(dl)dl.innerHTML=out.sort().map(function(x){return '<option value="'+esc(x)+'">';}).join('');
+};
+window.moePrev=function(){
+  var e=val('moe-f-emp').trim(),a=val('moe-f-area').trim(),p=$('moe-prev');if(!p)return;
+  p.innerHTML=e?'↩ Se marcará como: <b>Devuelto para corrección para '+esc(e)+'</b>'+(a?' ('+esc(a)+')':''):'↩ Indique el área y el empleado al que se devuelve el expediente.';
+};
+function openForm(id){
+  ensureModal();editId=id||null;
+  var r=id?load().filter(function(x){return x.id===id;})[0]:null;
+  $('moe-dlg-t').textContent=r?'✏️ Editar devolución':'🚨 Registrar error de emergencia';
+  $('moe-f-pac').value=r?r.paciente:'';$('moe-f-ord').value=r?r.orden:'';
+  moeErrSet(r?r.error:'');$('moe-f-det').value=r?(r.detalle||''):'';
+  $('moe-f-area').value=r?r.area:'';$('moe-f-emp').value=r?r.empleado:'';
+  $('moe-f-fecha').value=localDT(r?new Date(r.ts):new Date());
+  moeFillEmps();moePrev();
+  var pc=$('moe-f-print');if(pc){var pv='1';try{pv=localStorage.getItem(PKEY);if(pv===null)pv='1';}catch(e){}pc.checked=(pv==='1');}
+  $('moe-bg').classList.add('open');
+  setTimeout(function(){$('moe-f-pac').focus();},60);
+}
+function recDesc(r){return 'Orden '+r.orden+' · '+r.paciente+' — '+r.error;}
+window.moeOpen=function(id){
+  if(!id){openForm();return;}
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
+  moeGuard('EDITAR la devolución',recDesc(r),function(){audit('MONITOREO EMERGENCIA','Autorizó edición de orden '+r.orden);openForm(id);});
+};
+window.moeClose=function(){var b=$('moe-bg');if(b)b.classList.remove('open');editId=null;};
+window.moeSave=function(){
+  var pac=val('moe-f-pac').trim(),ord=val('moe-f-ord').trim(),err=errGet(),det=val('moe-f-det').trim(),
+      area=val('moe-f-area').trim(),emp=val('moe-f-emp').trim(),f=val('moe-f-fecha');
+  var miss=[];if(!pac)miss.push('nombre del paciente');if(!ord)miss.push('número de orden');if(!err)miss.push('error');if(!area)miss.push('área');if(!emp)miss.push('empleado');
+  if(miss.length){toast('⚠️ Falta: '+miss.join(', '),'yellow');return;}
+  var svc=$('moe-f-errsave');
+  if(svc&&svc.checked&&$('moe-f-errsel')&&$('moe-f-errsel').value==='__otro'){var LE=getErr();if(!LE.filter(function(x){return norm(x)===norm(err);}).length){LE.push(err);setErr(LE);}}
+  var ts=f?new Date(f).toISOString():new Date().toISOString();
+  var all=load(), savedId=editId, doPrint=!!($('moe-f-print')&&$('moe-f-print').checked);
+  try{localStorage.setItem(PKEY,doPrint?'1':'0');}catch(e){}
+  if(editId){
+    all.forEach(function(r){if(r.id===editId){r.paciente=pac;r.orden=ord;r.error=err;r.detalle=det;r.area=area;r.empleado=emp;r.ts=ts;}});
+    audit('MONITOREO EMERGENCIA','Editó devolución orden '+ord);
+  }else{
+    savedId='moe_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    all.push({id:savedId,ts:ts,paciente:pac,orden:ord,error:err,detalle:det,area:area,empleado:emp,estado:'pendiente',por:who()});
+    audit('MONITOREO EMERGENCIA','Devolvió orden '+ord+' a '+emp+' ('+area+') — '+err);
+  }
+  if(!save(all)){toast('❌ No se pudo guardar','red');return;}
+  var wasEdit=!!editId;
+  moeClose();moeRender();
+  toast(wasEdit?'✅ Devolución actualizada':'✅ Devuelto para corrección para '+emp);
+  if(doPrint)setTimeout(function(){moePrint([savedId]);},150);
+};
+function toggleDo(id){
+  var all=load(),msg='';
+  all.forEach(function(r){if(r.id!==id)return;if(r.estado==='corregido'){r.estado='pendiente';r.corrTs=null;msg='Reabrió (En corrección) orden '+r.orden;}else{r.estado='corregido';r.corrTs=new Date().toISOString();r.corrPor=who();msg='Marcó como corregida/recibida orden '+r.orden;}});
+  save(all);if(msg)audit('MONITOREO EMERGENCIA',msg);moeRender();
+}
+window.moeToggle=function(id){
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r){moeRender();return;}
+  var ok=r.estado==='corregido';
+  moeGuard(ok?'REABRIR la devolución (volver a "En corrección")':'MARCAR COMO CORREGIDA / RECIBIDA',recDesc(r),function(){toggleDo(id);},function(){moeRender();});
+};
+window.moeDel=function(id){
+  if(!canDelete())return;
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
+  moeGuard('ELIMINAR la devolución',recDesc(r),function(){
+    save(load().filter(function(x){return x.id!==id;}));
+    audit('MONITOREO EMERGENCIA','Eliminó devolución orden '+r.orden+' ('+r.paciente+')');
+    toast('🗑️ Devolución eliminada');moeRender();
+  });
+};
+window.moeExport=function(){
+  var cur=rangeOf(period),rows=load().filter(function(r){return inR(r,cur);}).sort(function(a,b){return new Date(a.ts)-new Date(b.ts);});
+  if(!rows.length){toast('No hay datos para exportar en este período','yellow');return;}
+  function c(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+  var out=[['Fecha','Paciente','N.º orden','Error','Detalle','Área','Devuelto para corrección para','Estado','Registrado por']];
+  rows.forEach(function(r){out.push([fmt(r.ts),r.paciente,r.orden,r.error,r.detalle||'',r.area,r.empleado,r.estado==='corregido'?'Corregido':'Pendiente',r.por||'']);});
+  var blob=new Blob(['\ufeff'+out.map(function(l){return l.map(c).join(',');}).join('\r\n')],{type:'text/csv;charset=utf-8'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='monitoreo_emergencia_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+};
+/* ── Ventana para elegir qué imprimir (visible desde arriba, sin bajar) ── */
+function ensurePD(){
+  if($('moe-pd-bg'))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg" id="moe-pd-bg"><div class="moe-dlg" style="max-width:680px">'+
+   '<div class="moe-dlg-h" style="background:#4f5fd5"><h3>🖨️ Imprimir comprobantes</h3><button onclick="moePDClose()" aria-label="Cerrar">×</button></div>'+
+   '<div style="padding:12px 16px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">'+
+     '<button class="btn btn-secondary" onclick="moePDSel(\'pend\')">☑ Solo pendientes</button>'+
+     '<button class="btn btn-secondary" onclick="moePDSel(\'all\')">☑ Todos</button>'+
+     '<button class="btn btn-secondary" onclick="moePDSel(\'none\')">☐ Ninguno</button>'+
+     '<span style="font-size:11px;color:var(--muted)">(según el período elegido arriba)</span></div>'+
+   '<div class="moe-pl" id="moe-pd-list"></div>'+
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moePDClose()">Cancelar</button><button class="moe-btn-pr" id="moe-pd-go" onclick="moePDGo()">🖨️ Imprimir (0)</button></div>'+
+  '</div></div>');
+  $('moe-pd-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moePDClose();});
+}
+function pdCount(){var n=0;Array.prototype.forEach.call(document.querySelectorAll('#moe-pd-list input'),function(c){if(c.checked)n++;});var b=$('moe-pd-go');if(b){b.disabled=!n;b.textContent='🖨️ Imprimir ('+n+')';}return n;}
+window.moePrintDlg=function(){
+  ensurePD();
+  var cur=rangeOf(period),rows=load().filter(function(r){return inR(r,cur);}).sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+  $('moe-pd-list').innerHTML=rows.length?rows.map(function(r){
+    var ok=r.estado==='corregido';
+    return '<label><input type="checkbox" class="moe-chk" data-id="'+r.id+'" data-ok="'+(ok?1:0)+'" '+(!ok?'checked ':'')+'onchange="moePDCnt()"><div><div class="t">'+esc(r.paciente)+' <span style="font-weight:600;color:var(--muted)">· orden '+esc(r.orden)+'</span></div><div class="s">'+esc(r.error)+' → <b>'+esc(r.empleado)+'</b> ('+esc(r.area)+') · '+fmt(r.ts)+' · '+(ok?'✔ Corregido':'Pendiente')+'</div></div></label>';
+  }).join(''):'<div class="moe-empty">No hay registros en este período. Cambia el período (Hoy / Esta semana / Todo).</div>';
+  pdCount();$('moe-pd-bg').classList.add('open');
+};
+window.moePDCnt=pdCount;
+window.moePDClose=function(){var b=$('moe-pd-bg');if(b)b.classList.remove('open');};
+window.moePDSel=function(m){Array.prototype.forEach.call(document.querySelectorAll('#moe-pd-list input'),function(c){c.checked=(m==='all')||(m==='pend'&&c.getAttribute('data-ok')==='0');});pdCount();};
+window.moePDGo=function(){
+  var ids=[];Array.prototype.forEach.call(document.querySelectorAll('#moe-pd-list input'),function(c){if(c.checked)ids.push(c.getAttribute('data-id'));});
+  if(!ids.length)return;moePDClose();moePrint(ids);
+};
+/* Barra flotante cuando hay filas marcadas en la lista */
+function fabUpd(){
+  var n=Object.keys(sel).length,f=$('moe-fab');
+  if(!f){document.body.insertAdjacentHTML('beforeend','<div class="moe-fab" id="moe-fab"><span id="moe-fab-n"></span><button style="background:#4f5fd5;color:#fff" onclick="moePrintSel()">🖨️ Imprimir</button><button style="background:#475569;color:#fff" onclick="moeSelAll(false)">Quitar</button></div>');f=$('moe-fab');}
+  f.classList.toggle('show',n>0&&window._currentPage==='monitoreo-emergencia');
+  $('moe-fab-n').textContent=n+' seleccionado(s)';
+}
+setInterval(function(){if($('moe-fab')||Object.keys(sel).length)fabUpd();},700);
+
+/* ── Selección ── */
+function moeSelUpd(){
+  var n=Object.keys(sel).length,b=$('moe-print-sel');
+  if(b){b.disabled=!n;b.textContent='🖨️ Imprimir seleccionados ('+n+')';}
+  if(typeof fabUpd==='function')fabUpd();
+}
+window.moeSelOne=function(id,on){if(on)sel[id]=1;else delete sel[id];moeRender();};
+window.moeSelAll=function(on){sel={};if(on)curIds.forEach(function(i){sel[i]=1;});moeRender();};
+window.moeSelPend=function(){
+  var m={};load().forEach(function(r){m[r.id]=r;});
+  sel={};curIds.forEach(function(i){if(m[i]&&m[i].estado!=='corregido')sel[i]=1;});
+  if(!Object.keys(sel).length)toast('No hay pendientes en la lista','yellow');
+  moeRender();
+};
+window.moePrintSel=function(){var ids=Object.keys(sel);if(!ids.length)return;moePrint(ids);};
+
+/* ── Comprobante imprimible (una hoja por empleado) ── */
+function fmtD(ts){var d=new Date(ts),h=d.getHours(),ap=h>=12?'p. m.':'a. m.';h=h%12||12;return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear()+'<br><span class="tm">'+pad(h)+':'+pad(d.getMinutes())+' '+ap+'</span>';}
+window.moePrint=function(ids){
+  var map={};load().forEach(function(r){map[r.id]=r;});
+  var rows=(ids||[]).map(function(i){return map[i];}).filter(Boolean);
+  if(!rows.length){toast('No hay registros para imprimir','yellow');return;}
+  rows.sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+  var now=new Date(),nowS=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+', '+now.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var emps=[],areas=[];
+  rows.forEach(function(r){if(emps.map(norm).indexOf(norm(r.empleado))<0)emps.push(r.empleado);if(areas.map(norm).indexOf(norm(r.area))<0)areas.push(r.area);});
+  var n=rows.length,corr=rows.filter(function(r){return r.estado==='corregido';}).length,pend=n-corr;
+  var tr=rows.map(function(r){
+    var ok=r.estado==='corregido';
+    return '<tr><td class="dt">'+fmtD(r.ts)+'</td><td class="b">'+esc(r.orden)+'</td><td class="b">'+esc(r.paciente)+'</td><td>'+esc(r.error)+(r.detalle?'<div class="det">'+esc(r.detalle)+'</div>':'')+'</td><td class="b">'+esc(r.empleado)+'</td><td class="st '+(ok?'ok':'pe')+'">'+(ok?'✔ Corregida':'✎ En corrección')+'<div class="sm">'+(ok?(r.corrTs?fmt(r.corrTs):''):'pendiente por entregar')+'</div></td><td class="rc"><span class="bx">'+(ok?'✔':'')+'</span></td></tr>';
+  }).join('');
+  var pages='<section class="pg"><div class="hd"><div class="lbl">ERROR A CORREGIR POR '+esc(areas.join(' / ').toUpperCase())+'</div><div class="ttl">'+emps.map(esc).join(' &nbsp;|&nbsp; ')+'</div></div>'+
+    '<div class="meta"><div><b>EEMonitoreo — Errores Internos</b><br><span>Emergencias seleccionadas para entregar · '+n+' seleccionadas</span></div><div class="r">Impreso: '+nowS+'<br>Total: <b>'+n+'</b> registros</div></div>'+
+    '<div class="kp"><div><b>'+n+'</b>Total registros</div><div><b>'+pend+'</b>En corrección<br>(pendientes por entregar)</div><div><b>'+corr+'</b>Corregidas</div></div>'+
+    '<table><thead><tr><th>Fecha</th><th>N.º orden</th><th>Nombre del paciente</th><th>Error a corregir</th><th>Enviado a</th><th>Estado</th><th>Recibida</th></tr></thead><tbody>'+tr+'</tbody></table>'+
+    '<div class="sg"><div>Entregado por: <b>'+esc(who())+'</b><i></i></div><div>Recibido por (firma)<i></i></div><div>Fecha de corrección<i></i></div></div>'+
+    '<div class="ft">EEMonitoreo — Departamento de Emergencia · Generado: '+nowS+'</div></section>';
+  var css='@page{size:letter;margin:12mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:12px}'+
+  '.pg{page-break-after:always;padding:0}.pg:last-child{page-break-after:auto}'+
+  '.hd{border:2px solid #333;border-radius:12px;padding:14px 18px;margin-bottom:12px}.lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:#444}.ttl{font-size:28px;font-weight:900;line-height:1.15;margin:8px 0 2px;text-transform:uppercase;word-break:break-word}.sub{font-size:14px;color:#222}'+
+  '.meta{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #333;padding-bottom:6px;margin-bottom:10px;font-size:13px}.meta span{font-size:11px;color:#555}.meta .r{text-align:right;font-size:11px;color:#333}'+
+  '.kp{display:flex;gap:10px;margin-bottom:12px}.kp div{flex:1;border:1px solid #999;border-radius:8px;text-align:center;padding:6px;font-size:11px;color:#444}.kp b{display:block;font-size:22px;color:#111}'+
+  'table{width:100%;border-collapse:collapse;font-size:12px}th{background:#e6e6e6;border:1px solid #888;padding:6px 5px;font-size:10.5px;text-transform:uppercase;text-align:left}td{border:1px solid #888;padding:7px 5px;vertical-align:middle}'+
+  'td.b{font-weight:700}td.dt{white-space:nowrap}.tm{font-size:10px;color:#555}.det{font-size:10px;color:#555;margin-top:2px}td.st{font-weight:700;white-space:nowrap}td.st.pe{color:#9a5a00}td.st.ok{color:#1e7a40}td.rc{text-align:center;width:62px}.bx{display:inline-block;width:20px;height:20px;border:2px solid #333;border-radius:3px;font-size:15px;line-height:17px;font-weight:900;color:#1e7a40}.sm{font-size:9.5px;font-weight:400;color:#555}'+
+  '.sg{display:flex;gap:18px;margin-top:22px}.sg div{flex:1;font-size:11px;color:#333}.sg i{display:block;border-bottom:1px solid #333;height:26px}'+
+  '.ft{margin-top:14px;text-align:right;font-size:10px;color:#666}';
+  var html='<!doctype html><html><head><meta charset="utf-8"><title>Comprobante de devolución</title><style>'+css+'</style></head><body>'+pages+'</body></html>';
+  var old=document.getElementById('moe-print-frame');if(old)old.remove();
+  var fr=document.createElement('iframe');fr.id='moe-print-frame';fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(fr);
+  var d=fr.contentWindow.document;d.open();d.write(html);d.close();
+  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){toast('❌ No se pudo abrir la impresión','red');}},350);
+  audit('MONITOREO EMERGENCIA','Imprimió comprobante de '+rows.length+' devolución(es)');
+};
+
+/* ══════════ ERRORES PREDETERMINADOS (catálogo para métricas) ══════════ */
+function getErr(){
+  try{var a=JSON.parse(localStorage.getItem(EKEY)||'null');if(Array.isArray(a))return a.filter(function(x){return typeof x==='string'&&x.trim();});}catch(e){}
+  return DEF_ERR.slice();
+}
+function setErr(a){try{localStorage.setItem(EKEY,JSON.stringify(a));return true;}catch(e){return false;}}
+window.moeErrFill=function(sel){
+  var s=$('moe-f-errsel');if(!s)return;
+  var cur=(sel!==undefined)?sel:s.value;
+  s.innerHTML='<option value="">— Seleccione el error —</option>'+getErr().map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('')+'<option value="__otro">✍️ Otro (escribir)…</option>';
+  s.value=cur;if(s.value!==cur)s.value='';
+  moeErrChange();
+};
+window.moeErrChange=function(){
+  var s=$('moe-f-errsel');if(!s||!$('moe-f-err'))return;
+  var o=s.value==='__otro';
+  $('moe-f-err').style.display=o?'':'none';$('moe-f-errsv').style.display=o?'flex':'none';
+  if(o)setTimeout(function(){$('moe-f-err').focus();},30);
+};
+window.moeErrSet=function(v){
+  v=(v||'').trim();var s=$('moe-f-errsel');if(!s)return;
+  moeErrFill('');$('moe-f-err').value='';$('moe-f-errsave').checked=false;
+  if(!v)return;
+  var hit=getErr().filter(function(x){return norm(x)===norm(v);})[0];
+  if(hit){s.value=hit;}else{s.value='__otro';$('moe-f-err').value=v;}
+  moeErrChange();
+};
+function errGet(){var s=$('moe-f-errsel');if(!s)return val('moe-f-err').trim();return s.value==='__otro'?val('moe-f-err').trim():s.value;}
+
+var cEdit=-1;
+function ensureC(){
+  if($('moe-c-bg'))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg top" id="moe-c-bg"><div class="moe-dlg" style="max-width:520px">'+
+   '<div class="moe-dlg-h" style="background:#1B5FA8"><h3>⚙️ Errores predeterminados</h3><button onclick="moeCatClose()" aria-label="Cerrar">×</button></div>'+
+   '<div style="padding:14px 18px 6px;font-size:12px;color:var(--muted)">Estos nombres se ofrecen al registrar un error y se usan en las métricas y en la estadística, para que siempre se escriban igual. Renombrar o quitar uno no cambia los registros ya guardados.</div>'+
+   '<div style="padding:6px 18px 12px;display:flex;gap:8px"><input id="moe-c-new" class="moe-inp" type="text" autocomplete="off" placeholder="Nuevo nombre de error…" style="flex:1" onkeydown="if(event.key===\'Enter\')moeCatAdd()"><button class="moe-btn-pr" onclick="moeCatAdd()">➕ Agregar</button></div>'+
+   '<div class="moe-pl" id="moe-c-list"></div>'+
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeCatReset()">Restaurar lista inicial</button><button class="moe-btn-pr" onclick="moeCatClose()">Listo</button></div></div></div>');
+  $('moe-c-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeCatClose();});
+}
+function catRender(){
+  var L=getErr(),el=$('moe-c-list');if(!el)return;
+  el.innerHTML=L.length?L.map(function(n,i){
+    if(i===cEdit)return '<div class="moe-crow"><input class="moe-inp" id="moe-c-ed" value="'+esc(n)+'" style="flex:1" onkeydown="if(event.key===\'Enter\')moeCatSave('+i+')"><button class="moe-ico" title="Guardar" onclick="moeCatSave('+i+')">💾</button><button class="moe-ico" title="Cancelar" onclick="moeCatEdit(-1)">✖</button></div>';
+    return '<div class="moe-crow"><span class="t">'+esc(n)+'</span><button class="moe-ico" title="Renombrar" onclick="moeCatEdit('+i+')">✏️</button><button class="moe-ico" title="Quitar de la lista" onclick="moeCatDel('+i+')">🗑️</button></div>';
+  }).join(''):'<div class="moe-empty">No hay errores predeterminados. Agrega el primero arriba.</div>';
+  moeErrFill();
+}
+function dupErr(v,skip){return getErr().some(function(x,i){return i!==skip&&norm(x)===norm(v);});}
+window.moeCatOpen=function(){ensureC();cEdit=-1;catRender();$('moe-c-bg').classList.add('open');setTimeout(function(){$('moe-c-new').focus();},60);};
+window.moeCatClose=function(){var b=$('moe-c-bg');if(b)b.classList.remove('open');};
+window.moeCatAdd=function(){
+  var i=$('moe-c-new'),v=i.value.trim();if(!v)return;
+  if(dupErr(v,-1)){toast('⚠️ Ese error ya está en la lista','yellow');return;}
+  var L=getErr();L.push(v);setErr(L);i.value='';catRender();i.focus();
+};
+window.moeCatEdit=function(i){cEdit=i;catRender();if(i>=0)setTimeout(function(){var e=$('moe-c-ed');if(e){e.focus();e.select();}},30);};
+window.moeCatSave=function(i){
+  var v=val('moe-c-ed').trim();if(!v)return;
+  if(dupErr(v,i)){toast('⚠️ Ese error ya está en la lista','yellow');return;}
+  var L=getErr();L[i]=v;setErr(L);cEdit=-1;catRender();
+};
+window.moeCatDel=function(i){
+  var L=getErr();if(!L[i])return;
+  if(!confirm('¿Quitar "'+L[i]+'" de la lista de errores predeterminados?\nLos registros ya guardados no cambian.'))return;
+  L.splice(i,1);setErr(L);cEdit=-1;catRender();
+};
+window.moeCatReset=function(){
+  if(!confirm('¿Restaurar la lista inicial de errores predeterminados?'))return;
+  setErr(DEF_ERR.slice());cEdit=-1;catRender();
+};
+
+/* ══════════ SEGURIDAD: doble confirmación + contraseña del usuario ══════════ */
+function curUser(){
+  try{
+    if(typeof sysSession==='undefined'||!sysSession)return null;
+    var us=(typeof sysUsuarios!=='undefined'&&sysUsuarios&&sysUsuarios.length)?sysUsuarios:[];
+    var u=us.filter(function(x){return x.id===sysSession.id;})[0]||us.filter(function(x){return x.username&&x.username===sysSession.username;})[0];
+    return u||sysSession;
+  }catch(e){return null;}
+}
+function passOk(p){
+  var u=curUser();if(!u||!p)return false;
+  var st=u.password||'',isDef=(st===''||st==='admin123'||st==='12345');
+  return p===st||(isDef&&p==='12345');
+}
+var GS={acc:'',det:'',ok:null,no:null,step:1,tries:0};
+function ensureG(){
+  if($('moe-g-bg'))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg top" id="moe-g-bg"><div class="moe-dlg" style="max-width:440px">'+
+   '<div class="moe-dlg-h" id="moe-g-h"><h3 id="moe-g-t"></h3><button onclick="moeGCancel()" aria-label="Cerrar">×</button></div>'+
+   '<div style="padding:18px 20px" id="moe-g-b"></div>'+
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeGCancel()">Cancelar</button><button class="moe-btn-err" id="moe-g-go" onclick="moeGNext()"></button></div></div></div>');
+  $('moe-g-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeGCancel();});
+}
+function gRender(){
+  var b=$('moe-g-b'),t=$('moe-g-t'),go=$('moe-g-go'),h=$('moe-g-h'),u=curUser();
+  if(GS.step===1){
+    h.style.background='#b45309';t.textContent='⚠️ Confirmación 1 de 2';
+    b.innerHTML='<p style="font-size:14px;margin:0 0 10px">Vas a <b>'+esc(GS.acc)+'</b>:</p><div class="moe-prev" style="background:#fff0c8;color:#7a4a00">'+esc(GS.det)+'</div><p style="font-size:13px;color:var(--muted);margin:12px 0 0">¿Deseas continuar?</p>';
+    go.textContent='Sí, continuar';
+  }else{
+    h.style.background='#d32f2f';t.textContent='🔒 Confirmación 2 de 2';
+    b.innerHTML='<p style="font-size:14px;margin:0 0 10px">Para <b>'+esc(GS.acc)+'</b>, escribe la contraseña de <b>'+esc(u?(u.nombre||u.username||''):'')+'</b>. La acción quedará registrada a su nombre.</p>'+
+     '<div class="moe-f"><label>Contraseña</label><input type="password" id="moe-g-pw" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')moeGNext()"></div><div id="moe-g-err" style="color:#b01030;font-size:12px;font-weight:700;min-height:16px;margin-top:6px"></div>';
+    go.textContent='🔒 Confirmar';
+    setTimeout(function(){var p=$('moe-g-pw');if(p)p.focus();},60);
+  }
+}
+function gClose(){var b=$('moe-g-bg');if(b)b.classList.remove('open');}
+window.moeGuard=function(acc,det,ok,no){
+  if(!curUser()){toast('⚠️ Debes iniciar sesión para realizar esta acción','yellow');if(no)no();return;}
+  ensureG();GS.acc=acc;GS.det=det;GS.ok=ok;GS.no=no||null;GS.step=1;GS.tries=0;
+  gRender();$('moe-g-bg').classList.add('open');
+};
+window.moeGCancel=function(){var n=GS.no;GS.ok=null;GS.no=null;gClose();if(n)n();};
+window.moeGNext=function(){
+  if(GS.step===1){GS.step=2;gRender();return;}
+  var p=val('moe-g-pw'),er=$('moe-g-err');
+  if(!p){if(er)er.textContent='Escribe tu contraseña';return;}
+  if(!passOk(p)){
+    GS.tries++;
+    if(typeof logAudit==='function'){try{logAudit('MONITOREO EMERGENCIA','Contraseña incorrecta al intentar '+GS.acc+' — '+GS.det,true);}catch(e){}}
+    if(GS.tries>=3){toast('⛔ Demasiados intentos. Acción cancelada.','red');moeGCancel();return;}
+    if(er)er.textContent='❌ Contraseña incorrecta ('+GS.tries+' de 3)';
+    var pw=$('moe-g-pw');if(pw){pw.value='';pw.focus();}
+    return;
+  }
+  var ok=GS.ok;GS.ok=null;GS.no=null;gClose();
+  if(ok)ok();
+};
+
+/* ══════════ ESTADÍSTICA DE ERRORES (por área o empleado, con rango de fechas) ══════════ */
+function dstr(d){return pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();}
+function isoD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());}
+function pcn(n,t){return t?(Math.round(n/t*1000)/10).toString().replace('.',',')+'%':'0%';}
+function ensureS(){
+  if($('moe-s-bg'))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg" id="moe-s-bg"><div class="moe-dlg" style="max-width:860px">'+
+   '<div class="moe-dlg-h" style="background:#4f5fd5"><h3>📊 Estadística de errores</h3><button onclick="moeStClose()" aria-label="Cerrar">×</button></div>'+
+   '<div class="moe-st-ctl">'+
+     '<div class="moe-f"><label>Agrupar por</label><select id="moe-s-by" onchange="moeStBy()"><option value="area">🏢 Por área</option><option value="emp">👤 Por empleado</option></select></div>'+
+     '<div class="moe-f"><label id="moe-s-fl">Área</label><select id="moe-s-filt" onchange="moeStRender()"></select></div>'+
+     '<div class="moe-f"><label>Desde</label><input type="date" id="moe-s-d1" onchange="moeStRender()"></div>'+
+     '<div class="moe-f"><label>Hasta</label><input type="date" id="moe-s-d2" onchange="moeStRender()"></div>'+
+   '</div>'+
+   '<div class="moe-st-q"><span>Rango rápido:</span><button class="moe-tab" onclick="moeStQ(\'hoy\')">Hoy</button><button class="moe-tab" onclick="moeStQ(\'semana\')">Esta semana</button><button class="moe-tab" onclick="moeStQ(\'mes\')">Este mes</button><button class="moe-tab" onclick="moeStQ(\'todo\')">Todo</button></div>'+
+   '<div class="moe-st-out" id="moe-s-out"></div>'+
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeStClose()">Cerrar</button><button class="moe-btn-pr" id="moe-s-print" onclick="moeStPrint()">🖨️ Imprimir estadística</button></div></div></div>');
+  $('moe-s-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeStClose();});
+}
+window.moeStOpen=function(){
+  ensureS();
+  var a=val('moe-desde'),b=val('moe-hasta');
+  if(period==='rango'&&(a||b)){$('moe-s-d1').value=a;$('moe-s-d2').value=b;moeStBy();}
+  else{moeStQ(period==='rango'?'todo':period,true);}
+  $('moe-s-bg').classList.add('open');
+};
+window.moeStClose=function(){var b=$('moe-s-bg');if(b)b.classList.remove('open');};
+window.moeStQ=function(p,noRender){
+  var n=new Date(),d0=new Date(n.getFullYear(),n.getMonth(),n.getDate()),a=null,b=null;
+  if(p==='hoy'){a=d0;b=d0;}
+  else if(p==='semana'){a=addDays(d0,-((d0.getDay()+6)%7));b=addDays(a,6);}
+  else if(p==='mes'){a=new Date(n.getFullYear(),n.getMonth(),1);b=new Date(n.getFullYear(),n.getMonth()+1,0);}
+  $('moe-s-d1').value=a?isoD(a):'';$('moe-s-d2').value=b?isoD(b):'';
+  if(noRender)moeStBy();else moeStRender();
+};
+window.moeStBy=function(){
+  var by=val('moe-s-by'),seen={},out=[],prev=val('moe-s-filt');
+  load().forEach(function(r){var v=by==='area'?r.area:r.empleado,k=norm(v);if(!k||seen[k])return;seen[k]=1;out.push(v);});
+  out.sort(function(x,y){return x.localeCompare(y,'es');});
+  $('moe-s-fl').textContent=by==='area'?'Área':'Empleado';
+  $('moe-s-filt').innerHTML='<option value="">'+(by==='area'?'Todas las áreas':'Todos los empleados')+'</option>'+out.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('');
+  $('moe-s-filt').value=prev;if($('moe-s-filt').value!==prev)$('moe-s-filt').value='';
+  moeStRender();
+};
+function stCalc(){
+  var by=val('moe-s-by')||'area',fl=val('moe-s-filt'),a=val('moe-s-d1'),b=val('moe-s-d2');
+  var rg={s:a?new Date(a+'T00:00:00'):null,e:b?addDays(new Date(b+'T00:00:00'),1):null};
+  var rows=load().filter(function(r){
+    if(!inR(r,rg))return false;
+    if(fl&&norm(by==='area'?r.area:r.empleado)!==norm(fl))return false;
+    return true;
+  });
+  var G={},EA={};
+  rows.forEach(function(r){
+    var lab=by==='area'?r.area:r.empleado,k=norm(lab);if(!k)return;
+    var g=G[k]=G[k]||{n:lab,area:r.area,tot:0,ok:0,pe:0,last:0,E:{}};
+    g.tot++;if(r.estado==='corregido')g.ok++;else g.pe++;
+    var t=new Date(r.ts).getTime();if(t>=g.last){g.last=t;g.area=r.area;}
+    var ek=norm(r.error)||'sin especificar',en=r.error||'(sin especificar)';
+    (g.E[ek]=g.E[ek]||{n:en,c:0}).c++;(EA[ek]=EA[ek]||{n:en,c:0}).c++;
+  });
+  function srt(o){return Object.keys(o).map(function(x){return o[x];}).sort(function(x,y){return y.c-x.c||x.n.localeCompare(y.n,'es');});}
+  var list=Object.keys(G).map(function(k){var g=G[k];g.errs=srt(g.E);return g;}).sort(function(x,y){return y.tot-x.tot||x.n.localeCompare(y.n,'es');});
+  var ok=rows.filter(function(r){return r.estado==='corregido';}).length;
+  return {by:by,fl:fl,a:a,b:b,list:list,errs:srt(EA),tot:rows.length,ok:ok,pe:rows.length-ok};
+}
+function stBody(D){
+  if(!D.tot)return '<div class="moe-empty">No hay errores registrados con esos filtros.</div>';
+  var isA=D.by==='area',nm=isA?'área':'empleado';
+  var h='<div class="stk"><div><b>'+D.tot+'</b>Total errores</div><div><b>'+D.ok+'</b>Corregidos</div><div><b>'+D.pe+'</b>Pendientes</div><div><b>'+D.list.length+'</b>'+(isA?'Áreas':'Empleados')+'</div></div>';
+  h+='<h4 class="sth">Resumen por '+nm+'</h4><table class="stt"><thead><tr><th>#</th><th>'+(isA?'Área':'Empleado')+'</th>'+(isA?'':'<th>Área</th>')+'<th class="c">Total</th><th class="c">Corregidos</th><th class="c">Pendientes</th><th class="c">% del total</th><th>Error más frecuente</th></tr></thead><tbody>'+
+    D.list.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(g.n)+'</b></td>'+(isA?'':'<td>'+esc(g.area)+'</td>')+'<td class="c"><b>'+g.tot+'</b></td><td class="c">'+g.ok+'</td><td class="c">'+g.pe+'</td><td class="c">'+pcn(g.tot,D.tot)+'</td><td>'+esc(g.errs[0].n)+' ('+g.errs[0].c+')</td></tr>';}).join('')+
+    '<tr class="tot"><td></td><td><b>TOTAL</b></td>'+(isA?'':'<td></td>')+'<td class="c"><b>'+D.tot+'</b></td><td class="c">'+D.ok+'</td><td class="c">'+D.pe+'</td><td class="c">100%</td><td></td></tr></tbody></table>';
+  h+='<h4 class="sth">Errores más frecuentes (general)</h4><table class="stt"><thead><tr><th>#</th><th>Error</th><th class="c">Cantidad</th><th class="c">%</th></tr></thead><tbody>'+
+    D.errs.map(function(e,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(e.n)+'</td><td class="c"><b>'+e.c+'</b></td><td class="c">'+pcn(e.c,D.tot)+'</td></tr>';}).join('')+'</tbody></table>';
+  h+='<h4 class="sth">Detalle de errores por '+nm+'</h4>'+D.list.map(function(g){
+    return '<div class="stb"><div class="stbh">'+esc(g.n)+(isA?'':' <span>· '+esc(g.area)+'</span>')+'<em>'+g.tot+' error(es)</em></div><table class="stt"><thead><tr><th>Error</th><th class="c">Cantidad</th><th class="c">% del '+nm+'</th></tr></thead><tbody>'+
+      g.errs.map(function(e){return '<tr><td>'+esc(e.n)+'</td><td class="c"><b>'+e.c+'</b></td><td class="c">'+pcn(e.c,g.tot)+'</td></tr>';}).join('')+'</tbody></table></div>';}).join('');
+  return h;
+}
+window.moeStRender=function(){
+  var o=$('moe-s-out');if(!o)return;
+  var D=stCalc();o.innerHTML=stBody(D);
+  var b=$('moe-s-print');if(b)b.disabled=!D.tot;
+};
+function printHtml(html){
+  var old=document.getElementById('moe-print-frame');if(old)old.remove();
+  var fr=document.createElement('iframe');fr.id='moe-print-frame';fr.style.cssText='position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
+  document.body.appendChild(fr);
+  var d=fr.contentWindow.document;d.open();d.write(html);d.close();
+  setTimeout(function(){try{fr.contentWindow.focus();fr.contentWindow.print();}catch(e){toast('❌ No se pudo abrir la impresión','red');}},350);
+}
+window.moeStPrint=function(){
+  var D=stCalc();if(!D.tot){toast('No hay datos para imprimir','yellow');return;}
+  var isA=D.by==='area',now=new Date(),nowS=pad(now.getDate())+'/'+pad(now.getMonth()+1)+'/'+now.getFullYear()+', '+now.toLocaleTimeString('es-DO',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  var A=D.a?dstr(new Date(D.a+'T00:00:00')):'',B=D.b?dstr(new Date(D.b+'T00:00:00')):'';
+  var rango=(A&&B)?('Del '+A+' al '+B):A?('Desde el '+A):B?('Hasta el '+B):'Todas las fechas';
+  var css='@page{size:letter;margin:12mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:12px}'+
+  '.hd{border:2px solid #333;border-radius:12px;padding:12px 18px;margin-bottom:10px}.lbl{font-size:12px;font-weight:700;letter-spacing:.5px;color:#444}.ttl{font-size:26px;font-weight:900;line-height:1.15;margin:6px 0 2px;text-transform:uppercase;word-break:break-word}.sub{font-size:13px;color:#222}'+
+  '.meta{display:flex;justify-content:space-between;gap:12px;border-bottom:2px solid #333;padding-bottom:6px;margin-bottom:10px;font-size:13px}.meta .r{text-align:right;font-size:11px;color:#333}'+
+  '.stk{display:flex;gap:10px;margin-bottom:10px}.stk div{flex:1;border:1px solid #999;border-radius:8px;text-align:center;padding:6px;font-size:11px;color:#444}.stk b{display:block;font-size:22px;color:#111}'+
+  '.sth{font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.3px}'+
+  '.stt{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:8px}.stt th{background:#e6e6e6;border:1px solid #888;padding:5px;font-size:10px;text-transform:uppercase;text-align:left}.stt td{border:1px solid #888;padding:5px}.stt .c{text-align:center}.stt tr.tot td{background:#f0f0f0}'+
+  '.stb{page-break-inside:avoid;margin-bottom:10px}.stbh{font-weight:700;font-size:12.5px;margin-bottom:3px}.stbh span{font-weight:400;color:#555}.stbh em{font-style:normal;color:#555;font-weight:400;font-size:11px;margin-left:6px}'+
+  '.sg{display:flex;gap:18px;margin-top:22px;page-break-inside:avoid}.sg div{flex:1;font-size:11px;color:#333}.sg i{display:block;border-bottom:1px solid #333;height:26px}.ft{margin-top:14px;text-align:right;font-size:10px;color:#666}';
+  var html='<!doctype html><html><head><meta charset="utf-8"><title>Estadística de errores</title><style>'+css+'</style></head><body>'+
+   '<div class="hd"><div class="lbl">ESTADÍSTICA DE ERRORES — '+(isA?'POR ÁREA':'POR EMPLEADO')+'</div><div class="ttl">'+esc(D.fl||(isA?'Todas las áreas':'Todos los empleados'))+'</div><div class="sub">'+esc(rango)+'</div></div>'+
+   '<div class="meta"><div><b>EEMonitoreo — Errores Internos</b></div><div class="r">Impreso: '+nowS+'<br>Total: <b>'+D.tot+'</b> registros</div></div>'+
+   stBody(D)+
+   '<div class="sg"><div>Elaborado por: <b>'+esc(who())+'</b><i></i></div><div>Revisado por (firma)<i></i></div></div>'+
+   '<div class="ft">EEMonitoreo — Departamento de Emergencia · Generado: '+nowS+'</div></body></html>';
+  printHtml(html);
+  audit('MONITOREO EMERGENCIA','Imprimió estadística de errores ('+(isA?'por área':'por empleado')+', '+rango+')');
+};
+window.moeInit=function(){ensureModal();moeRender();};
+
+/* Refresco automático cuando otro usuario guarda (Firebase actualiza localStorage) */
+setInterval(function(){
+  if(window._currentPage!=='monitoreo-emergencia')return;
+  var bg=$('moe-bg');if(bg&&bg.classList.contains('open'))return;
+  if((localStorage.getItem(KEY)||'')!==lastSig)moeRender();
+},4000);
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeStClose();}});
+})();
+</script>
+
 </body>
 </html>

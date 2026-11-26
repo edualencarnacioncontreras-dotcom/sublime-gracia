@@ -41916,7 +41916,7 @@ function ensureModal(){
    '<div class="moe-f"><label>Causa probable</label><select id="moe-f-causa"><option value="">— Sin definir —</option>'+CAUSAS.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
    '<div class="moe-f"><label>Gravedad</label><select id="moe-f-grav">'+GRAV.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
    '<div class="moe-f"><label>Área a la que se devuelve *</label><input id="moe-f-area" type="text" list="moe-dl-area" autocomplete="off" placeholder="Área" onfocus="this.select()" oninput="moeFillEmps();moePrev()"></div>'+
-   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" onfocus="this.select()" oninput="moeEmpIn();moePrev()"></div>'+
+   '<div class="moe-f"><label>Empleado al que se devuelve * <a class="moe-lnk" onclick="moeEmpOpen()">👥 administrar</a></label><select id="moe-f-empsel" onchange="moeEmpSelChg()"></select><input id="moe-f-emp" type="text" autocomplete="off" placeholder="Escriba el nombre del empleado" style="display:none;margin-top:6px" oninput="moePrev()"></div>'+
    '<div class="moe-f full"><label>Fecha y hora</label><input id="moe-f-fecha" type="datetime-local"></div>'+
    '<div class="moe-prev" id="moe-prev"></div>'+
   '</div>'+
@@ -41926,15 +41926,30 @@ function ensureModal(){
   document.body.insertAdjacentHTML('beforeend',h);
   $('moe-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeClose();});
 }
-window.moeFillEmps=function(){
-  var a=norm(val('moe-f-area')),seen={},out=[];
-  getEmps().forEach(function(c){var k=norm(c.n);if(seen[k]||(a&&c.a&&norm(c.a)!==a))return;seen[k]=1;out.push(c.n);});
-  load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;if(a&&norm(r.area)!==a)return;seen[k]=1;out.push(r.empleado);});
-  if(!out.length&&a){load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;seen[k]=1;out.push(r.empleado);});}
-  var dl=$('moe-dl-emp');if(dl)dl.innerHTML=out.sort().map(function(x){return '<option value="'+esc(x)+'">';}).join('');
+window.moeFillEmps=function(cur){
+  var s=$('moe-f-empsel');if(!s)return;
+  var keep=(typeof cur==='string')?cur:(s.value||''),a=norm(val('moe-f-area')),seen={},out=[];
+  function add(n,ar){var k=norm(n);if(!k||seen[k])return;seen[k]=1;out.push({n:n,a:ar||''});}
+  var E=getEmps();
+  E.forEach(function(c){if(!a||!c.a||norm(c.a)===a)add(c.n,c.a);});
+  if(!out.length)E.forEach(function(c){add(c.n,c.a);});
+  load().forEach(function(r){if(!a||norm(r.area)===a)add(r.empleado,r.area);});
+  if(keep&&keep!=='__otro')add(keep,'');
+  out.sort(function(x,y){return x.n.localeCompare(y.n,'es');});
+  s.innerHTML='<option value="">— Seleccione el empleado —</option>'+out.map(function(x){return '<option value="'+esc(x.n)+'">'+esc(x.n)+'</option>';}).join('')+'<option value="__otro">✍️ Otro (escribir)…</option>';
+  s.value=keep;if(s.value!==keep)s.value='';
+  moeEmpSelChg(true);
 };
+window.moeEmpSelChg=function(quiet){
+  var s=$('moe-f-empsel');if(!s||!$('moe-f-emp'))return;
+  var o=s.value==='__otro';$('moe-f-emp').style.display=o?'':'none';
+  if(o&&quiet!==true)setTimeout(function(){$('moe-f-emp').focus();},30);
+  if(s.value&&!o){var c=getEmps().filter(function(x){return norm(x.n)===norm(s.value);})[0];if(c&&c.a&&!val('moe-f-area').trim())$('moe-f-area').value=c.a;}
+  moePrev();
+};
+function empGet(){var s=$('moe-f-empsel');if(!s)return val('moe-f-emp').trim();return s.value==='__otro'?val('moe-f-emp').trim():s.value;}
 window.moePrev=function(){
-  var e=val('moe-f-emp').trim(),a=val('moe-f-area').trim(),p=$('moe-prev');if(!p)return;
+  var e=empGet(),a=val('moe-f-area').trim(),p=$('moe-prev');if(!p)return;
   p.innerHTML=e?'↩ Se marcará como: <b>Devuelto para corrección para '+esc(e)+'</b>'+(a?' ('+esc(a)+')':''):'↩ Indique el área y el empleado al que se devuelve el expediente.';
 };
 function openForm(id){
@@ -41943,9 +41958,9 @@ function openForm(id){
   $('moe-dlg-t').textContent=r?'✏️ Editar devolución':'🚨 Registrar error de emergencia';
   $('moe-f-pac').value=r?r.paciente:'';$('moe-f-ord').value=r?r.orden:'';
   moeErrSet(r?r.error:'');$('moe-f-det').value=r?(r.detalle||''):'';$('moe-f-causa').value=r?(r.causa||''):'';$('moe-f-grav').value=r?(r.gravedad||'Moderada'):'Moderada';
-  $('moe-f-area').value=r?r.area:'';$('moe-f-emp').value=r?r.empleado:'';
+  $('moe-f-area').value=r?r.area:'';$('moe-f-emp').value='';
   $('moe-f-fecha').value=localDT(r?new Date(r.ts):new Date());
-  moeFillEmps();moePrev();
+  moeFillEmps(r?r.empleado:'');moePrev();
   var pc=$('moe-f-print');if(pc){var pv='1';try{pv=localStorage.getItem(PKEY);if(pv===null)pv='1';}catch(e){}pc.checked=(pv==='1');}
   $('moe-bg').classList.add('open');
   setTimeout(function(){$('moe-f-pac').focus();},60);
@@ -41959,7 +41974,7 @@ window.moeOpen=function(id){
 window.moeClose=function(){var b=$('moe-bg');if(b)b.classList.remove('open');editId=null;};
 window.moeSave=function(){
   var pac=val('moe-f-pac').trim(),ord=val('moe-f-ord').trim(),err=errGet(),det=val('moe-f-det').trim(),
-      area=val('moe-f-area').trim(),emp=val('moe-f-emp').trim(),f=val('moe-f-fecha'),causa=val('moe-f-causa'),grav=val('moe-f-grav');
+      area=val('moe-f-area').trim(),emp=empGet(),f=val('moe-f-fecha'),causa=val('moe-f-causa'),grav=val('moe-f-grav');
   var miss=[];if(!pac)miss.push('nombre del paciente');if(!ord)miss.push('número de orden');if(!err)miss.push('error');if(!area)miss.push('área');if(!emp)miss.push('empleado');
   if(miss.length){toast('⚠️ Falta: '+miss.join(', '),'yellow');return;}
   var ce=getEmps().filter(function(c){return norm(c.n)===norm(emp);})[0];

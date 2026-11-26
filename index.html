@@ -14395,7 +14395,11 @@ Sigue estas reglas:
   .stt th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:7px 9px;border-bottom:2px solid var(--border)}
   .stt td{padding:7px 9px;border-bottom:1px solid var(--border);color:var(--text)}
   .stt .c{text-align:center}.stt tr.tot td{background:var(--surface2)}
-  .stb{margin-bottom:10px}.stbh{font-weight:800;font-size:13px;margin-bottom:2px}.stbh span{font-weight:600;color:var(--muted)}.stbh em{font-style:normal;color:var(--muted);font-weight:600;font-size:11px;margin-left:6px}
+  .stl td,.stl th{font-size:12px}.stdt{font-size:11px;color:var(--muted)}.stb{margin-bottom:10px}.stbh{font-weight:800;font-size:13px;margin-bottom:2px}.stbh span{font-weight:600;color:var(--muted)}.stbh em{font-style:normal;color:var(--muted);font-weight:600;font-size:11px;margin-left:6px}
+  .moe-btn-wa{background:#25D366;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Nunito',sans-serif}
+  .moe-btn-wa:hover{background:#1ebe5a}
+  .moe-chkl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text)}
+  .moe-chkl input{width:17px;height:17px;accent-color:#25D366;cursor:pointer}
   @media(max-width:600px){.moe-st-ctl{grid-template-columns:1fr 1fr}}
 </style>
 
@@ -42234,9 +42238,9 @@ function ensureS(){
      '<div class="moe-f"><label>Desde</label><input type="date" id="moe-s-d1" onchange="moeStRender()"></div>'+
      '<div class="moe-f"><label>Hasta</label><input type="date" id="moe-s-d2" onchange="moeStRender()"></div>'+
    '</div>'+
-   '<div class="moe-st-q"><span>Rango rápido:</span><button class="moe-tab" onclick="moeStQ(\'hoy\')">Hoy</button><button class="moe-tab" onclick="moeStQ(\'semana\')">Esta semana</button><button class="moe-tab" onclick="moeStQ(\'mes\')">Este mes</button><button class="moe-tab" onclick="moeStQ(\'todo\')">Todo</button></div>'+
+   '<div class="moe-st-q"><span>Rango rápido:</span><button class="moe-tab" onclick="moeStQ(\'hoy\')">Hoy</button><button class="moe-tab" onclick="moeStQ(\'semana\')">Esta semana</button><button class="moe-tab" onclick="moeStQ(\'mes\')">Este mes</button><button class="moe-tab" onclick="moeStQ(\'todo\')">Todo</button><span style="margin-left:14px">Tipo de reporte:</span><button class="moe-tab" data-m="res" onclick="moeStMode(\'res\')">📄 Resumido</button><button class="moe-tab" data-m="det" onclick="moeStMode(\'det\')">📋 Detallado</button></div>'+
    '<div class="moe-st-out" id="moe-s-out"></div>'+
-   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeStClose()">Cerrar</button><button class="moe-btn-pr" id="moe-s-print" onclick="moeStPrint()">🖨️ Imprimir estadística</button></div></div></div>');
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeStClose()">Cerrar</button><button class="moe-btn-wa" onclick="moeMsgOpen()">💬 Mensaje al empleado</button><button class="moe-btn-pr" id="moe-s-print" onclick="moeStPrint()">🖨️ Imprimir estadística</button></div></div></div>');
   $('moe-s-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeStClose();});
 }
 window.moeStOpen=function(){
@@ -42275,34 +42279,34 @@ function stCalc(){
   var G={},EA={};
   rows.forEach(function(r){
     var lab=by==='area'?r.area:r.empleado,k=norm(lab);if(!k)return;
-    var g=G[k]=G[k]||{n:lab,area:r.area,tot:0,ok:0,pe:0,last:0,E:{}};
-    g.tot++;if(r.estado==='corregido')g.ok++;else g.pe++;
+    var g=G[k]=G[k]||{n:lab,area:r.area,tot:0,ok:0,pe:0,last:0,E:{},recs:[]};
+    g.recs.push(r);g.tot++;if(r.estado==='corregido')g.ok++;else g.pe++;
     var t=new Date(r.ts).getTime();if(t>=g.last){g.last=t;g.area=r.area;}
     var ek=norm(r.error)||'sin especificar',en=r.error||'(sin especificar)';
     (g.E[ek]=g.E[ek]||{n:en,c:0}).c++;(EA[ek]=EA[ek]||{n:en,c:0}).c++;
   });
   function srt(o){return Object.keys(o).map(function(x){return o[x];}).sort(function(x,y){return y.c-x.c||x.n.localeCompare(y.n,'es');});}
-  var list=Object.keys(G).map(function(k){var g=G[k];g.errs=srt(g.E);return g;}).sort(function(x,y){return y.tot-x.tot||x.n.localeCompare(y.n,'es');});
+  var list=Object.keys(G).map(function(k){var g=G[k];g.errs=srt(g.E);g.recs.sort(function(x,y){return new Date(y.ts)-new Date(x.ts);});return g;}).sort(function(x,y){return y.tot-x.tot||x.n.localeCompare(y.n,'es');});
   var ok=rows.filter(function(r){return r.estado==='corregido';}).length;
-  return {by:by,fl:fl,a:a,b:b,list:list,errs:srt(EA),tot:rows.length,ok:ok,pe:rows.length-ok};
+  return {by:by,fl:fl,a:a,b:b,rows:rows,mode:stMode,list:list,errs:srt(EA),tot:rows.length,ok:ok,pe:rows.length-ok};
 }
-function stBody(D){
+function stBody(D,pr){
   if(!D.tot)return '<div class="moe-empty">No hay errores registrados con esos filtros.</div>';
   var isA=D.by==='area',nm=isA?'área':'empleado';
   var h='<div class="stk"><div><b>'+D.tot+'</b>Total errores</div><div><b>'+D.ok+'</b>Corregidos</div><div><b>'+D.pe+'</b>Pendientes</div><div><b>'+D.list.length+'</b>'+(isA?'Áreas':'Empleados')+'</div></div>';
-  h+='<h4 class="sth">Resumen por '+nm+'</h4><table class="stt"><thead><tr><th>#</th><th>'+(isA?'Área':'Empleado')+'</th>'+(isA?'':'<th>Área</th>')+'<th class="c">Total</th><th class="c">Corregidos</th><th class="c">Pendientes</th><th class="c">% del total</th><th>Error más frecuente</th></tr></thead><tbody>'+
-    D.list.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(g.n)+'</b></td>'+(isA?'':'<td>'+esc(g.area)+'</td>')+'<td class="c"><b>'+g.tot+'</b></td><td class="c">'+g.ok+'</td><td class="c">'+g.pe+'</td><td class="c">'+pcn(g.tot,D.tot)+'</td><td>'+esc(g.errs[0].n)+' ('+g.errs[0].c+')</td></tr>';}).join('')+
-    '<tr class="tot"><td></td><td><b>TOTAL</b></td>'+(isA?'':'<td></td>')+'<td class="c"><b>'+D.tot+'</b></td><td class="c">'+D.ok+'</td><td class="c">'+D.pe+'</td><td class="c">100%</td><td></td></tr></tbody></table>';
+  h+='<h4 class="sth">Resumen por '+nm+'</h4><table class="stt"><thead><tr><th>#</th><th>'+(isA?'Área':'Empleado')+'</th>'+(isA?'':'<th>Área</th>')+'<th class="c">Total</th><th class="c">Corregidos</th><th class="c">Pendientes</th><th class="c">% del total</th><th>Error más frecuente</th>'+(pr||isA?'':'<th></th>')+'</tr></thead><tbody>'+
+    D.list.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(g.n)+'</b></td>'+(isA?'':'<td>'+esc(g.area)+'</td>')+'<td class="c"><b>'+g.tot+'</b></td><td class="c">'+g.ok+'</td><td class="c">'+g.pe+'</td><td class="c">'+pcn(g.tot,D.tot)+'</td><td>'+esc(g.errs[0].n)+' ('+g.errs[0].c+')</td>'+(pr||isA?'':'<td class="c"><button class="moe-ico" title="Crear mensaje para este empleado" onclick="moeMsgOpen('+i+')">💬</button></td>')+'</tr>';}).join('')+
+    '<tr class="tot"><td></td><td><b>TOTAL</b></td>'+(isA?'':'<td></td>')+'<td class="c"><b>'+D.tot+'</b></td><td class="c">'+D.ok+'</td><td class="c">'+D.pe+'</td><td class="c">100%</td><td></td>'+(pr||isA?'':'<td></td>')+'</tr></tbody></table>';
   h+='<h4 class="sth">Errores más frecuentes (general)</h4><table class="stt"><thead><tr><th>#</th><th>Error</th><th class="c">Cantidad</th><th class="c">%</th></tr></thead><tbody>'+
     D.errs.map(function(e,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(e.n)+'</td><td class="c"><b>'+e.c+'</b></td><td class="c">'+pcn(e.c,D.tot)+'</td></tr>';}).join('')+'</tbody></table>';
-  h+='<h4 class="sth">Detalle de errores por '+nm+'</h4>'+D.list.map(function(g){
-    return '<div class="stb"><div class="stbh">'+esc(g.n)+(isA?'':' <span>· '+esc(g.area)+'</span>')+'<em>'+g.tot+' error(es)</em></div><table class="stt"><thead><tr><th>Error</th><th class="c">Cantidad</th><th class="c">% del '+nm+'</th></tr></thead><tbody>'+
-      g.errs.map(function(e){return '<tr><td>'+esc(e.n)+'</td><td class="c"><b>'+e.c+'</b></td><td class="c">'+pcn(e.c,g.tot)+'</td></tr>';}).join('')+'</tbody></table></div>';}).join('');
+  if(D.mode==='det')h+='<h4 class="sth">Detalle de errores por '+nm+' (paciente, orden y datos de cada error)</h4>'+D.list.map(function(g){
+    return '<div class="stb"><div class="stbh">'+esc(g.n)+(isA?'':' <span>· '+esc(g.area)+'</span>')+'<em>'+g.tot+' error(es)</em></div><table class="stt stl"><thead><tr><th>Fecha</th><th>N.º orden</th><th>Paciente</th><th>Error</th><th>Área</th><th>Empleado</th><th>Estado</th><th>Registrado por</th></tr></thead><tbody>'+
+      g.recs.map(function(r){var ok=r.estado==='corregido';return '<tr><td style="white-space:nowrap">'+fmt(r.ts)+'</td><td><b>'+esc(r.orden)+'</b></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.error)+(r.detalle?'<div class="stdt">'+esc(r.detalle)+'</div>':'')+'</td><td>'+esc(r.area)+'</td><td>'+esc(r.empleado)+'</td><td>'+(ok?'✔ Corregido'+(r.corrTs?'<div class="stdt">'+fmt(r.corrTs)+'</div>':''):'✎ En corrección')+'</td><td>'+esc(r.por||'')+'</td></tr>';}).join('')+'</tbody></table></div>';}).join('');
   return h;
 }
 window.moeStRender=function(){
   var o=$('moe-s-out');if(!o)return;
-  var D=stCalc();o.innerHTML=stBody(D);
+  var D=stCalc();lastD=D;o.innerHTML=stBody(D,false);Array.prototype.forEach.call(document.querySelectorAll('#moe-s-bg [data-m]'),function(b){b.classList.toggle('active',b.getAttribute('data-m')===stMode);});
   var b=$('moe-s-print');if(b)b.disabled=!D.tot;
 };
 function printHtml(html){
@@ -42323,16 +42327,117 @@ window.moeStPrint=function(){
   '.stk{display:flex;gap:10px;margin-bottom:10px}.stk div{flex:1;border:1px solid #999;border-radius:8px;text-align:center;padding:6px;font-size:11px;color:#444}.stk b{display:block;font-size:22px;color:#111}'+
   '.sth{font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.3px}'+
   '.stt{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:8px}.stt th{background:#e6e6e6;border:1px solid #888;padding:5px;font-size:10px;text-transform:uppercase;text-align:left}.stt td{border:1px solid #888;padding:5px}.stt .c{text-align:center}.stt tr.tot td{background:#f0f0f0}'+
-  '.stb{page-break-inside:avoid;margin-bottom:10px}.stbh{font-weight:700;font-size:12.5px;margin-bottom:3px}.stbh span{font-weight:400;color:#555}.stbh em{font-style:normal;color:#555;font-weight:400;font-size:11px;margin-left:6px}'+
+  '.stl{font-size:10px}.stl th{font-size:9px}.stdt{font-size:9px;color:#555}.stb{margin-bottom:10px}.stbh{font-weight:700;font-size:12.5px;margin-bottom:3px}.stbh span{font-weight:400;color:#555}.stbh em{font-style:normal;color:#555;font-weight:400;font-size:11px;margin-left:6px}'+
   '.sg{display:flex;gap:18px;margin-top:22px;page-break-inside:avoid}.sg div{flex:1;font-size:11px;color:#333}.sg i{display:block;border-bottom:1px solid #333;height:26px}.ft{margin-top:14px;text-align:right;font-size:10px;color:#666}';
   var html='<!doctype html><html><head><meta charset="utf-8"><title>Estadística de errores</title><style>'+css+'</style></head><body>'+
-   '<div class="hd"><div class="lbl">ESTADÍSTICA DE ERRORES — '+(isA?'POR ÁREA':'POR EMPLEADO')+'</div><div class="ttl">'+esc(D.fl||(isA?'Todas las áreas':'Todos los empleados'))+'</div><div class="sub">'+esc(rango)+'</div></div>'+
+   '<div class="hd"><div class="lbl">ESTADÍSTICA DE ERRORES — '+(isA?'POR ÁREA':'POR EMPLEADO')+' · '+(D.mode==='det'?'DETALLADO':'RESUMIDO')+'</div><div class="ttl">'+esc(D.fl||(isA?'Todas las áreas':'Todos los empleados'))+'</div><div class="sub">'+esc(rango)+'</div></div>'+
    '<div class="meta"><div><b>EEMonitoreo — Errores Internos</b></div><div class="r">Impreso: '+nowS+'<br>Total: <b>'+D.tot+'</b> registros</div></div>'+
-   stBody(D)+
+   stBody(D,true)+
    '<div class="sg"><div>Elaborado por: <b>'+esc(who())+'</b><i></i></div><div>Revisado por (firma)<i></i></div></div>'+
    '<div class="ft">EEMonitoreo — Departamento de Emergencia · Generado: '+nowS+'</div></body></html>';
   printHtml(html);
   audit('MONITOREO EMERGENCIA','Imprimió estadística de errores ('+(isA?'por área':'por empleado')+', '+rango+')');
+};
+
+var stMode='det',lastD=null;
+window.moeStMode=function(m){stMode=m;moeStRender();};
+function rangeTxt(a,b){var A=a?dstr(new Date(a+'T00:00:00')):'',B=b?dstr(new Date(b+'T00:00:00')):'';return (A&&B)?('Del '+A+' al '+B):A?('Desde el '+A):B?('Hasta el '+B):'Todas las fechas';}
+
+/* ══════════ MENSAJE AL EMPLEADO (copiar / enviar por WhatsApp) ══════════ */
+var MESES=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+function tc(s){return String(s||'').toLowerCase().replace(/(^|\s)(\S)/g,function(m,a,b){return a+b.toUpperCase();});}
+function tipFor(e){
+  var k=norm(e);
+  if(k.indexOf('firma')>=0)return 'Confirma que cada documento esté firmado antes de entregarlo.';
+  if(k.indexOf('sello')>=0)return 'Verifica que el expediente lleve todos los sellos requeridos.';
+  if(k.indexOf('autoriz')>=0)return 'Revisa que la autorización de la ARS esté completa y vigente.';
+  if(k.indexOf('cobertura')>=0||/\bars\b/.test(k))return 'Confirma la cobertura / ARS del paciente antes de procesar.';
+  if(k.indexOf('dato')>=0||k.indexOf('paciente')>=0)return 'Valida el nombre, la cédula y los datos del paciente contra su documento.';
+  if(k.indexOf('document')>=0)return 'Asegúrate de adjuntar toda la documentación requerida.';
+  if(k.indexOf('codigo')>=0||k.indexOf('procedim')>=0)return 'Verifica el código del procedimiento antes de registrar la orden.';
+  if(k.indexOf('monto')>=0)return 'Revisa los montos antes de cerrar el expediente.';
+  if(k.indexOf('duplic')>=0)return 'Comprueba que la orden no esté registrada previamente.';
+  return 'Pon especial atención a "'+e+'" y verifícalo antes de continuar con el proceso.';
+}
+function groupErr(rows){var m={};rows.forEach(function(r){var k=norm(r.error)||'x';(m[k]=m[k]||{n:r.error||'(sin especificar)',c:0}).c++;});return Object.keys(m).map(function(k){return m[k];}).sort(function(a,b){return b.c-a.c;});}
+function buildMsg(emp,inclDet,inclHist){
+  var rows=(lastD?lastD.rows:[]).filter(function(r){return norm(r.empleado)===norm(emp);}).sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
+  var n=rows.length,ok=rows.filter(function(r){return r.estado==='corregido';}).length,pe=n-ok,errs=groupErr(rows);
+  var per=rangeTxt(val('moe-s-d1'),val('moe-s-d2'));per=per.charAt(0).toLowerCase()+per.slice(1);
+  var first=tc(emp.trim().split(/\s+/)[0]),L=[];
+  L.push('Hola *'+first+'* 👋');L.push('');
+  if(!n){
+    L.push('Te escribo desde *Monitoreo de Emergencia*: en el período ('+per+') *no tienes expedientes devueltos*. ¡Excelente trabajo! 👏 Sigue así.');
+  }else{
+    L.push('Te escribo desde *Monitoreo de Emergencia* para darte seguimiento a tus expedientes devueltos ('+per+').');L.push('');
+    L.push('📊 *Resumen*');
+    L.push('• Expedientes devueltos: *'+n+'*');
+    L.push('• Corregidos: '+ok+'  |  Pendientes: '+pe);L.push('');
+    L.push('⚠️ *En lo que estás fallando*');
+    errs.slice(0,5).forEach(function(e,i){L.push((i+1)+'. *'+e.n+'* — '+e.c+(e.c===1?' vez':' veces')+' ('+pcn(e.c,n)+')');});L.push('');
+    L.push('🎯 *Qué debes mejorar y a qué prestar atención*');
+    var seen={};errs.slice(0,3).forEach(function(e){var tp=tipFor(e.n);if(!seen[tp]){seen[tp]=1;L.push('• '+tp);}});
+    L.push('• Antes de entregar cada expediente, haz una revisión final completa.');
+    if(pe>0){L.push('');L.push('⏳ Tienes *'+pe+'* expediente(s) pendiente(s) de corrección. Por favor entrégalos lo antes posible.');}
+    if(inclDet){
+      L.push('');L.push('🧾 *Detalle de los errores del período*');
+      rows.forEach(function(r){L.push('• '+dstr(new Date(r.ts))+' · Orden '+r.orden+' · '+r.paciente+' — '+r.error+(r.estado==='corregido'?' ✅':' ⏳'));});
+    }
+  }
+  if(inclHist){
+    var all=load().filter(function(r){return norm(r.empleado)===norm(emp);}),tot=all.length,okH=all.filter(function(r){return r.estado==='corregido';}).length,M={};
+    all.forEach(function(r){var d=new Date(r.ts),k=d.getFullYear()+'-'+pad(d.getMonth()+1);M[k]=(M[k]||0)+1;});
+    L.push('');L.push('📈 *Tu historial de errores*');
+    L.push('• Total acumulado: *'+tot+'* ('+okH+' corregidos, '+(tot-okH)+' pendientes)');
+    Object.keys(M).sort().reverse().slice(0,4).forEach(function(k){var p=k.split('-');L.push('• '+tc(MESES[+p[1]-1])+' '+p[0]+': '+M[k]);});
+    var top=groupErr(all).slice(0,3);
+    if(top.length){L.push('• Los que más se repiten:');top.forEach(function(e){L.push('   – '+e.n+' ('+e.c+')');});}
+  }
+  L.push('');L.push('Gracias por tu compromiso 🙌 Si tienes dudas o necesitas apoyo, estoy a la orden.');L.push('');
+  L.push('— '+(who()||'Supervisión')+' · _Monitoreo de Emergencia_');
+  return L.join('\n');
+}
+function ensureM(){
+  if($('moe-m-bg'))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg top" id="moe-m-bg"><div class="moe-dlg" style="max-width:640px">'+
+   '<div class="moe-dlg-h" style="background:#128C7E"><h3>💬 Mensaje al empleado</h3><button onclick="moeMsgClose()" aria-label="Cerrar">×</button></div>'+
+   '<div style="padding:16px 20px 6px;display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
+     '<div class="moe-f"><label>Empleado</label><select id="moe-m-emp" onchange="moeMsgBuild()"></select></div>'+
+     '<div class="moe-f"><label>Período (de la estadística)</label><div id="moe-m-per" style="padding:9px 2px;font-size:14px;font-weight:700"></div></div>'+
+     '<label class="moe-chkl"><input type="checkbox" id="moe-m-det" onchange="moeMsgBuild()"> Incluir detalle de errores del período</label>'+
+     '<label class="moe-chkl"><input type="checkbox" id="moe-m-his" onchange="moeMsgBuild()"> Incluir historial de errores</label>'+
+   '</div>'+
+   '<div class="moe-f" style="padding:6px 20px 14px"><label>Mensaje (puedes editarlo antes de enviar)</label><textarea id="moe-m-txt" rows="15" style="font-size:13.5px;line-height:1.45"></textarea></div>'+
+   '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeMsgClose()">Cerrar</button><button class="btn btn-secondary" onclick="moeMsgCopy()">📋 Copiar</button><button class="moe-btn-wa" onclick="moeMsgWA()">💬 Enviar por WhatsApp</button></div></div></div>');
+  $('moe-m-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeMsgClose();});
+}
+window.moeMsgOpen=function(i){
+  if(!lastD){toast('Abre primero la estadística','yellow');return;}
+  var emps=[],seen={};
+  lastD.rows.forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;seen[k]=1;emps.push(r.empleado);});
+  emps.sort(function(a,b){return a.localeCompare(b,'es');});
+  if(!emps.length){toast('No hay empleados con errores en este rango','yellow');return;}
+  ensureM();
+  $('moe-m-emp').innerHTML=emps.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('');
+  if(typeof i==='number'&&lastD.by==='emp'&&lastD.list[i])$('moe-m-emp').value=lastD.list[i].n;
+  $('moe-m-per').textContent=rangeTxt(val('moe-s-d1'),val('moe-s-d2'));
+  $('moe-m-det').checked=false;$('moe-m-his').checked=false;
+  moeMsgBuild();$('moe-m-bg').classList.add('open');
+};
+window.moeMsgBuild=function(){$('moe-m-txt').value=buildMsg(val('moe-m-emp'),$('moe-m-det').checked,$('moe-m-his').checked);};
+window.moeMsgClose=function(){var b=$('moe-m-bg');if(b)b.classList.remove('open');};
+function copyFb(s){return new Promise(function(res){var x=document.createElement('textarea');x.value=s;x.style.cssText='position:fixed;opacity:0';document.body.appendChild(x);x.select();try{document.execCommand('copy');}catch(e){}x.remove();res();});}
+function copyText(s){
+  if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(s).catch(function(){return copyFb(s);});
+  return copyFb(s);
+}
+window.moeMsgCopy=function(){copyText(val('moe-m-txt')).then(function(){toast('📋 Mensaje copiado');});};
+window.moeMsgWA=function(){
+  var txt=val('moe-m-txt').trim();if(!txt)return;
+  var enc=encodeURIComponent(txt);
+  if(enc.length>6000){copyText(txt);toast('📋 Mensaje largo: se copió. Pégalo en el chat de WhatsApp','yellow');window.open('https://web.whatsapp.com/','_blank');}
+  else window.open('https://wa.me/?text='+enc,'_blank');
+  audit('MONITOREO EMERGENCIA','Preparó mensaje de WhatsApp para '+val('moe-m-emp'));
 };
 window.moeInit=function(){ensureModal();moeRender();};
 
@@ -42342,7 +42447,7 @@ setInterval(function(){
   var bg=$('moe-bg');if(bg&&bg.classList.contains('open'))return;
   if((localStorage.getItem(KEY)||'')!==lastSig)moeRender();
 },4000);
-document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeStClose();}});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeMsgClose();moeStClose();}});
 })();
 </script>
 

@@ -14403,6 +14403,10 @@ Sigue estas reglas:
   .moe-alert{background:#fff4e0;border:1px solid #f0c36d;color:#7a4a00;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:grid;gap:4px}
   .moe-alert-h{font-weight:800;font-size:13px}
   .stcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stcmp{font-size:13px;margin:8px 0}
+  #moe-s-bg{padding:0;align-items:stretch}
+  #moe-s-bg .moe-dlg{width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0;display:flex;flex-direction:column;overflow:hidden}
+  #moe-s-bg .moe-st-out{flex:1;max-height:none;min-height:0;padding:0 28px 16px}
+  #moe-s-bg .moe-st-ctl,#moe-s-bg .moe-st-q{padding-left:28px;padding-right:28px}
   .moe-gr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 18px}
   @media(max-width:600px){.moe-st-ctl{grid-template-columns:1fr 1fr}.stcols{grid-template-columns:1fr}}
 </style>
@@ -42263,7 +42267,7 @@ function isoD(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDat
 function pcn(n,t){return t?(Math.round(n/t*1000)/10).toString().replace('.',',')+'%':'0%';}
 function ensureS(){
   if($('moe-s-bg'))return;
-  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg" id="moe-s-bg"><div class="moe-dlg" style="max-width:860px">'+
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg" id="moe-s-bg"><div class="moe-dlg">'+
    '<div class="moe-dlg-h" style="background:#4f5fd5"><h3>📊 Estadística de errores</h3><button onclick="moeStClose()" aria-label="Cerrar">×</button></div>'+
    '<div class="moe-st-ctl">'+
      '<div class="moe-f"><label>Agrupar por</label><select id="moe-s-by" onchange="moeStBy()"><option value="area">🏢 Por área</option><option value="emp">👤 Por empleado</option></select></div>'+

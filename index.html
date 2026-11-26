@@ -42275,7 +42275,7 @@ function ensureS(){
      '<div class="moe-f"><label>Desde</label><input type="date" id="moe-s-d1" onchange="moeStRender()"></div>'+
      '<div class="moe-f"><label>Hasta</label><input type="date" id="moe-s-d2" onchange="moeStRender()"></div>'+
    '</div>'+
-   '<div class="moe-st-q"><span>Rango rápido:</span><button class="moe-tab" onclick="moeStQ(\'hoy\')">Hoy</button><button class="moe-tab" onclick="moeStQ(\'semana\')">Esta semana</button><button class="moe-tab" onclick="moeStQ(\'mes\')">Este mes</button><button class="moe-tab" onclick="moeStQ(\'todo\')">Todo</button><span style="margin-left:14px">Tipo de reporte:</span><button class="moe-tab" data-m="res" onclick="moeStMode(\'res\')">📄 Resumido</button><button class="moe-tab" data-m="det" onclick="moeStMode(\'det\')">📋 Detallado</button></div>'+
+   '<div class="moe-st-q"><span>Rango rápido:</span><button class="moe-tab" onclick="moeStQ(\'hoy\')">Hoy</button><button class="moe-tab" onclick="moeStQ(\'semana\')">Esta semana</button><button class="moe-tab" onclick="moeStQ(\'mes\')">Este mes</button><button class="moe-tab" onclick="moeStQ(\'todo\')">Todo</button><span style="margin-left:14px">Resumen por:</span><button class="moe-tab" data-by="area" onclick="moeStByBtn(\'area\')">🏢 Área</button><button class="moe-tab" data-by="emp" onclick="moeStByBtn(\'emp\')">👤 Empleado</button><span style="margin-left:14px">Tipo de reporte:</span><button class="moe-tab" data-m="res" onclick="moeStMode(\'res\')">📄 Resumido</button><button class="moe-tab" data-m="det" onclick="moeStMode(\'det\')">📋 Detallado</button></div>'+
    '<div class="moe-st-out" id="moe-s-out"></div>'+
    '<div class="moe-dlg-f"><button class="btn btn-secondary" onclick="moeStClose()">Cerrar</button><button class="moe-btn-wa" onclick="moeMsgOpen()">💬 Mensaje al empleado</button><button class="moe-btn-pr" id="moe-s-print" onclick="moeStPrint()">🖨️ Imprimir estadística</button></div></div></div>');
   $('moe-s-bg').addEventListener('mousedown',function(ev){if(ev.target===this)moeStClose();});
@@ -42345,7 +42345,7 @@ function stBody(D,pr){
 }
 window.moeStRender=function(){
   var o=$('moe-s-out');if(!o)return;
-  var D=stCalc();lastD=D;o.innerHTML=stBody(D,false);Array.prototype.forEach.call(document.querySelectorAll('#moe-s-bg [data-m]'),function(b){b.classList.toggle('active',b.getAttribute('data-m')===stMode);});
+  var D=stCalc();lastD=D;o.innerHTML=stBody(D,false);Array.prototype.forEach.call(document.querySelectorAll('#moe-s-bg [data-m]'),function(b){b.classList.toggle('active',b.getAttribute('data-m')===stMode);});Array.prototype.forEach.call(document.querySelectorAll('#moe-s-bg [data-by]'),function(b){b.classList.toggle('active',b.getAttribute('data-by')===val('moe-s-by'));});
   var b=$('moe-s-print');if(b)b.disabled=!D.tot;
 };
 function printHtml(html){
@@ -42379,6 +42379,7 @@ window.moeStPrint=function(){
 };
 
 var stMode='det',lastD=null;
+window.moeStByBtn=function(v){$('moe-s-by').value=v;$('moe-s-filt').value='';moeStBy();};
 window.moeStMode=function(m){stMode=m;moeStRender();};
 function rangeTxt(a,b){var A=a?dstr(new Date(a+'T00:00:00')):'',B=b?dstr(new Date(b+'T00:00:00')):'';return (A&&B)?('Del '+A+' al '+B):A?('Desde el '+A):B?('Hasta el '+B):'Todas las fechas';}
 

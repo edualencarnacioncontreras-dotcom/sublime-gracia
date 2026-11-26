@@ -14400,7 +14400,11 @@ Sigue estas reglas:
   .moe-btn-wa:hover{background:#1ebe5a}
   .moe-chkl{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;cursor:pointer;color:var(--text)}
   .moe-chkl input{width:17px;height:17px;accent-color:#25D366;cursor:pointer}
-  @media(max-width:600px){.moe-st-ctl{grid-template-columns:1fr 1fr}}
+  .moe-alert{background:#fff4e0;border:1px solid #f0c36d;color:#7a4a00;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:grid;gap:4px}
+  .moe-alert-h{font-weight:800;font-size:13px}
+  .stcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stcmp{font-size:13px;margin:8px 0}
+  .moe-gr{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:12px 18px}
+  @media(max-width:600px){.moe-st-ctl{grid-template-columns:1fr 1fr}.stcols{grid-template-columns:1fr}}
 </style>
 
   <div class="moe-head">
@@ -14411,6 +14415,9 @@ Sigue estas reglas:
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="moe-btn-err" onclick="moeOpen()">🚨 Error de emergencia</button>
       <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px" onclick="moePrintDlg()">🖨️ Imprimir comprobantes</button>
+      <button class="btn btn-secondary" onclick="moeEmpOpen()">👥 Empleados</button>
+      <button class="btn btn-secondary" onclick="moeFbOpen()">📨 Seguimientos</button>
+      <button class="btn btn-secondary" onclick="moeCfOpen()">🔔 Alertas</button>
       <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px;background:#4f5fd5" onclick="moeStOpen()">📊 Estadística de errores</button>
       <button class="btn btn-secondary" onclick="moeCatOpen()">⚙️ Errores predeterminados</button>
       <button class="btn btn-secondary" onclick="moeExport()">⬇️ Exportar CSV</button>
@@ -14428,6 +14435,7 @@ Sigue estas reglas:
     </span>
   </div>
 
+  <div id="moe-alerts"></div>
   <div class="moe-kpis" id="moe-kpis"></div>
 
   <!-- Botones para acceder a cada sección -->
@@ -41768,6 +41776,8 @@ var KEY='cmm_moe_v1', PKEY='cmm_moe_printpref', period='hoy', editId=null, lastS
 var AREAS=['Admisión','Facturación','Caja','Seguros / ARS','Laboratorio','Imagenología','Farmacia','Enfermería','Médico de emergencia','Archivo','Otra'];
 var DEF_ERR=['Falta firma','Falta sello','Falta autorización de ARS','Autorización vencida','Datos del paciente incorrectos','Cobertura / ARS incorrecta','Falta documentación','Código de procedimiento incorrecto','Monto incorrecto','Orden duplicada'];
 var EKEY='cmm_moe_errores_v1';
+var CAUSAS=['Descuido','Falta de capacitación','Proceso confuso o sin definir','Falla del sistema','Información incompleta del paciente','Otra'],GRAV=['Leve','Moderada','Crítica'];
+var EMKEY='cmm_moe_emps_v1',FKEY='cmm_moe_fb_v1',CKEY='cmm_moe_cfg_v1';
 
 function $(id){return document.getElementById(id);}
 function val(id){var e=$(id);return e?e.value:'';}
@@ -41810,7 +41820,7 @@ function hbars(list,cls){
 }
 window.moeRender=function(){
   if(!$('moe-kpis'))return;
-  var all=load(), cur=rangeOf(period), per=all.filter(function(r){return inR(r,cur);});
+  var all=act(), cur=rangeOf(period), per=all.filter(function(r){return inR(r,cur);});
   Array.prototype.forEach.call(document.querySelectorAll('#moe-tabs .moe-tab'),function(b){b.classList.toggle('active',b.getAttribute('data-p')===period);});
 
   /* KPIs */
@@ -41847,8 +41857,8 @@ window.moeRender=function(){
 
   /* Listado */
   var q=norm(val('moe-q')), st=val('moe-estado');
-  var lst=per.filter(function(r){
-    if(st&&(r.estado||'pendiente')!==st)return false;
+  var lst=(st==='anulado'?load().filter(function(r){return r.anulado&&inR(r,cur);}):per).filter(function(r){
+    if(st&&st!=='anulado'&&(r.estado||'pendiente')!==st)return false;
     if(!q)return true;
     return norm([r.paciente,r.orden,r.error,r.detalle,r.area,r.empleado,r.por].join(' ')).indexOf(q)>=0;
   }).sort(function(a,b){return new Date(b.ts)-new Date(a.ts);});
@@ -41860,14 +41870,15 @@ window.moeRender=function(){
     '<table class="moe-tbl"><thead><tr><th class="c0"><input type="checkbox" class="moe-chk" title="Seleccionar todos" '+(allSel?'checked ':'')+'onchange="moeSelAll(this.checked)"></th><th>Fecha</th><th>Paciente</th><th>N.º orden</th><th>Error</th><th>Devuelto a</th><th>Estado</th><th style="text-align:center">Recibida</th><th></th></tr></thead><tbody>'+
     lst.map(function(r){
       var ok=r.estado==='corregido';
+      if(r.anulado)return '<tr style="opacity:.7"><td class="c0"></td><td style="white-space:nowrap">'+fmt(r.ts)+'</td><td><s>'+esc(r.paciente)+'</s></td><td><s>'+esc(r.orden)+'</s></td><td>'+esc(r.error)+'</td><td>'+esc(r.empleado)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.area)+'</div></td><td colspan="2"><span class="moe-tag dev">🚫 Anulado</span><div style="font-size:11px;color:var(--muted)">'+esc(r.anulado.por||'')+' · '+esc(r.anulado.motivo||'')+'</div></td><td style="white-space:nowrap"><button class="moe-ico" title="Historial" onclick="moeHist(\''+r.id+'\')">🕘</button>'+(canDelete()?'<button class="moe-ico" title="Restaurar" onclick="moeRestore(\''+r.id+'\')">↩</button>':'')+'</td></tr>';
       return '<tr class="'+(sel[r.id]?'sel':'')+'"><td class="c0"><input type="checkbox" class="moe-chk" '+(sel[r.id]?'checked ':'')+'onchange="moeSelOne(\''+r.id+'\',this.checked)"></td><td style="white-space:nowrap">'+fmt(r.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.por||'')+'</div></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.orden)+'</td>'+
-        '<td>'+esc(r.error)+(r.detalle?'<div style="font-size:11px;color:var(--muted)">'+esc(r.detalle)+'</div>':'')+'</td>'+
+        '<td>'+esc(r.error)+gravTag(r)+(r.detalle?'<div style="font-size:11px;color:var(--muted)">'+esc(r.detalle)+'</div>':'')+'</td>'+
         '<td><span class="moe-tag dev">↩ Devuelto para corrección para '+esc(r.empleado)+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">'+esc(r.area)+'</div></td>'+
-        '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span><div style="font-size:11px;color:var(--muted)">pendiente por entregar</div>')+'</td>'+
-        '<td class="n"><label title="Marcar como recibida / corregida" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox" class="moe-chk" '+(ok?'checked ':'')+'onchange="moeToggle(\''+r.id+'\')"> '+(ok?'Sí':'No')+'</label></td><td style="white-space:nowrap"><button class="moe-ico" title="Imprimir comprobante" onclick="moePrint([\''+r.id+'\'])">🖨️</button><button class="moe-ico" title="'+(ok?'Reabrir':'Marcar como corregido')+'" onclick="moeToggle(\''+r.id+'\')">'+(ok?'↩':'✔')+'</button><button class="moe-ico" title="Editar" onclick="moeOpen(\''+r.id+'\')">✏️</button>'+(canDelete()?'<button class="moe-ico" title="Eliminar" onclick="moeDel(\''+r.id+'\')">🗑️</button>':'')+'</td></tr>';
+        '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span>'+ovdTag(r)+'<div style="font-size:11px;color:var(--muted)">pendiente por entregar</div>')+'</td>'+
+        '<td class="n"><label title="Marcar como recibida / corregida" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox" class="moe-chk" '+(ok?'checked ':'')+'onchange="moeToggle(\''+r.id+'\')"> '+(ok?'Sí':'No')+'</label></td><td style="white-space:nowrap"><button class="moe-ico" title="Historial de cambios" onclick="moeHist(\''+r.id+'\')">🕘</button><button class="moe-ico" title="Imprimir comprobante" onclick="moePrint([\''+r.id+'\'])">🖨️</button><button class="moe-ico" title="'+(ok?'Reabrir':'Marcar como corregido')+'" onclick="moeToggle(\''+r.id+'\')">'+(ok?'↩':'✔')+'</button><button class="moe-ico" title="Editar" onclick="moeOpen(\''+r.id+'\')">✏️</button>'+(canDelete()?'<button class="moe-ico" title="Anular (queda en el historial)" onclick="moeDel(\''+r.id+'\')">🚫</button>':'')+'</td></tr>';
     }).join('')+'</tbody></table>':'<div class="moe-empty">No hay registros para mostrar.</div>';
   lastSig=localStorage.getItem(KEY)||'';
-  moeSelUpd();
+  moeSelUpd();renderAlerts();
 };
 
 function renderTrend(all,cur){
@@ -41902,8 +41913,10 @@ function ensureModal(){
    '<div class="moe-f"><label>N.º de orden *</label><input id="moe-f-ord" type="text" autocomplete="off" placeholder="Ej. 123456"></div>'+
    '<div class="moe-f full"><label>Error por el cual se devuelve * <a class="moe-lnk" onclick="moeCatOpen()">⚙️ administrar lista</a></label><select id="moe-f-errsel" onchange="moeErrChange()"></select><input id="moe-f-err" type="text" autocomplete="off" placeholder="Escriba el error" style="display:none;margin-top:6px"><label id="moe-f-errsv" class="moe-printopt" style="display:none;margin:6px 0 0;font-size:12px"><input type="checkbox" id="moe-f-errsave"> Guardar como error predeterminado</label></div>'+
    '<div class="moe-f full"><label>Detalle (opcional)</label><textarea id="moe-f-det" rows="2" placeholder="Observación adicional"></textarea></div>'+
+   '<div class="moe-f"><label>Causa probable</label><select id="moe-f-causa"><option value="">— Sin definir —</option>'+CAUSAS.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
+   '<div class="moe-f"><label>Gravedad</label><select id="moe-f-grav">'+GRAV.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
    '<div class="moe-f"><label>Área a la que se devuelve *</label><input id="moe-f-area" type="text" list="moe-dl-area" autocomplete="off" placeholder="Área" oninput="moeFillEmps();moePrev()"></div>'+
-   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" oninput="moePrev()"></div>'+
+   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" oninput="moeEmpIn();moePrev()"></div>'+
    '<div class="moe-f full"><label>Fecha y hora</label><input id="moe-f-fecha" type="datetime-local"></div>'+
    '<div class="moe-prev" id="moe-prev"></div>'+
   '</div>'+
@@ -41915,6 +41928,7 @@ function ensureModal(){
 }
 window.moeFillEmps=function(){
   var a=norm(val('moe-f-area')),seen={},out=[];
+  getEmps().forEach(function(c){var k=norm(c.n);if(seen[k]||(a&&c.a&&norm(c.a)!==a))return;seen[k]=1;out.push(c.n);});
   load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;if(a&&norm(r.area)!==a)return;seen[k]=1;out.push(r.empleado);});
   if(!out.length&&a){load().forEach(function(r){var k=norm(r.empleado);if(!k||seen[k])return;seen[k]=1;out.push(r.empleado);});}
   var dl=$('moe-dl-emp');if(dl)dl.innerHTML=out.sort().map(function(x){return '<option value="'+esc(x)+'">';}).join('');
@@ -41928,7 +41942,7 @@ function openForm(id){
   var r=id?load().filter(function(x){return x.id===id;})[0]:null;
   $('moe-dlg-t').textContent=r?'✏️ Editar devolución':'🚨 Registrar error de emergencia';
   $('moe-f-pac').value=r?r.paciente:'';$('moe-f-ord').value=r?r.orden:'';
-  moeErrSet(r?r.error:'');$('moe-f-det').value=r?(r.detalle||''):'';
+  moeErrSet(r?r.error:'');$('moe-f-det').value=r?(r.detalle||''):'';$('moe-f-causa').value=r?(r.causa||''):'';$('moe-f-grav').value=r?(r.gravedad||'Moderada'):'Moderada';
   $('moe-f-area').value=r?r.area:'';$('moe-f-emp').value=r?r.empleado:'';
   $('moe-f-fecha').value=localDT(r?new Date(r.ts):new Date());
   moeFillEmps();moePrev();
@@ -41945,20 +41959,23 @@ window.moeOpen=function(id){
 window.moeClose=function(){var b=$('moe-bg');if(b)b.classList.remove('open');editId=null;};
 window.moeSave=function(){
   var pac=val('moe-f-pac').trim(),ord=val('moe-f-ord').trim(),err=errGet(),det=val('moe-f-det').trim(),
-      area=val('moe-f-area').trim(),emp=val('moe-f-emp').trim(),f=val('moe-f-fecha');
+      area=val('moe-f-area').trim(),emp=val('moe-f-emp').trim(),f=val('moe-f-fecha'),causa=val('moe-f-causa'),grav=val('moe-f-grav');
   var miss=[];if(!pac)miss.push('nombre del paciente');if(!ord)miss.push('número de orden');if(!err)miss.push('error');if(!area)miss.push('área');if(!emp)miss.push('empleado');
   if(miss.length){toast('⚠️ Falta: '+miss.join(', '),'yellow');return;}
+  var ce=getEmps().filter(function(c){return norm(c.n)===norm(emp);})[0];
+  if(ce){emp=ce.n;}else{var EL=getEmps();EL.push({n:emp,a:area,t:''});jset(EMKEY,EL);}
   var svc=$('moe-f-errsave');
   if(svc&&svc.checked&&$('moe-f-errsel')&&$('moe-f-errsel').value==='__otro'){var LE=getErr();if(!LE.filter(function(x){return norm(x)===norm(err);}).length){LE.push(err);setErr(LE);}}
   var ts=f?new Date(f).toISOString():new Date().toISOString();
   var all=load(), savedId=editId, doPrint=!!($('moe-f-print')&&$('moe-f-print').checked);
   try{localStorage.setItem(PKEY,doPrint?'1':'0');}catch(e){}
   if(editId){
-    all.forEach(function(r){if(r.id===editId){r.paciente=pac;r.orden=ord;r.error=err;r.detalle=det;r.area=area;r.empleado=emp;r.ts=ts;}});
+    all.forEach(function(r){if(r.id===editId){var ch=[];[['paciente',pac],['orden',ord],['error',err],['detalle',det],['area',area],['empleado',emp],['causa',causa],['gravedad',grav]].forEach(function(p){if((r[p[0]]||'')!==p[1])ch.push(p[0]+': "'+(r[p[0]]||'—')+'" → "'+(p[1]||'—')+'"');});if(new Date(r.ts).toISOString()!==ts)ch.push('fecha/hora');
+      r.paciente=pac;r.orden=ord;r.error=err;r.detalle=det;r.area=area;r.empleado=emp;r.ts=ts;r.causa=causa;r.gravedad=grav;hpush(r,'Editó',ch.join('; ')||'sin cambios');}});
     audit('MONITOREO EMERGENCIA','Editó devolución orden '+ord);
   }else{
     savedId='moe_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-    all.push({id:savedId,ts:ts,paciente:pac,orden:ord,error:err,detalle:det,area:area,empleado:emp,estado:'pendiente',por:who()});
+    all.push({id:savedId,ts:ts,paciente:pac,orden:ord,error:err,detalle:det,area:area,empleado:emp,causa:causa,gravedad:grav,estado:'pendiente',por:who(),hist:[{ts:new Date().toISOString(),por:who(),acc:'Registró',det:err+' → '+emp}]});
     audit('MONITOREO EMERGENCIA','Devolvió orden '+ord+' a '+emp+' ('+area+') — '+err);
   }
   if(!save(all)){toast('❌ No se pudo guardar','red');return;}
@@ -41969,7 +41986,7 @@ window.moeSave=function(){
 };
 function toggleDo(id){
   var all=load(),msg='';
-  all.forEach(function(r){if(r.id!==id)return;if(r.estado==='corregido'){r.estado='pendiente';r.corrTs=null;msg='Reabrió (En corrección) orden '+r.orden;}else{r.estado='corregido';r.corrTs=new Date().toISOString();r.corrPor=who();msg='Marcó como corregida/recibida orden '+r.orden;}});
+  all.forEach(function(r){if(r.id!==id)return;if(r.estado==='corregido'){r.estado='pendiente';r.corrTs=null;msg='Reabrió (En corrección) orden '+r.orden;hpush(r,'Reabrió','Volvió a En corrección');}else{r.estado='corregido';r.corrTs=new Date().toISOString();r.corrPor=who();msg='Marcó como corregida/recibida orden '+r.orden;hpush(r,'Corregido','Marcado como corregida / recibida');}});
   save(all);if(msg)audit('MONITOREO EMERGENCIA',msg);moeRender();
 }
 window.moeToggle=function(id){
@@ -41980,11 +41997,11 @@ window.moeToggle=function(id){
 window.moeDel=function(id){
   if(!canDelete())return;
   var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
-  moeGuard('ELIMINAR la devolución',recDesc(r),function(){
-    save(load().filter(function(x){return x.id!==id;}));
-    audit('MONITOREO EMERGENCIA','Eliminó devolución orden '+r.orden+' ('+r.paciente+')');
-    toast('🗑️ Devolución eliminada');moeRender();
-  });
+  moeGuard('ANULAR la devolución (queda en el historial)',recDesc(r),function(mot){
+    var all=load();all.forEach(function(x){if(x.id===id){x.anulado={ts:new Date().toISOString(),por:who(),motivo:mot};hpush(x,'Anuló','Motivo: '+mot);}});save(all);
+    audit('MONITOREO EMERGENCIA','Anuló devolución orden '+r.orden+' ('+r.paciente+') — '+mot);
+    toast('🚫 Devolución anulada');moeRender();
+  },null,{motivo:true});
 };
 window.moeExport=function(){
   var cur=rangeOf(period),rows=load().filter(function(r){return inR(r,cur);}).sort(function(a,b){return new Date(a.ts)-new Date(b.ts);});
@@ -42196,21 +42213,22 @@ function gRender(){
   }else{
     h.style.background='#d32f2f';t.textContent='🔒 Confirmación 2 de 2';
     b.innerHTML='<p style="font-size:14px;margin:0 0 10px">Para <b>'+esc(GS.acc)+'</b>, escribe la contraseña de <b>'+esc(u?(u.nombre||u.username||''):'')+'</b>. La acción quedará registrada a su nombre.</p>'+
-     '<div class="moe-f"><label>Contraseña</label><input type="password" id="moe-g-pw" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')moeGNext()"></div><div id="moe-g-err" style="color:#b01030;font-size:12px;font-weight:700;min-height:16px;margin-top:6px"></div>';
+     (GS.opt&&GS.opt.motivo?'<div class="moe-f" style="margin-bottom:10px"><label>Motivo *</label><input type="text" id="moe-g-mot" autocomplete="off" placeholder="¿Por qué se anula?"></div>':'')+'<div class="moe-f"><label>Contraseña</label><input type="password" id="moe-g-pw" autocomplete="new-password" onkeydown="if(event.key===\'Enter\')moeGNext()"></div><div id="moe-g-err" style="color:#b01030;font-size:12px;font-weight:700;min-height:16px;margin-top:6px"></div>';
     go.textContent='🔒 Confirmar';
-    setTimeout(function(){var p=$('moe-g-pw');if(p)p.focus();},60);
+    setTimeout(function(){var p=$('moe-g-mot')||$('moe-g-pw');if(p)p.focus();},60);
   }
 }
 function gClose(){var b=$('moe-g-bg');if(b)b.classList.remove('open');}
-window.moeGuard=function(acc,det,ok,no){
+window.moeGuard=function(acc,det,ok,no,opt){
   if(!curUser()){toast('⚠️ Debes iniciar sesión para realizar esta acción','yellow');if(no)no();return;}
-  ensureG();GS.acc=acc;GS.det=det;GS.ok=ok;GS.no=no||null;GS.step=1;GS.tries=0;
+  ensureG();GS.acc=acc;GS.det=det;GS.ok=ok;GS.no=no||null;GS.opt=opt||null;GS.step=1;GS.tries=0;
   gRender();$('moe-g-bg').classList.add('open');
 };
 window.moeGCancel=function(){var n=GS.no;GS.ok=null;GS.no=null;gClose();if(n)n();};
 window.moeGNext=function(){
   if(GS.step===1){GS.step=2;gRender();return;}
   var p=val('moe-g-pw'),er=$('moe-g-err');
+  if(GS.opt&&GS.opt.motivo&&!val('moe-g-mot').trim()){if(er)er.textContent='Escribe el motivo';return;}
   if(!p){if(er)er.textContent='Escribe tu contraseña';return;}
   if(!passOk(p)){
     GS.tries++;
@@ -42220,8 +42238,8 @@ window.moeGNext=function(){
     var pw=$('moe-g-pw');if(pw){pw.value='';pw.focus();}
     return;
   }
-  var ok=GS.ok;GS.ok=null;GS.no=null;gClose();
-  if(ok)ok();
+  var mot=val('moe-g-mot').trim(),ok=GS.ok;GS.ok=null;GS.no=null;gClose();
+  if(ok)ok(mot);
 };
 
 /* ══════════ ESTADÍSTICA DE ERRORES (por área o empleado, con rango de fechas) ══════════ */
@@ -42261,7 +42279,7 @@ window.moeStQ=function(p,noRender){
 };
 window.moeStBy=function(){
   var by=val('moe-s-by'),seen={},out=[],prev=val('moe-s-filt');
-  load().forEach(function(r){var v=by==='area'?r.area:r.empleado,k=norm(v);if(!k||seen[k])return;seen[k]=1;out.push(v);});
+  act().forEach(function(r){var v=by==='area'?r.area:r.empleado,k=norm(v);if(!k||seen[k])return;seen[k]=1;out.push(v);});
   out.sort(function(x,y){return x.localeCompare(y,'es');});
   $('moe-s-fl').textContent=by==='area'?'Área':'Empleado';
   $('moe-s-filt').innerHTML='<option value="">'+(by==='area'?'Todas las áreas':'Todos los empleados')+'</option>'+out.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('');
@@ -42271,7 +42289,7 @@ window.moeStBy=function(){
 function stCalc(){
   var by=val('moe-s-by')||'area',fl=val('moe-s-filt'),a=val('moe-s-d1'),b=val('moe-s-d2');
   var rg={s:a?new Date(a+'T00:00:00'):null,e:b?addDays(new Date(b+'T00:00:00'),1):null};
-  var rows=load().filter(function(r){
+  var rows=act().filter(function(r){
     if(!inR(r,rg))return false;
     if(fl&&norm(by==='area'?r.area:r.empleado)!==norm(fl))return false;
     return true;
@@ -42279,25 +42297,27 @@ function stCalc(){
   var G={},EA={};
   rows.forEach(function(r){
     var lab=by==='area'?r.area:r.empleado,k=norm(lab);if(!k)return;
-    var g=G[k]=G[k]||{n:lab,area:r.area,tot:0,ok:0,pe:0,last:0,E:{},recs:[]};
-    g.recs.push(r);g.tot++;if(r.estado==='corregido')g.ok++;else g.pe++;
+    var g=G[k]=G[k]||{n:lab,area:r.area,tot:0,ok:0,pe:0,last:0,E:{},recs:[],hs:0,hn:0};
+    g.recs.push(r);g.tot++;if(r.estado==='corregido'&&r.corrTs){var hh=(new Date(r.corrTs)-new Date(r.ts))/36e5;if(hh>=0){g.hs+=hh;g.hn++;}}if(r.estado==='corregido')g.ok++;else g.pe++;
     var t=new Date(r.ts).getTime();if(t>=g.last){g.last=t;g.area=r.area;}
     var ek=norm(r.error)||'sin especificar',en=r.error||'(sin especificar)';
     (g.E[ek]=g.E[ek]||{n:en,c:0}).c++;(EA[ek]=EA[ek]||{n:en,c:0}).c++;
   });
   function srt(o){return Object.keys(o).map(function(x){return o[x];}).sort(function(x,y){return y.c-x.c||x.n.localeCompare(y.n,'es');});}
-  var list=Object.keys(G).map(function(k){var g=G[k];g.errs=srt(g.E);g.recs.sort(function(x,y){return new Date(y.ts)-new Date(x.ts);});return g;}).sort(function(x,y){return y.tot-x.tot||x.n.localeCompare(y.n,'es');});
+  var list=Object.keys(G).map(function(k){var g=G[k];g.errs=srt(g.E);g.avgH=g.hn?g.hs/g.hn:null;g.recs.sort(function(x,y){return new Date(y.ts)-new Date(x.ts);});return g;}).sort(function(x,y){return y.tot-x.tot||x.n.localeCompare(y.n,'es');});
   var ok=rows.filter(function(r){return r.estado==='corregido';}).length;
-  return {by:by,fl:fl,a:a,b:b,rows:rows,mode:stMode,list:list,errs:srt(EA),tot:rows.length,ok:ok,pe:rows.length-ok};
+  var hs=0,hn=0;rows.forEach(function(r){if(r.estado==='corregido'&&r.corrTs){var h2=(new Date(r.corrTs)-new Date(r.ts))/36e5;if(h2>=0){hs+=h2;hn++;}}});
+  function cnt(f,dflt){var m={};rows.forEach(function(r){var v=r[f]||dflt;(m[v]=m[v]||{n:v,c:0}).c++;});return srt(m);}
+  return {avgH:hn?hs/hn:null,prev:prevCnt(by,fl,a,b),cz:cnt('causa','Sin definir'),gv:cnt('gravedad','Sin definir'),by:by,fl:fl,a:a,b:b,rows:rows,mode:stMode,list:list,errs:srt(EA),tot:rows.length,ok:ok,pe:rows.length-ok};
 }
 function stBody(D,pr){
   if(!D.tot)return '<div class="moe-empty">No hay errores registrados con esos filtros.</div>';
   var isA=D.by==='area',nm=isA?'área':'empleado';
-  var h='<div class="stk"><div><b>'+D.tot+'</b>Total errores</div><div><b>'+D.ok+'</b>Corregidos</div><div><b>'+D.pe+'</b>Pendientes</div><div><b>'+D.list.length+'</b>'+(isA?'Áreas':'Empleados')+'</div></div>';
-  h+='<h4 class="sth">Resumen por '+nm+'</h4><table class="stt"><thead><tr><th>#</th><th>'+(isA?'Área':'Empleado')+'</th>'+(isA?'':'<th>Área</th>')+'<th class="c">Total</th><th class="c">Corregidos</th><th class="c">Pendientes</th><th class="c">% del total</th><th>Error más frecuente</th>'+(pr||isA?'':'<th></th>')+'</tr></thead><tbody>'+
-    D.list.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(g.n)+'</b></td>'+(isA?'':'<td>'+esc(g.area)+'</td>')+'<td class="c"><b>'+g.tot+'</b></td><td class="c">'+g.ok+'</td><td class="c">'+g.pe+'</td><td class="c">'+pcn(g.tot,D.tot)+'</td><td>'+esc(g.errs[0].n)+' ('+g.errs[0].c+')</td>'+(pr||isA?'':'<td class="c"><button class="moe-ico" title="Crear mensaje para este empleado" onclick="moeMsgOpen('+i+')">💬</button></td>')+'</tr>';}).join('')+
-    '<tr class="tot"><td></td><td><b>TOTAL</b></td>'+(isA?'':'<td></td>')+'<td class="c"><b>'+D.tot+'</b></td><td class="c">'+D.ok+'</td><td class="c">'+D.pe+'</td><td class="c">100%</td><td></td>'+(pr||isA?'':'<td></td>')+'</tr></tbody></table>';
-  h+='<h4 class="sth">Errores más frecuentes (general)</h4><table class="stt"><thead><tr><th>#</th><th>Error</th><th class="c">Cantidad</th><th class="c">%</th></tr></thead><tbody>'+
+  var h='<div class="stk"><div><b>'+D.tot+'</b>Total errores</div><div><b>'+D.ok+'</b>Corregidos</div><div><b>'+D.pe+'</b>Pendientes</div><div><b>'+D.list.length+'</b>'+(isA?'Áreas':'Empleados')+'</div><div><b>'+fmtH(D.avgH)+'</b>T. prom. corrección</div></div>';
+  h+='<h4 class="sth">Resumen por '+nm+'</h4><table class="stt"><thead><tr><th>#</th><th>'+(isA?'Área':'Empleado')+'</th>'+(isA?'':'<th>Área</th>')+'<th class="c">Total</th><th class="c">Corregidos</th><th class="c">Pendientes</th><th class="c">% del total</th><th class="c">T. prom. corr.</th><th>Error más frecuente</th>'+(pr||isA?'':'<th></th>')+'</tr></thead><tbody>'+
+    D.list.map(function(g,i){return '<tr><td>'+(i+1)+'</td><td><b>'+esc(g.n)+'</b></td>'+(isA?'':'<td>'+esc(g.area)+'</td>')+'<td class="c"><b>'+g.tot+'</b></td><td class="c">'+g.ok+'</td><td class="c">'+g.pe+'</td><td class="c">'+pcn(g.tot,D.tot)+'</td><td class="c">'+fmtH(g.avgH)+'</td><td>'+esc(g.errs[0].n)+' ('+g.errs[0].c+')</td>'+(pr||isA?'':'<td class="c"><button class="moe-ico" title="Crear mensaje para este empleado" onclick="moeMsgOpen('+i+')">💬</button></td>')+'</tr>';}).join('')+
+    '<tr class="tot"><td></td><td><b>TOTAL</b></td>'+(isA?'':'<td></td>')+'<td class="c"><b>'+D.tot+'</b></td><td class="c">'+D.ok+'</td><td class="c">'+D.pe+'</td><td class="c">100%</td><td></td><td></td>'+(pr||isA?'':'<td></td>')+'</tr></tbody></table>';
+  h+=extraSec(D);h+='<h4 class="sth">Errores más frecuentes (general)</h4><table class="stt"><thead><tr><th>#</th><th>Error</th><th class="c">Cantidad</th><th class="c">%</th></tr></thead><tbody>'+
     D.errs.map(function(e,i){return '<tr><td>'+(i+1)+'</td><td>'+esc(e.n)+'</td><td class="c"><b>'+e.c+'</b></td><td class="c">'+pcn(e.c,D.tot)+'</td></tr>';}).join('')+'</tbody></table>';
   if(D.mode==='det')h+='<h4 class="sth">Detalle de errores por '+nm+' (paciente, orden y datos de cada error)</h4>'+D.list.map(function(g){
     return '<div class="stb"><div class="stbh">'+esc(g.n)+(isA?'':' <span>· '+esc(g.area)+'</span>')+'<em>'+g.tot+' error(es)</em></div><table class="stt stl"><thead><tr><th>Fecha</th><th>N.º orden</th><th>Paciente</th><th>Error</th><th>Área</th><th>Empleado</th><th>Estado</th><th>Registrado por</th></tr></thead><tbody>'+
@@ -42327,7 +42347,7 @@ window.moeStPrint=function(){
   '.stk{display:flex;gap:10px;margin-bottom:10px}.stk div{flex:1;border:1px solid #999;border-radius:8px;text-align:center;padding:6px;font-size:11px;color:#444}.stk b{display:block;font-size:22px;color:#111}'+
   '.sth{font-size:13px;margin:14px 0 6px;text-transform:uppercase;letter-spacing:.3px}'+
   '.stt{width:100%;border-collapse:collapse;font-size:11.5px;margin-bottom:8px}.stt th{background:#e6e6e6;border:1px solid #888;padding:5px;font-size:10px;text-transform:uppercase;text-align:left}.stt td{border:1px solid #888;padding:5px}.stt .c{text-align:center}.stt tr.tot td{background:#f0f0f0}'+
-  '.stl{font-size:10px}.stl th{font-size:9px}.stdt{font-size:9px;color:#555}.stb{margin-bottom:10px}.stbh{font-weight:700;font-size:12.5px;margin-bottom:3px}.stbh span{font-weight:400;color:#555}.stbh em{font-style:normal;color:#555;font-weight:400;font-size:11px;margin-left:6px}'+
+  '.stcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stcmp{font-size:12px;margin:6px 0}.stl{font-size:10px}.stl th{font-size:9px}.stdt{font-size:9px;color:#555}.stb{margin-bottom:10px}.stbh{font-weight:700;font-size:12.5px;margin-bottom:3px}.stbh span{font-weight:400;color:#555}.stbh em{font-style:normal;color:#555;font-weight:400;font-size:11px;margin-left:6px}'+
   '.sg{display:flex;gap:18px;margin-top:22px;page-break-inside:avoid}.sg div{flex:1;font-size:11px;color:#333}.sg i{display:block;border-bottom:1px solid #333;height:26px}.ft{margin-top:14px;text-align:right;font-size:10px;color:#666}';
   var html='<!doctype html><html><head><meta charset="utf-8"><title>Estadística de errores</title><style>'+css+'</style></head><body>'+
    '<div class="hd"><div class="lbl">ESTADÍSTICA DE ERRORES — '+(isA?'POR ÁREA':'POR EMPLEADO')+' · '+(D.mode==='det'?'DETALLADO':'RESUMIDO')+'</div><div class="ttl">'+esc(D.fl||(isA?'Todas las áreas':'Todos los empleados'))+'</div><div class="sub">'+esc(rango)+'</div></div>'+
@@ -42385,7 +42405,7 @@ function buildMsg(emp,inclDet,inclHist){
     }
   }
   if(inclHist){
-    var all=load().filter(function(r){return norm(r.empleado)===norm(emp);}),tot=all.length,okH=all.filter(function(r){return r.estado==='corregido';}).length,M={};
+    var all=act().filter(function(r){return norm(r.empleado)===norm(emp);}),tot=all.length,okH=all.filter(function(r){return r.estado==='corregido';}).length,M={};
     all.forEach(function(r){var d=new Date(r.ts),k=d.getFullYear()+'-'+pad(d.getMonth()+1);M[k]=(M[k]||0)+1;});
     L.push('');L.push('📈 *Tu historial de errores*');
     L.push('• Total acumulado: *'+tot+'* ('+okH+' corregidos, '+(tot-okH)+' pendientes)');
@@ -42393,6 +42413,8 @@ function buildMsg(emp,inclDet,inclHist){
     var top=groupErr(all).slice(0,3);
     if(top.length){L.push('• Los que más se repiten:');top.forEach(function(e){L.push('   – '+e.n+' ('+e.c+')');});}
   }
+  var com=val('moe-m-com').trim(),rev=val('moe-m-rev');
+  if(com||rev){L.push('');L.push('🤝 *Compromiso*');if(com)L.push('• '+com);if(rev)L.push('• Revisaremos tu avance el *'+dstr(new Date(rev+'T00:00:00'))+'*.');}
   L.push('');L.push('Gracias por tu compromiso 🙌 Si tienes dudas o necesitas apoyo, estoy a la orden.');L.push('');
   L.push('— '+(who()||'Supervisión')+' · _Monitoreo de Emergencia_');
   return L.join('\n');
@@ -42404,6 +42426,7 @@ function ensureM(){
    '<div style="padding:16px 20px 6px;display:grid;grid-template-columns:1fr 1fr;gap:12px">'+
      '<div class="moe-f"><label>Empleado</label><select id="moe-m-emp" onchange="moeMsgBuild()"></select></div>'+
      '<div class="moe-f"><label>Período (de la estadística)</label><div id="moe-m-per" style="padding:9px 2px;font-size:14px;font-weight:700"></div></div>'+
+     '<div class="moe-f"><label>Compromiso acordado (opcional)</label><input id="moe-m-com" oninput="moeMsgBuild()" placeholder="Ej. Verificar la firma antes de entregar"></div><div class="moe-f"><label>Fecha de revisión (opcional)</label><input type="date" id="moe-m-rev" onchange="moeMsgBuild()"></div>'+
      '<label class="moe-chkl"><input type="checkbox" id="moe-m-det" onchange="moeMsgBuild()"> Incluir detalle de errores del período</label>'+
      '<label class="moe-chkl"><input type="checkbox" id="moe-m-his" onchange="moeMsgBuild()"> Incluir historial de errores</label>'+
    '</div>'+
@@ -42421,7 +42444,7 @@ window.moeMsgOpen=function(i){
   $('moe-m-emp').innerHTML=emps.map(function(x){return '<option value="'+esc(x)+'">'+esc(x)+'</option>';}).join('');
   if(typeof i==='number'&&lastD.by==='emp'&&lastD.list[i])$('moe-m-emp').value=lastD.list[i].n;
   $('moe-m-per').textContent=rangeTxt(val('moe-s-d1'),val('moe-s-d2'));
-  $('moe-m-det').checked=false;$('moe-m-his').checked=false;
+  $('moe-m-det').checked=false;$('moe-m-his').checked=false;$('moe-m-com').value='';$('moe-m-rev').value='';
   moeMsgBuild();$('moe-m-bg').classList.add('open');
 };
 window.moeMsgBuild=function(){$('moe-m-txt').value=buildMsg(val('moe-m-emp'),$('moe-m-det').checked,$('moe-m-his').checked);};
@@ -42431,15 +42454,156 @@ function copyText(s){
   if(navigator.clipboard&&navigator.clipboard.writeText)return navigator.clipboard.writeText(s).catch(function(){return copyFb(s);});
   return copyFb(s);
 }
-window.moeMsgCopy=function(){copyText(val('moe-m-txt')).then(function(){toast('📋 Mensaje copiado');});};
+window.moeMsgCopy=function(){copyText(val('moe-m-txt')).then(function(){toast('📋 Mensaje copiado');logFb('copiado');});};
 window.moeMsgWA=function(){
   var txt=val('moe-m-txt').trim();if(!txt)return;
   var enc=encodeURIComponent(txt);
   if(enc.length>6000){copyText(txt);toast('📋 Mensaje largo: se copió. Pégalo en el chat de WhatsApp','yellow');window.open('https://web.whatsapp.com/','_blank');}
-  else window.open('https://wa.me/?text='+enc,'_blank');
-  audit('MONITOREO EMERGENCIA','Preparó mensaje de WhatsApp para '+val('moe-m-emp'));
+  else{var ce2=getEmps().filter(function(c){return norm(c.n)===norm(val('moe-m-emp'));})[0],tel=ce2&&ce2.t?String(ce2.t).replace(/\D/g,''):'';if(tel.length===10)tel='1'+tel;window.open('https://wa.me/'+tel+'?text='+enc,'_blank');}
+  audit('MONITOREO EMERGENCIA','Preparó mensaje de WhatsApp para '+val('moe-m-emp'));logFb('whatsapp');
 };
-window.moeInit=function(){ensureModal();moeRender();};
+
+/* ══════════ MEJORAS: datos, alertas, gráficos, seguimiento ══════════ */
+function jget(k,d){try{var a=JSON.parse(localStorage.getItem(k)||'null');return a==null?d:a;}catch(e){return d;}}
+function jset(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+function getEmps(){var a=jget(EMKEY,[]);return Array.isArray(a)?a:[];}
+function getCfg(){var c=jget(CKEY,{})||{};return {sla:+c.sla||24,reinc:+c.reinc||3,areaMax:+c.areaMax||10};}
+function act(){return load().filter(function(r){return !r.anulado;});}
+function hpush(r,acc,det){(r.hist=r.hist||[]).push({ts:new Date().toISOString(),por:who(),acc:acc,det:det||''});}
+function fmtH(h){if(h==null)return '—';if(h<1)return Math.max(1,Math.round(h*60))+' min';if(h<48)return (Math.round(h*10)/10).toString().replace('.',',')+' h';return (Math.round(h/24*10)/10).toString().replace('.',',')+' d';}
+function gravTag(r){if(!r.gravedad)return '';var c={Leve:'#2e9d5f',Moderada:'#d98a00','Crítica':'#d32f2f'}[r.gravedad]||'#888';return ' <span class="moe-tag" style="background:'+c+';color:#fff">'+esc(r.gravedad)+'</span>';}
+function ovdTag(r){var h=(Date.now()-new Date(r.ts))/36e5;return h>getCfg().sla?'<div style="color:#d32f2f;font-weight:800;font-size:11px">⏰ Vencido hace '+fmtH(h)+'</div>':'';}
+function prevCnt(by,fl,a,b){
+  if(!a||!b)return null;
+  var s=new Date(a+'T00:00:00'),e=addDays(new Date(b+'T00:00:00'),1),L=Math.round((e-s)/864e5),ps=addDays(s,-L);
+  return act().filter(function(r){var d=new Date(r.ts);if(d<ps||d>=s)return false;if(fl&&norm(by==='area'?r.area:r.empleado)!==norm(fl))return false;return true;}).length;
+}
+function mkDlg(id,title,color,body,foot,w){
+  if($(id))return;
+  document.body.insertAdjacentHTML('beforeend','<div class="moe-bg top" id="'+id+'"><div class="moe-dlg" style="max-width:'+(w||600)+'px"><div class="moe-dlg-h" style="background:'+color+'"><h3>'+title+'</h3><button onclick="moeX(\''+id+'\')" aria-label="Cerrar">×</button></div>'+body+'<div class="moe-dlg-f">'+foot+'</div></div></div>');
+  $(id).addEventListener('mousedown',function(ev){if(ev.target===this)moeX(id);});
+}
+window.moeX=function(id){var b=$(id);if(b)b.classList.remove('open');};
+window.moeEmpIn=function(){var c=getEmps().filter(function(x){return norm(x.n)===norm(val('moe-f-emp'));})[0];if(c&&c.a&&!val('moe-f-area').trim()){$('moe-f-area').value=c.a;moePrev();}};
+
+/* Alertas */
+function renderAlerts(){
+  var el=$('moe-alerts');if(!el)return;
+  var c=getCfg(),all=act(),now=Date.now(),A=[];
+  var ov=all.filter(function(r){return r.estado!=='corregido'&&(now-new Date(r.ts))/36e5>c.sla;});
+  if(ov.length)A.push('⏰ <b>'+ov.length+'</b> expediente(s) pendiente(s) llevan más de <b>'+c.sla+' h</b> sin corregir');
+  var m={},ar={};
+  all.forEach(function(r){var d=now-new Date(r.ts);
+    if(d<=30*864e5){var k=norm(r.empleado)+'|'+norm(r.error);(m[k]=m[k]||{e:r.empleado,x:r.error,c:0}).c++;}
+    if(d<=7*864e5){var q=norm(r.area);(ar[q]=ar[q]||{n:r.area,c:0}).c++;}});
+  Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x.c>=c.reinc;}).sort(function(a,b){return b.c-a.c;}).slice(0,5).forEach(function(x){A.push('🔁 <b>'+esc(x.e)+'</b> repitió «'+esc(x.x)+'» <b>'+x.c+'</b> veces en 30 días');});
+  Object.keys(ar).map(function(k){return ar[k];}).filter(function(x){return x.c>=c.areaMax;}).forEach(function(x){A.push('🏢 Área <b>'+esc(x.n)+'</b>: <b>'+x.c+'</b> errores en los últimos 7 días');});
+  el.innerHTML=A.length?'<div class="moe-alert"><div class="moe-alert-h">🔔 Alertas ('+A.length+')</div>'+A.map(function(x){return '<div>'+x+'</div>';}).join('')+'</div>':'';
+}
+window.moeCfOpen=function(){
+  var c=getCfg();
+  mkDlg('moe-cf-bg','🔔 Configuración de alertas','#b45309','<div class="moe-gr">'+
+   '<div class="moe-f full" style="grid-column:1/-1"><label>Horas máximas para corregir (pasado ese tiempo se marca como vencido)</label><input type="number" min="1" id="moe-cf-sla"></div>'+
+   '<div class="moe-f"><label>Reincidencia: mismo error N veces en 30 días</label><input type="number" min="2" id="moe-cf-re"></div>'+
+   '<div class="moe-f"><label>Alerta de área: errores en 7 días</label><input type="number" min="2" id="moe-cf-ar"></div></div>',
+   '<button class="btn btn-secondary" onclick="moeX(\'moe-cf-bg\')">Cancelar</button><button class="moe-btn-pr" onclick="moeCfSave()">Guardar</button>',460);
+  $('moe-cf-sla').value=c.sla;$('moe-cf-re').value=c.reinc;$('moe-cf-ar').value=c.areaMax;$('moe-cf-bg').classList.add('open');
+};
+window.moeCfSave=function(){jset(CKEY,{sla:+val('moe-cf-sla')||24,reinc:+val('moe-cf-re')||3,areaMax:+val('moe-cf-ar')||10});moeX('moe-cf-bg');moeRender();toast('✅ Configuración guardada');};
+
+/* Historial de cambios / restaurar */
+window.moeHist=function(id){
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
+  mkDlg('moe-h-bg','🕘 Historial de cambios','#455a64','<div id="moe-h-body" style="padding:14px 20px;max-height:60vh;overflow:auto"></div>','<button class="moe-btn-pr" onclick="moeX(\'moe-h-bg\')">Cerrar</button>',560);
+  var H=(r.hist||[]).slice().reverse();
+  if(!r.hist||!r.hist.length)H.push({ts:r.ts,por:r.por,acc:'Registró',det:'(registro anterior al historial)'});
+  $('moe-h-body').innerHTML='<div style="font-size:13px;margin-bottom:10px"><b>'+esc(recDesc(r))+'</b></div>'+H.map(function(h){return '<div style="border-left:3px solid #4f5fd5;padding:2px 0 8px 10px;margin-bottom:6px"><div style="font-size:13px"><b>'+esc(h.acc)+'</b> · '+esc(h.por||'—')+' <span style="color:var(--muted);font-size:11px">'+fmt(h.ts)+'</span></div>'+(h.det?'<div style="font-size:12px;color:var(--muted)">'+esc(h.det)+'</div>':'')+'</div>';}).join('');
+  $('moe-h-bg').classList.add('open');
+};
+window.moeRestore=function(id){
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
+  moeGuard('RESTAURAR la devolución anulada',recDesc(r),function(){
+    var all=load();all.forEach(function(x){if(x.id===id){x.anulado=null;hpush(x,'Restauró','Volvió a estar activa');}});save(all);
+    audit('MONITOREO EMERGENCIA','Restauró devolución orden '+r.orden);toast('↩ Devolución restaurada');moeRender();
+  });
+};
+
+/* Empleados */
+var eEd=-1,eVars=[];
+function empRender(){
+  var L=getEmps(),have={};L.forEach(function(c){have[norm(c.n)]=1;});
+  $('moe-e-list').innerHTML=L.length?L.map(function(c,i){return '<div class="moe-crow"><span class="t">'+esc(c.n)+' <small style="color:var(--muted);font-weight:600">· '+esc(c.a||'sin área')+(c.t?' · 📱 '+esc(c.t):'')+'</small></span><button class="moe-ico" title="Editar" onclick="moeEmpEdit('+i+')">✏️</button><button class="moe-ico" title="Quitar" onclick="moeEmpDel('+i+')">🗑️</button></div>';}).join(''):'<div class="moe-empty">Aún no hay empleados. Agrégalos o impórtalos de los registros.</div>';
+  var seen={};eVars=[];load().forEach(function(r){var k=norm(r.empleado);if(!k||have[k]||seen[k])return;seen[k]=1;eVars.push(r.empleado);});
+  $('moe-e-var').innerHTML=(L.length&&eVars.length)?'<div style="padding:10px 18px"><b style="font-size:12px">Nombres en los registros que no están en la lista — unifícalos:</b>'+eVars.map(function(v,i){return '<div class="moe-crow" style="padding:6px 0"><span class="t">'+esc(v)+'</span><select class="moe-inp" id="moe-e-v'+i+'">'+L.map(function(c){return '<option value="'+esc(c.n)+'">'+esc(c.n)+'</option>';}).join('')+'</select><button class="moe-btn-pr" style="padding:6px 10px" onclick="moeEmpMerge('+i+')">Unificar</button></div>';}).join('')+'</div>':'';
+  moeFillEmps();
+}
+window.moeEmpOpen=function(){
+  mkDlg('moe-e-bg','👥 Lista de empleados','#1B5FA8','<div style="padding:12px 18px 4px;font-size:12px;color:var(--muted)">Al registrar un error se usa el nombre exacto de esta lista (evita duplicados) y se completa el área. El teléfono es opcional: permite abrir el WhatsApp directo con ese empleado.</div>'+
+   '<div style="padding:4px 18px 10px;display:grid;grid-template-columns:2fr 1.3fr 1.2fr auto;gap:8px"><input id="moe-e-n" class="moe-inp" placeholder="Nombre completo"><input id="moe-e-a" class="moe-inp" list="moe-dl-area" placeholder="Área"><input id="moe-e-t" class="moe-inp" placeholder="Teléfono (opc.)"><button class="moe-btn-pr" id="moe-e-ok" onclick="moeEmpSave()">➕ Agregar</button></div>'+
+   '<div class="moe-pl" id="moe-e-list"></div><div id="moe-e-var"></div>',
+   '<button class="btn btn-secondary" onclick="moeEmpImport()">⬇️ Importar de los registros</button><button class="moe-btn-pr" onclick="moeX(\'moe-e-bg\')">Listo</button>',720);
+  eEd=-1;empRender();$('moe-e-bg').classList.add('open');
+};
+function empRename(from,to,area){
+  var all=load();all.forEach(function(r){if(norm(r.empleado)===norm(from)&&r.empleado!==to){hpush(r,'Unificó nombre',from+' → '+to);r.empleado=to;if(area&&!r.area)r.area=area;}});save(all);moeRender();
+}
+window.moeEmpSave=function(){
+  var n=val('moe-e-n').trim(),a=val('moe-e-a').trim(),tl=val('moe-e-t').trim();if(!n)return;
+  var L=getEmps();if(L.some(function(c,i){return i!==eEd&&norm(c.n)===norm(n);})){toast('⚠️ Ese empleado ya está en la lista','yellow');return;}
+  if(eEd>=0){var old=L[eEd];L[eEd]={n:n,a:a,t:tl};if(old.n!==n&&confirm('¿Actualizar también los registros existentes de "'+old.n+'" a "'+n+'"?'))empRename(old.n,n,a);}
+  else L.push({n:n,a:a,t:tl});
+  jset(EMKEY,L);eEd=-1;$('moe-e-n').value='';$('moe-e-a').value='';$('moe-e-t').value='';$('moe-e-ok').textContent='➕ Agregar';empRender();
+};
+window.moeEmpEdit=function(i){var c=getEmps()[i];if(!c)return;eEd=i;$('moe-e-n').value=c.n;$('moe-e-a').value=c.a||'';$('moe-e-t').value=c.t||'';$('moe-e-ok').textContent='💾 Guardar';$('moe-e-n').focus();};
+window.moeEmpDel=function(i){var L=getEmps();if(!L[i]||!confirm('¿Quitar a "'+L[i].n+'" de la lista? Los registros no cambian.'))return;L.splice(i,1);jset(EMKEY,L);empRender();};
+window.moeEmpImport=function(){
+  var L=getEmps(),have={},add=0,last={};L.forEach(function(c){have[norm(c.n)]=1;});
+  load().forEach(function(r){var k=norm(r.empleado);if(!k)return;if(!last[k]||new Date(r.ts)>=new Date(last[k].ts))last[k]=r;});
+  Object.keys(last).forEach(function(k){if(!have[k]){L.push({n:last[k].empleado,a:last[k].area||'',t:''});add++;}});
+  jset(EMKEY,L);empRender();toast(add?'✅ Se importaron '+add+' empleado(s). Revisa duplicados y unifícalos.':'No hay empleados nuevos para importar','yellow');
+};
+window.moeEmpMerge=function(i){
+  var from=eVars[i],to=val('moe-e-v'+i),c=getEmps().filter(function(x){return x.n===to;})[0];if(!from||!c)return;
+  if(!confirm('¿Unificar "'+from+'" con "'+to+'" en todos los registros?'))return;
+  empRename(from,to,c.a);empRender();toast('✅ Nombres unificados');
+};
+
+/* Seguimiento de retroalimentación */
+function logFb(canal){
+  var F=jget(FKEY,[]);if(!Array.isArray(F))F=[];
+  F.push({id:'f'+Date.now().toString(36),ts:new Date().toISOString(),emp:val('moe-m-emp'),canal:canal,por:who(),com:val('moe-m-com').trim(),rev:val('moe-m-rev')});
+  jset(FKEY,F);
+}
+window.moeFbOpen=function(){
+  mkDlg('moe-f2-bg','📨 Seguimiento de retroalimentación','#128C7E','<div style="padding:12px 18px 4px;font-size:12px;color:var(--muted)">Cada mensaje enviado o copiado queda registrado. Se compara el número de errores del empleado en el mismo lapso <b>antes</b> y <b>después</b> del mensaje para ver si funcionó.</div><div id="moe-f2-list" style="padding:6px 18px 12px;max-height:60vh;overflow:auto"></div>','<button class="moe-btn-pr" onclick="moeX(\'moe-f2-bg\')">Cerrar</button>',760);
+  var F=(jget(FKEY,[])||[]).slice().reverse(),all=act(),now=Date.now(),today=isoD(new Date());
+  $('moe-f2-list').innerHTML=F.length?'<table class="stt"><thead><tr><th>Fecha</th><th>Empleado</th><th>Compromiso / revisión</th><th class="c">Antes → Después</th><th>Resultado</th></tr></thead><tbody>'+F.map(function(f){
+    var t0=new Date(f.ts).getTime(),days=Math.max(1,Math.min(60,Math.round((now-t0)/864e5))),sp=days*864e5,e=norm(f.emp);
+    var mine=all.filter(function(r){return norm(r.empleado)===e;}),af=0,bf=0;
+    mine.forEach(function(r){var d=new Date(r.ts).getTime();if(d>=t0&&d<t0+sp)af++;else if(d>=t0-sp&&d<t0)bf++;});
+    var res=(now-t0)<864e5?'<span style="color:var(--muted)">Muy reciente</span>':(af<bf?'<b style="color:#2e9d5f">✅ Mejoró</b>':af>bf?'<b style="color:#d32f2f">⚠️ Empeoró</b>':'<b style="color:#d98a00">➖ Sin cambio</b>');
+    var rv=f.rev?'<div style="font-size:11px;color:'+(f.rev<=today?'#d32f2f':'var(--muted)')+'">📅 Revisión: '+f.rev.split('-').reverse().join('/')+(f.rev<=today?' (toca revisar)':'')+'</div>':'';
+    return '<tr><td style="white-space:nowrap">'+fmt(f.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(f.canal)+'</div></td><td><b>'+esc(f.emp)+'</b></td><td>'+esc(f.com||'—')+rv+'</td><td class="c">'+bf+' → '+af+'<div style="font-size:10px;color:var(--muted)">'+days+' día(s)</div></td><td>'+res+'</td></tr>';}).join('')+'</tbody></table>':'<div class="moe-empty">Aún no has enviado mensajes. Se registran desde "Estadística → Mensaje al empleado".</div>';
+  $('moe-f2-bg').classList.add('open');
+};
+
+/* Gráfico de Pareto + secciones extra de la estadística */
+function pareto(errs,tot){
+  var T=errs.slice(0,8),W=560,H=200,pl=8,pb=46,bw=(W-pl-8)/T.length,mx=T[0].c,cum=0,bars='',pts=[],ph=H-pb-18;
+  T.forEach(function(e,i){var x=pl+i*bw,h=Math.max(2,ph*e.c/mx),y=H-pb-h;cum+=e.c;var cy=H-pb-ph*(cum/tot);
+    bars+='<rect x="'+(x+5)+'" y="'+y+'" width="'+(bw-10)+'" height="'+h+'" rx="3" fill="#4f5fd5"/><text x="'+(x+bw/2)+'" y="'+(y-3)+'" font-size="10" text-anchor="middle" fill="currentColor">'+e.c+'</text><text x="'+(x+bw/2)+'" y="'+(H-pb+13)+'" font-size="9" text-anchor="middle" fill="currentColor" opacity=".8">'+esc(e.n.length>15?e.n.slice(0,14)+'…':e.n)+'</text>';
+    pts.push([x+bw/2,cy,Math.round(cum/tot*100)]);});
+  return '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+W+'px;height:auto"><line x1="'+pl+'" y1="'+(H-pb)+'" x2="'+(W-4)+'" y2="'+(H-pb)+'" stroke="currentColor" opacity=".3"/>'+bars+'<polyline points="'+pts.map(function(p){return p[0]+','+p[1];}).join(' ')+'" fill="none" stroke="#d32f2f" stroke-width="2"/>'+pts.map(function(p){return '<circle cx="'+p[0]+'" cy="'+p[1]+'" r="3" fill="#d32f2f"/><text x="'+p[0]+'" y="'+(p[1]-6)+'" font-size="9" text-anchor="middle" fill="#d32f2f">'+p[2]+'%</text>';}).join('')+'</svg><div class="stcmp" style="font-size:11px">Barras = cantidad por error · Línea roja = % acumulado</div>';
+}
+function miniT(L,t){return '<table class="stt"><tbody>'+L.map(function(x){return '<tr><td>'+esc(x.n)+'</td><td class="c"><b>'+x.c+'</b></td><td class="c">'+pcn(x.c,t)+'</td></tr>';}).join('')+'</tbody></table>';}
+function extraSec(D){
+  var h='';
+  if(D.prev!==null){var d=D.tot-D.prev,p=D.prev?Math.round(d/D.prev*100):null;h+='<p class="stcmp">Comparado con el período anterior ('+D.prev+' errores): <b style="color:'+(d>0?'#d32f2f':d<0?'#2e9d5f':'inherit')+'">'+(d>0?'▲ +':d<0?'▼ ':'= ')+d+(p!==null?' ('+(d>0?'+':'')+p+'%)':'')+'</b></p>';}
+  if(D.errs.length)h+='<h4 class="sth">Pareto de errores</h4>'+pareto(D.errs,D.tot);
+  h+='<div class="stcols"><div><h4 class="sth">Por causa probable</h4>'+miniT(D.cz,D.tot)+'</div><div><h4 class="sth">Por gravedad</h4>'+miniT(D.gv,D.tot)+'</div></div>';
+  return h;
+}
+window.moeInit=function(){ensureModal();var s=$('moe-estado');if(s&&!s.querySelector('option[value="anulado"]'))s.insertAdjacentHTML('beforeend','<option value="anulado">🚫 Anulados</option>');moeRender();};
 
 /* Refresco automático cuando otro usuario guarda (Firebase actualiza localStorage) */
 setInterval(function(){
@@ -42447,7 +42611,7 @@ setInterval(function(){
   var bg=$('moe-bg');if(bg&&bg.classList.contains('open'))return;
   if((localStorage.getItem(KEY)||'')!==lastSig)moeRender();
 },4000);
-document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeMsgClose();moeStClose();}});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeMsgClose();['moe-e-bg','moe-f2-bg','moe-cf-bg','moe-h-bg'].forEach(function(x){moeX(x);});moeStClose();}});
 })();
 </script>
 

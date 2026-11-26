@@ -41915,8 +41915,8 @@ function ensureModal(){
    '<div class="moe-f full"><label>Detalle (opcional)</label><textarea id="moe-f-det" rows="2" placeholder="Observación adicional"></textarea></div>'+
    '<div class="moe-f"><label>Causa probable</label><select id="moe-f-causa"><option value="">— Sin definir —</option>'+CAUSAS.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
    '<div class="moe-f"><label>Gravedad</label><select id="moe-f-grav">'+GRAV.map(function(x){return '<option>'+x+'</option>';}).join('')+'</select></div>'+
-   '<div class="moe-f"><label>Área a la que se devuelve *</label><input id="moe-f-area" type="text" list="moe-dl-area" autocomplete="off" placeholder="Área" oninput="moeFillEmps();moePrev()"></div>'+
-   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" oninput="moeEmpIn();moePrev()"></div>'+
+   '<div class="moe-f"><label>Área a la que se devuelve *</label><input id="moe-f-area" type="text" list="moe-dl-area" autocomplete="off" placeholder="Área" onfocus="this.select()" oninput="moeFillEmps();moePrev()"></div>'+
+   '<div class="moe-f"><label>Empleado al que se devuelve *</label><input id="moe-f-emp" type="text" list="moe-dl-emp" autocomplete="off" placeholder="Nombre del empleado" onfocus="this.select()" oninput="moeEmpIn();moePrev()"></div>'+
    '<div class="moe-f full"><label>Fecha y hora</label><input id="moe-f-fecha" type="datetime-local"></div>'+
    '<div class="moe-prev" id="moe-prev"></div>'+
   '</div>'+
@@ -42515,10 +42515,19 @@ window.moeCfSave=function(){jset(CKEY,{sla:+val('moe-cf-sla')||24,reinc:+val('mo
 window.moeHist=function(id){
   var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
   mkDlg('moe-h-bg','🕘 Historial de cambios','#455a64','<div id="moe-h-body" style="padding:14px 20px;max-height:60vh;overflow:auto"></div>','<button class="moe-btn-pr" onclick="moeX(\'moe-h-bg\')">Cerrar</button>',560);
-  var H=(r.hist||[]).slice().reverse();
+  var H=(r.hist||[]).map(function(h,i){h._i=i;return h;}).reverse();
   if(!r.hist||!r.hist.length)H.push({ts:r.ts,por:r.por,acc:'Registró',det:'(registro anterior al historial)'});
-  $('moe-h-body').innerHTML='<div style="font-size:13px;margin-bottom:10px"><b>'+esc(recDesc(r))+'</b></div>'+H.map(function(h){return '<div style="border-left:3px solid #4f5fd5;padding:2px 0 8px 10px;margin-bottom:6px"><div style="font-size:13px"><b>'+esc(h.acc)+'</b> · '+esc(h.por||'—')+' <span style="color:var(--muted);font-size:11px">'+fmt(h.ts)+'</span></div>'+(h.det?'<div style="font-size:12px;color:var(--muted)">'+esc(h.det)+'</div>':'')+'</div>';}).join('');
+  $('moe-h-body').innerHTML='<div style="font-size:13px;margin-bottom:10px"><b>'+esc(recDesc(r))+'</b></div>'+H.map(function(h){return '<div style="border-left:3px solid #4f5fd5;padding:2px 0 8px 10px;margin-bottom:6px"><div style="font-size:13px"><b>'+esc(h.acc)+'</b> · '+esc(h.por||'—')+' <span style="color:var(--muted);font-size:11px">'+fmt(h.ts)+'</span></div>'+(h.det?'<div style="font-size:12px;color:var(--muted)">'+esc(h.det)+'</div>':'')+(h.acc==='Unificó nombre'?'<button class="btn btn-secondary" style="margin-top:4px;padding:4px 10px;font-size:12px" onclick="moeUndoName(\''+r.id+'\','+h._i+')">↩ Volver al empleado anterior</button>':'')+'</div>';}).join('');
   $('moe-h-bg').classList.add('open');
+};
+window.moeUndoName=function(id,idx){
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r||!r.hist||!r.hist[idx])return;
+  var from=String(r.hist[idx].det||'').split(' → ')[0];if(!from)return;
+  moeGuard('VOLVER el empleado a «'+from+'»',recDesc(r),function(){
+    var E=getEmps();if(!E.some(function(c){return norm(c.n)===norm(from);})){E.push({n:from,a:r.area||'',t:''});jset(EMKEY,E);}
+    var all=load();all.forEach(function(x){if(x.id===id){hpush(x,'Corrigió empleado',x.empleado+' → '+from);x.empleado=from;}});save(all);
+    moeX('moe-h-bg');moeRender();toast('↩ Empleado restaurado: '+from);
+  });
 };
 window.moeRestore=function(id){
   var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
@@ -42534,7 +42543,7 @@ function empRender(){
   var L=getEmps(),have={};L.forEach(function(c){have[norm(c.n)]=1;});
   $('moe-e-list').innerHTML=L.length?L.map(function(c,i){return '<div class="moe-crow"><span class="t">'+esc(c.n)+' <small style="color:var(--muted);font-weight:600">· '+esc(c.a||'sin área')+(c.t?' · 📱 '+esc(c.t):'')+'</small></span><button class="moe-ico" title="Editar" onclick="moeEmpEdit('+i+')">✏️</button><button class="moe-ico" title="Quitar" onclick="moeEmpDel('+i+')">🗑️</button></div>';}).join(''):'<div class="moe-empty">Aún no hay empleados. Agrégalos o impórtalos de los registros.</div>';
   var seen={};eVars=[];load().forEach(function(r){var k=norm(r.empleado);if(!k||have[k]||seen[k])return;seen[k]=1;eVars.push(r.empleado);});
-  $('moe-e-var').innerHTML=(L.length&&eVars.length)?'<div style="padding:10px 18px"><b style="font-size:12px">Nombres en los registros que no están en la lista — unifícalos:</b>'+eVars.map(function(v,i){return '<div class="moe-crow" style="padding:6px 0"><span class="t">'+esc(v)+'</span><select class="moe-inp" id="moe-e-v'+i+'">'+L.map(function(c){return '<option value="'+esc(c.n)+'">'+esc(c.n)+'</option>';}).join('')+'</select><button class="moe-btn-pr" style="padding:6px 10px" onclick="moeEmpMerge('+i+')">Unificar</button></div>';}).join('')+'</div>':'';
+  $('moe-e-var').innerHTML=(L.length&&eVars.length)?'<div style="padding:10px 18px"><b style="font-size:12px">Nombres en los registros que no están en la lista — unifícalos:</b>'+eVars.map(function(v,i){return '<div class="moe-crow" style="padding:6px 0"><span class="t">'+esc(v)+'</span><select class="moe-inp" id="moe-e-v'+i+'"><option value="">— Elegir empleado —</option>'+L.map(function(c){return '<option value="'+esc(c.n)+'">'+esc(c.n)+'</option>';}).join('')+'</select><button class="moe-btn-pr" style="padding:6px 10px" onclick="moeEmpMerge('+i+')">Unificar</button></div>';}).join('')+'</div>':'';
   moeFillEmps();
 }
 window.moeEmpOpen=function(){
@@ -42563,8 +42572,11 @@ window.moeEmpImport=function(){
   jset(EMKEY,L);empRender();toast(add?'✅ Se importaron '+add+' empleado(s). Revisa duplicados y unifícalos.':'No hay empleados nuevos para importar','yellow');
 };
 window.moeEmpMerge=function(i){
-  var from=eVars[i],to=val('moe-e-v'+i),c=getEmps().filter(function(x){return x.n===to;})[0];if(!from||!c)return;
-  if(!confirm('¿Unificar "'+from+'" con "'+to+'" en todos los registros?'))return;
+  var from=eVars[i],to=val('moe-e-v'+i),c=getEmps().filter(function(x){return x.n===to;})[0];
+  if(!to){toast('⚠️ Elige primero con qué empleado unificar','yellow');return;}
+  if(!from||!c)return;
+  var nrec=load().filter(function(r){return norm(r.empleado)===norm(from);}).length;
+  if(!confirm('Se cambiarán '+nrec+' registro(s) de "'+from+'" a "'+to+'".\n\n¿Continuar? (Puedes deshacerlo registro por registro desde el 🕘 historial.)'))return;
   empRename(from,to,c.a);empRender();toast('✅ Nombres unificados');
 };
 

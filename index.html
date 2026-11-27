@@ -14403,6 +14403,32 @@ Sigue estas reglas:
   .moe-alert{background:#fff4e0;border:1px solid #f0c36d;color:#7a4a00;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:grid;gap:4px}
   .moe-alert-h{font-weight:800;font-size:13px}
   .moe-alert-h2{font-weight:800;margin-top:6px}
+  /* ===== Diseño limpio ===== */
+  #page-monitoreo-emergencia .moe-head{margin-bottom:10px;align-items:center}
+  #page-monitoreo-emergencia .moe-tabs{margin-bottom:10px;position:relative}
+  .moe-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--surface);border:1px solid var(--border);border-radius:10px;box-shadow:0 12px 32px rgba(0,0,0,.22);min-width:230px;z-index:60;padding:6px}
+  .moe-menu.open{display:block}
+  .moe-menu button{display:block;width:100%;text-align:left;background:none;border:none;padding:9px 12px;border-radius:6px;font-size:13px;font-weight:700;color:var(--text);cursor:pointer;font-family:'Nunito',sans-serif}
+  .moe-menu button:hover{background:var(--surface2)}
+  .moe-alchip{background:#fff4e0;border:1px solid #f0c36d;color:#7a4a00;border-radius:20px;padding:7px 14px;font-weight:800;font-size:13px;cursor:pointer;font-family:'Nunito',sans-serif}
+  .moe-alert-pop{position:absolute;right:0;top:calc(100% + 6px);width:min(780px,92vw);z-index:60;box-shadow:0 12px 40px rgba(0,0,0,.28);border-radius:10px;max-height:70vh;overflow:auto}
+  .moe-alert-pop .moe-alert{margin-bottom:0}
+  #page-monitoreo-emergencia .moe-kpis{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:10px}
+  #page-monitoreo-emergencia .moe-kpi{padding:8px 14px;border-radius:8px}
+  #page-monitoreo-emergencia .moe-kpi .v{font-size:20px}
+  #page-monitoreo-emergencia .moe-kpi .v.sm{font-size:14px;line-height:1.25}
+  #page-monitoreo-emergencia .moe-kpi .l{font-size:10px;margin-top:1px}
+  #page-monitoreo-emergencia .moe-nav{margin-bottom:8px;padding:2px 0}
+  #page-monitoreo-emergencia .moe-navb{padding:7px 14px}
+  #page-monitoreo-emergencia .moe-card h3{padding:10px 16px}
+  #page-monitoreo-emergencia .moe-tools{padding:10px 16px;align-items:center}
+  #page-monitoreo-emergencia .moe-tools input[type=text]{flex:1 1 280px;width:auto;min-width:200px}
+  #page-monitoreo-emergencia .moe-tools select{width:auto;min-width:210px}
+  #page-monitoreo-emergencia .moe-tools button{white-space:nowrap;padding:8px 14px;font-size:13px}
+  #moe-list{max-height:calc(100vh - 230px);min-height:300px;overflow:auto}
+  #moe-list .moe-tbl thead th{position:sticky;top:0;background:var(--surface);z-index:2;box-shadow:0 1px 0 var(--border)}
+  .moe-card.moe-full{position:fixed;inset:0;z-index:8990;border-radius:0;margin:0;display:flex;flex-direction:column}
+  .moe-card.moe-full #moe-list{flex:1;max-height:none;min-height:0}
   .moe-alert .it{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #f0c36d}
   .moe-alink{cursor:pointer;color:#fff;background:#d97706;border-radius:6px;padding:4px 10px;font-weight:800;font-size:12px;white-space:nowrap}
   .moe-alink:hover{background:#b45309}
@@ -14420,17 +14446,21 @@ Sigue estas reglas:
   <div class="moe-head">
     <div>
       <h2>🚨 Monitoreo de Emergencia</h2>
-      <p>Registro de expedientes devueltos para corrección y métricas por empleado, área y período.</p>
     </div>
     <div style="display:flex;gap:10px;flex-wrap:wrap">
       <button class="moe-btn-err" onclick="moeOpen()">🚨 Error de emergencia</button>
       <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px" onclick="moePrintDlg()">🖨️ Imprimir comprobantes</button>
-      <button class="btn btn-secondary" onclick="moeEmpOpen()">👥 Empleados</button>
-      <button class="btn btn-secondary" onclick="moeFbOpen()">📨 Seguimientos</button>
-      <button class="btn btn-secondary" onclick="moeCfOpen()">🔔 Alertas</button>
       <button class="moe-btn-pr" style="padding:11px 18px;font-size:14px;background:#4f5fd5" onclick="moeStOpen()">📊 Estadística de errores</button>
-      <button class="btn btn-secondary" onclick="moeCatOpen()">⚙️ Errores predeterminados</button>
-      <button class="btn btn-secondary" onclick="moeExport()">⬇️ Exportar CSV</button>
+      <div style="position:relative">
+        <button class="btn btn-secondary" style="padding:11px 16px;font-size:14px" onclick="moeMenu(event)">⋯ Más</button>
+        <div class="moe-menu" id="moe-menu">
+          <button onclick="moeMenu();moeEmpOpen()">👥 Lista de empleados</button>
+          <button onclick="moeMenu();moeFbOpen()">📨 Seguimientos</button>
+          <button onclick="moeMenu();moeCfOpen()">🔔 Configurar alertas</button>
+          <button onclick="moeMenu();moeCatOpen()">⚙️ Errores predeterminados</button>
+          <button onclick="moeMenu();moeExport()">⬇️ Exportar CSV</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -14443,9 +14473,9 @@ Sigue estas reglas:
     <span id="moe-rango-box" style="display:none;align-items:center;gap:6px;font-size:12px;color:var(--muted)">
       Desde <input type="date" id="moe-desde" onchange="moeRender()"> hasta <input type="date" id="moe-hasta" onchange="moeRender()">
     </span>
+    <div id="moe-alerts" style="margin-left:auto;position:relative"></div>
   </div>
 
-  <div id="moe-alerts"></div>
   <div class="moe-kpis" id="moe-kpis"></div>
 
   <!-- Botones para acceder a cada sección -->
@@ -14458,8 +14488,8 @@ Sigue estas reglas:
   </div>
 
   <div class="moe-panel active" id="moe-pv-lista">
-    <div class="moe-card">
-      <h3>📋 Expedientes devueltos <small id="moe-list-sub"></small></h3>
+    <div class="moe-card" id="moe-card-lista">
+      <h3><span>📋 Expedientes devueltos <small id="moe-list-sub"></small></span><button class="moe-tab" id="moe-full-btn" style="padding:5px 14px" onclick="moeListFull()">⛶ Ampliar lista</button></h3>
     <div class="moe-tools">
       <input type="text" id="moe-q" placeholder="Buscar paciente, orden, error, área o empleado…" oninput="moeRender()">
       <select id="moe-estado" onchange="moeRender()">
@@ -41883,8 +41913,8 @@ window.moeRender=function(){
       if(r.anulado)return '<tr style="opacity:.7"><td class="c0"></td><td style="white-space:nowrap">'+fmt(r.ts)+'</td><td><s>'+esc(r.paciente)+'</s></td><td><s>'+esc(r.orden)+'</s></td><td>'+esc(r.error)+'</td><td>'+esc(r.empleado)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.area)+'</div></td><td colspan="2"><span class="moe-tag dev">🚫 Anulado</span><div style="font-size:11px;color:var(--muted)">'+esc(r.anulado.por||'')+' · '+esc(r.anulado.motivo||'')+'</div></td><td style="white-space:nowrap"><button class="moe-ico" title="Historial" onclick="moeHist(\''+r.id+'\')">🕘</button>'+(canDelete()?'<button class="moe-ico" title="Restaurar" onclick="moeRestore(\''+r.id+'\')">↩</button>':'')+'</td></tr>';
       return '<tr id="moe-row-'+r.id+'" class="'+(sel[r.id]?'sel':'')+'"><td class="c0"><input type="checkbox" class="moe-chk" '+(sel[r.id]?'checked ':'')+'onchange="moeSelOne(\''+r.id+'\',this.checked)"></td><td style="white-space:nowrap">'+fmt(r.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.por||'')+'</div></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.orden)+'</td>'+
         '<td>'+esc(r.error)+gravTag(r)+(r.detalle?'<div style="font-size:11px;color:var(--muted)">'+esc(r.detalle)+'</div>':'')+'</td>'+
-        '<td><span class="moe-tag dev">↩ Devuelto para corrección para '+esc(r.empleado)+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">Área: '+esc(r.area)+'</div></td>'+
-        '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span>'+ovdTag(r)+'<div style="font-size:11px;color:var(--muted)">pendiente por entregar</div>')+'</td>'+
+        '<td><span class="moe-tag dev">↩ '+esc(r.empleado)+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">Área: '+esc(r.area)+'</div></td>'+
+        '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span>'+ovdTag(r)+'')+'</td>'+
         '<td class="n"><label title="Marcar como recibida / corregida" style="cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-size:12px"><input type="checkbox" class="moe-chk" '+(ok?'checked ':'')+'onchange="moeToggle(\''+r.id+'\')"> '+(ok?'Sí':'No')+'</label></td><td style="white-space:nowrap"><button class="moe-ico" title="Historial de cambios" onclick="moeHist(\''+r.id+'\')">🕘</button><button class="moe-ico" title="Imprimir comprobante" onclick="moePrint([\''+r.id+'\'])">🖨️</button><button class="moe-ico" title="'+(ok?'Reabrir':'Marcar como corregido')+'" onclick="moeToggle(\''+r.id+'\')">'+(ok?'↩':'✔')+'</button><button class="moe-ico" title="Editar" onclick="moeOpen(\''+r.id+'\')">✏️</button>'+(canDelete()?'<button class="moe-ico" title="Anular (queda en el historial)" onclick="moeDel(\''+r.id+'\')">🚫</button>':'')+'</td></tr>';
     }).join('')+'</tbody></table>':'<div class="moe-empty">No hay registros para mostrar.</div>';
   lastSig=localStorage.getItem(KEY)||'';
@@ -42514,6 +42544,19 @@ window.moeEmpIn=function(){var c=getEmps().filter(function(x){return norm(x.n)==
 
 /* Alertas */
 var alertQ=[];
+window.moeMenu=function(ev){if(ev&&ev.stopPropagation)ev.stopPropagation();var m=$('moe-menu');if(m)m.classList.toggle('open');};
+window.moeListFull=function(on){
+  var c=$('moe-card-lista'),b=$('moe-full-btn');if(!c)return;
+  var v=(typeof on==='boolean')?on:!c.classList.contains('moe-full');
+  c.classList.toggle('moe-full',v);if(b)b.textContent=v?'✕ Cerrar vista ampliada':'⛶ Ampliar lista';
+};
+document.addEventListener('mousedown',function(ev){
+  var m=$('moe-menu');if(m&&m.classList.contains('open')&&!m.parentNode.contains(ev.target))m.classList.remove('open');
+  if(alertsOpen){var al=$('moe-alerts');if(al&&!al.contains(ev.target))alertsSet(false);}
+});
+var alertsOpen=(function(){try{return sessionStorage.getItem('moe_al_open')==='1';}catch(e){return true;}})();
+function alertsSet(v){alertsOpen=v;try{sessionStorage.setItem('moe_al_open',v?'1':'0');}catch(e){}renderAlerts();}
+window.moeAlertToggle=function(){alertsSet(!alertsOpen);};
 function renderAlerts(){
   var el=$('moe-alerts');if(!el)return;
   var c=getCfg(),all=act(),now=Date.now(),H=[],n=0;alertQ=[];
@@ -42531,13 +42574,13 @@ function renderAlerts(){
   if(re.length){n+=re.length;H.push('<div class="moe-alert-h2">🔁 Errores que se repiten (últimos 30 días)</div>');re.forEach(function(x){H.push('<div class="it"><span><b>'+esc(x.e)+'</b> repitió «'+esc(x.x)+'» <b>'+x.c+'</b> veces</span><a class="moe-alink" onclick="moeGoto(\''+x.id+'\')">Ver el último →</a></div>');});}
   var ars=Object.keys(ar).map(function(k){return ar[k];}).filter(function(x){return x.c>=c.areaMax;});
   if(ars.length){n+=ars.length;H.push('<div class="moe-alert-h2">🏢 Áreas con muchos errores (últimos 7 días)</div>');ars.forEach(function(x){alertQ.push({q:x.n,p:'semana'});H.push('<div class="it"><span>Área <b>'+esc(x.n)+'</b>: <b>'+x.c+'</b> errores</span><a class="moe-alink" onclick="moeAlertQ('+(alertQ.length-1)+')">Ver registros →</a></div>');});}
-  el.innerHTML=n?'<div class="moe-alert"><div class="moe-alert-h">🔔 Alertas ('+n+')</div>'+H.join('')+'</div>':'';
+  el.innerHTML=n?'<button class="moe-alchip" onclick="moeAlertToggle()">🔔 Alertas <b>'+n+'</b> '+(alertsOpen?'▲':'▼')+'</button>'+(alertsOpen?'<div class="moe-alert-pop"><div class="moe-alert">'+H.join('')+'</div></div>':''):'';
 }
 function jumpList(){var s=$('moe-list-sub');if(s&&s.scrollIntoView)s.scrollIntoView({behavior:'smooth',block:'start'});}
-window.moeAlertQ=function(i){var a=alertQ[i];if(!a)return;$('moe-estado').value='';$('moe-q').value=a.q;moeSetPeriod(a.p);setTimeout(jumpList,80);};
+window.moeAlertQ=function(i){var a=alertQ[i];if(!a)return;alertsSet(false);$('moe-estado').value='';$('moe-q').value=a.q;moeSetPeriod(a.p);setTimeout(jumpList,80);};
 window.moeGoto=function(id){
   var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
-  $('moe-q').value='';$('moe-estado').value='';moeSetPeriod('todo');
+  alertsSet(false);$('moe-q').value='';$('moe-estado').value='';moeSetPeriod('todo');
   setTimeout(function(){var el=$('moe-row-'+id);if(!el){toast('No se encontró el expediente en la lista','yellow');return;}
     el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('moe-flash');setTimeout(function(){el.classList.remove('moe-flash');},4500);},80);
 };
@@ -42664,7 +42707,7 @@ setInterval(function(){
   var bg=$('moe-bg');if(bg&&bg.classList.contains('open'))return;
   if((localStorage.getItem(KEY)||'')!==lastSig)moeRender();
 },4000);
-document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeCatClose();moeMsgClose();['moe-e-bg','moe-f2-bg','moe-cf-bg','moe-h-bg'].forEach(function(x){moeX(x);});moeStClose();}});
+document.addEventListener('keydown',function(ev){if(ev.key==='Escape'){var gb=$('moe-g-bg');if(gb&&gb.classList.contains('open')){moeGCancel();return;}moeClose();moePDClose();moeListFull(false);moeCatClose();moeMsgClose();['moe-e-bg','moe-f2-bg','moe-cf-bg','moe-h-bg'].forEach(function(x){moeX(x);});moeStClose();}});
 })();
 </script>
 

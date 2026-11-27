@@ -14402,6 +14402,12 @@ Sigue estas reglas:
   .moe-chkl input{width:17px;height:17px;accent-color:#25D366;cursor:pointer}
   .moe-alert{background:#fff4e0;border:1px solid #f0c36d;color:#7a4a00;border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:grid;gap:4px}
   .moe-alert-h{font-weight:800;font-size:13px}
+  .moe-alert-h2{font-weight:800;margin-top:6px}
+  .moe-alert .it{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px dashed #f0c36d}
+  .moe-alink{cursor:pointer;color:#fff;background:#d97706;border-radius:6px;padding:4px 10px;font-weight:800;font-size:12px;white-space:nowrap}
+  .moe-alink:hover{background:#b45309}
+  @keyframes moeflash{0%,100%{background:transparent}30%,70%{background:#ffd666}}
+  .moe-tbl tr.moe-flash td{animation:moeflash 1.2s ease 3}
   .stcols{display:grid;grid-template-columns:1fr 1fr;gap:14px}.stcmp{font-size:13px;margin:8px 0}
   #moe-s-bg{padding:0;align-items:stretch}
   #moe-s-bg .moe-dlg{width:100vw;max-width:100vw;height:100vh;max-height:100vh;border-radius:0;display:flex;flex-direction:column;overflow:hidden}
@@ -41875,7 +41881,7 @@ window.moeRender=function(){
     lst.map(function(r){
       var ok=r.estado==='corregido';
       if(r.anulado)return '<tr style="opacity:.7"><td class="c0"></td><td style="white-space:nowrap">'+fmt(r.ts)+'</td><td><s>'+esc(r.paciente)+'</s></td><td><s>'+esc(r.orden)+'</s></td><td>'+esc(r.error)+'</td><td>'+esc(r.empleado)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.area)+'</div></td><td colspan="2"><span class="moe-tag dev">🚫 Anulado</span><div style="font-size:11px;color:var(--muted)">'+esc(r.anulado.por||'')+' · '+esc(r.anulado.motivo||'')+'</div></td><td style="white-space:nowrap"><button class="moe-ico" title="Historial" onclick="moeHist(\''+r.id+'\')">🕘</button>'+(canDelete()?'<button class="moe-ico" title="Restaurar" onclick="moeRestore(\''+r.id+'\')">↩</button>':'')+'</td></tr>';
-      return '<tr class="'+(sel[r.id]?'sel':'')+'"><td class="c0"><input type="checkbox" class="moe-chk" '+(sel[r.id]?'checked ':'')+'onchange="moeSelOne(\''+r.id+'\',this.checked)"></td><td style="white-space:nowrap">'+fmt(r.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.por||'')+'</div></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.orden)+'</td>'+
+      return '<tr id="moe-row-'+r.id+'" class="'+(sel[r.id]?'sel':'')+'"><td class="c0"><input type="checkbox" class="moe-chk" '+(sel[r.id]?'checked ':'')+'onchange="moeSelOne(\''+r.id+'\',this.checked)"></td><td style="white-space:nowrap">'+fmt(r.ts)+'<div style="font-size:11px;color:var(--muted)">'+esc(r.por||'')+'</div></td><td><b>'+esc(r.paciente)+'</b></td><td>'+esc(r.orden)+'</td>'+
         '<td>'+esc(r.error)+gravTag(r)+(r.detalle?'<div style="font-size:11px;color:var(--muted)">'+esc(r.detalle)+'</div>':'')+'</td>'+
         '<td><span class="moe-tag dev">↩ Devuelto para corrección para '+esc(r.empleado)+'</span><div style="font-size:11px;color:var(--muted);margin-top:2px">Área: '+esc(r.area)+'</div></td>'+
         '<td>'+(ok?'<span class="moe-tag ok">✔ Corregido</span><div style="font-size:11px;color:var(--muted)">'+(r.corrTs?fmt(r.corrTs):'')+'</div>':'<span class="moe-tag dev">En corrección</span>'+ovdTag(r)+'<div style="font-size:11px;color:var(--muted)">pendiente por entregar</div>')+'</td>'+
@@ -42102,12 +42108,12 @@ window.moePrint=function(ids){
   var n=rows.length,corr=rows.filter(function(r){return r.estado==='corregido';}).length,pend=n-corr;
   var tr=rows.map(function(r){
     var ok=r.estado==='corregido';
-    return '<tr><td class="dt">'+fmtD(r.ts)+'</td><td class="b">'+esc(r.orden)+'</td><td class="b">'+esc(r.paciente)+'</td><td>'+esc(r.error)+(r.detalle?'<div class="det">'+esc(r.detalle)+'</div>':'')+'</td><td class="b">'+esc(r.empleado)+'</td><td class="st '+(ok?'ok':'pe')+'">'+(ok?'✔ Corregida':'✎ En corrección')+'<div class="sm">'+(ok?(r.corrTs?fmt(r.corrTs):''):'pendiente por entregar')+'</div></td><td class="rc"><span class="bx">'+(ok?'✔':'')+'</span></td></tr>';
+    return '<tr><td class="dt">'+fmtD(r.ts)+'</td><td class="b">'+esc(r.orden)+'</td><td class="b">'+esc(r.paciente)+'</td><td>'+esc(r.error)+(r.detalle?'<div class="det">'+esc(r.detalle)+'</div>':'')+'</td><td class="b">'+esc(r.empleado)+'</td></tr>';
   }).join('');
   var pages='<section class="pg"><div class="hd"><div class="lbl">ERROR A CORREGIR POR '+esc(areas.join(' / ').toUpperCase())+'</div><div class="ttl">'+emps.map(esc).join(' &nbsp;|&nbsp; ')+'</div></div>'+
     '<div class="meta"><div><b>EEMonitoreo — Errores Internos</b><br><span>Emergencias seleccionadas para entregar · '+n+' seleccionadas</span></div><div class="r">Impreso: '+nowS+'<br>Total: <b>'+n+'</b> registros</div></div>'+
     '<div class="kp"><div><b>'+n+'</b>Total registros</div><div><b>'+pend+'</b>En corrección<br>(pendientes por entregar)</div><div><b>'+corr+'</b>Corregidas</div></div>'+
-    '<table><thead><tr><th>Fecha</th><th>N.º orden</th><th>Nombre del paciente</th><th>Error a corregir</th><th>Enviado a</th><th>Estado</th><th>Recibida</th></tr></thead><tbody>'+tr+'</tbody></table>'+
+    '<table><thead><tr><th>Fecha</th><th>N.º orden</th><th>Nombre del paciente</th><th>Error a corregir</th><th>Enviado a</th></tr></thead><tbody>'+tr+'</tbody></table>'+
     '<div class="sg"><div>Entregado por: <b>'+esc(who())+'</b><i></i></div><div>Recibido por (firma)<i></i></div><div>Fecha de corrección<i></i></div></div>'+
     '<div class="ft">EEMonitoreo — Departamento de Emergencia · Generado: '+nowS+'</div></section>';
   var css='@page{size:letter;margin:12mm}*{box-sizing:border-box;-webkit-print-color-adjust:exact;print-color-adjust:exact}body{font-family:Arial,Helvetica,sans-serif;color:#111;margin:0;font-size:12px}'+
@@ -42507,19 +42513,34 @@ window.moeX=function(id){var b=$(id);if(b)b.classList.remove('open');};
 window.moeEmpIn=function(){var c=getEmps().filter(function(x){return norm(x.n)===norm(val('moe-f-emp'));})[0];if(c&&c.a&&!val('moe-f-area').trim()){$('moe-f-area').value=c.a;moePrev();}};
 
 /* Alertas */
+var alertQ=[];
 function renderAlerts(){
   var el=$('moe-alerts');if(!el)return;
-  var c=getCfg(),all=act(),now=Date.now(),A=[];
-  var ov=all.filter(function(r){return r.estado!=='corregido'&&(now-new Date(r.ts))/36e5>c.sla;});
-  if(ov.length)A.push('⏰ <b>'+ov.length+'</b> expediente(s) pendiente(s) llevan más de <b>'+c.sla+' h</b> sin corregir');
+  var c=getCfg(),all=act(),now=Date.now(),H=[],n=0;alertQ=[];
+  var ov=all.filter(function(r){return r.estado!=='corregido'&&(now-new Date(r.ts))/36e5>c.sla;}).sort(function(a,b){return new Date(a.ts)-new Date(b.ts);});
+  if(ov.length){
+    n+=ov.length;H.push('<div class="moe-alert-h2">⏰ '+ov.length+' expediente(s) pendiente(s) con más de '+c.sla+' h sin corregir</div>');
+    ov.slice(0,10).forEach(function(r){H.push('<div class="it"><span>Orden <b>'+esc(r.orden)+'</b> · '+esc(r.paciente)+' · devuelto a <b>'+esc(r.empleado)+'</b> <span style="opacity:.75">('+esc(r.area)+')</span> · '+esc(r.error)+' — vencido hace <b>'+fmtH((now-new Date(r.ts))/36e5)+'</b></span><a class="moe-alink" onclick="moeGoto(\''+r.id+'\')">Ver y corregir →</a></div>');});
+    if(ov.length>10)H.push('<div class="it" style="opacity:.85">… y '+(ov.length-10)+' más. Usa el filtro "En corrección" en la lista.</div>');
+  }
   var m={},ar={};
   all.forEach(function(r){var d=now-new Date(r.ts);
-    if(d<=30*864e5){var k=norm(r.empleado)+'|'+norm(r.error);(m[k]=m[k]||{e:r.empleado,x:r.error,c:0}).c++;}
+    if(d<=30*864e5){var k=norm(r.empleado)+'|'+norm(r.error),o=m[k]=m[k]||{e:r.empleado,x:r.error,c:0,id:r.id,ts:0};o.c++;if(new Date(r.ts)>=o.ts){o.ts=+new Date(r.ts);o.id=r.id;}}
     if(d<=7*864e5){var q=norm(r.area);(ar[q]=ar[q]||{n:r.area,c:0}).c++;}});
-  Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x.c>=c.reinc;}).sort(function(a,b){return b.c-a.c;}).slice(0,5).forEach(function(x){A.push('🔁 <b>'+esc(x.e)+'</b> repitió «'+esc(x.x)+'» <b>'+x.c+'</b> veces en 30 días');});
-  Object.keys(ar).map(function(k){return ar[k];}).filter(function(x){return x.c>=c.areaMax;}).forEach(function(x){A.push('🏢 Área <b>'+esc(x.n)+'</b>: <b>'+x.c+'</b> errores en los últimos 7 días');});
-  el.innerHTML=A.length?'<div class="moe-alert"><div class="moe-alert-h">🔔 Alertas ('+A.length+')</div>'+A.map(function(x){return '<div>'+x+'</div>';}).join('')+'</div>':'';
+  var re=Object.keys(m).map(function(k){return m[k];}).filter(function(x){return x.c>=c.reinc;}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+  if(re.length){n+=re.length;H.push('<div class="moe-alert-h2">🔁 Errores que se repiten (últimos 30 días)</div>');re.forEach(function(x){H.push('<div class="it"><span><b>'+esc(x.e)+'</b> repitió «'+esc(x.x)+'» <b>'+x.c+'</b> veces</span><a class="moe-alink" onclick="moeGoto(\''+x.id+'\')">Ver el último →</a></div>');});}
+  var ars=Object.keys(ar).map(function(k){return ar[k];}).filter(function(x){return x.c>=c.areaMax;});
+  if(ars.length){n+=ars.length;H.push('<div class="moe-alert-h2">🏢 Áreas con muchos errores (últimos 7 días)</div>');ars.forEach(function(x){alertQ.push({q:x.n,p:'semana'});H.push('<div class="it"><span>Área <b>'+esc(x.n)+'</b>: <b>'+x.c+'</b> errores</span><a class="moe-alink" onclick="moeAlertQ('+(alertQ.length-1)+')">Ver registros →</a></div>');});}
+  el.innerHTML=n?'<div class="moe-alert"><div class="moe-alert-h">🔔 Alertas ('+n+')</div>'+H.join('')+'</div>':'';
 }
+function jumpList(){var s=$('moe-list-sub');if(s&&s.scrollIntoView)s.scrollIntoView({behavior:'smooth',block:'start'});}
+window.moeAlertQ=function(i){var a=alertQ[i];if(!a)return;$('moe-estado').value='';$('moe-q').value=a.q;moeSetPeriod(a.p);setTimeout(jumpList,80);};
+window.moeGoto=function(id){
+  var r=load().filter(function(x){return x.id===id;})[0];if(!r)return;
+  $('moe-q').value='';$('moe-estado').value='';moeSetPeriod('todo');
+  setTimeout(function(){var el=$('moe-row-'+id);if(!el){toast('No se encontró el expediente en la lista','yellow');return;}
+    el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('moe-flash');setTimeout(function(){el.classList.remove('moe-flash');},4500);},80);
+};
 window.moeCfOpen=function(){
   var c=getCfg();
   mkDlg('moe-cf-bg','🔔 Configuración de alertas','#b45309','<div class="moe-gr">'+
